@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Codex Pet Desktop</title>
+    <link rel="stylesheet" href="./renderer.css" />
+  </head>
+  <body>
+    <main id="stage" aria-label="Desktop pet">
+      <div id="pet" role="img" aria-label="Desktop pet"></div>
+      <section id="panel" class="panel hidden" aria-label="Pet controls">
+        <div class="panel-row">
+          <label for="petSelect">Pet</label>
+          <select id="petSelect"></select>
+        </div>
+        <div class="panel-row">
+          <label for="stateSelect">State</label>
+          <select id="stateSelect"></select>
+        </div>
+        <div class="panel-row">
+          <label for="scaleRange">Scale</label>
+          <input id="scaleRange" type="range" min="0.6" max="1.8" step="0.1" value="0.6" />
+        </div>
+        <label class="check-row">
+          <input id="wanderToggle" type="checkbox" checked />
+          <span>Auto wander</span>
+        </label>
+        <label class="check-row">
+          <input id="topToggle" type="checkbox" checked />
+          <span>Always on top</span>
+        </label>
+        <button id="quitButton" type="button">Quit</button>
+      </section>
+    </main>
+    <script src="./renderer.js"></script>
+  </body>
+</html>

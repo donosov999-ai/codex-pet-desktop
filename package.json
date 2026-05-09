@@ -1,0 +1,59 @@
+{
+  "name": "codex-pet-desktop",
+  "version": "0.1.0",
+  "description": "Standalone desktop pet app compatible with Codex custom pet spritesheets.",
+  "license": "MIT",
+  "author": "jieyangxchen",
+  "homepage": "https://github.com/jieyangxchen/codex-pet-desktop#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jieyangxchen/codex-pet-desktop.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jieyangxchen/codex-pet-desktop/issues"
+  },
+  "keywords": [
+    "desktop-pet",
+    "electron",
+    "codex-pet",
+    "spritesheet",
+    "windows"
+  ],
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "smoke": "node src/smoke.js",
+    "pack:win": "electron-builder --win dir --x64",
+    "dist:win": "electron-builder --win portable --x64",
+    "pack:mac": "electron-builder --mac dir"
+  },
+  "build": {
+    "appId": "com.local.codexpetdesktop",
+    "productName": "Codex Pet Desktop",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/pets",
+        "to": "pets"
+      }
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ]
+    },
+    "mac": {
+      "category": "public.app-category.utilities"
+    }
+  },
+  "devDependencies": {
+    "electron": "^37.2.6",
+    "electron-builder": "^24.13.3"
+  }
+}
