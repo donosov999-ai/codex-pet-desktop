@@ -53,7 +53,7 @@ node scripts/build-variant.js cats build
 node scripts/build-variant.js tigris build
 ```
 
-`docs/release-workflow.yml` 提供了 GitHub Actions 发布模板。把它复制到 `.github/workflows/release.yml` 后，推送 `v*` tag 会自动构建两个安装包并发布到 Releases。
+GitHub Actions 会在推送 `v*` tag 时自动构建两个安装包并发布到 Releases。
 
 Electron 旧打包脚本仍可用，但不再是推荐路线。
 
