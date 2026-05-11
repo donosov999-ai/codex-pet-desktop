@@ -1,5 +1,5 @@
 use serde::Serialize;
-use tauri::{AppHandle, Manager, PhysicalPosition, Runtime, WebviewWindow};
+use tauri::{AppHandle, Manager, PhysicalPosition, Runtime, Size, WebviewWindow};
 
 const EDGE_VISIBILITY_PX: i32 = 48;
 
@@ -130,6 +130,11 @@ pub(crate) fn reset_window_position<R: Runtime>(
 
 pub(crate) fn position_initial_window<R: Runtime>(app: &AppHandle<R>) -> Result<(), String> {
     let window = main_window(app)?;
+    let _ = window.set_decorations(false);
+    let _ = window.set_shadow(false);
+    let _ = window.set_resizable(false);
+    let _ = window.set_always_on_top(true);
+    let _ = window.set_size(Size::Physical(tauri::PhysicalSize::new(320u32, 340u32)));
     reset_window_position(&window)?;
     window.show().map_err(|error| error.to_string())?;
     window

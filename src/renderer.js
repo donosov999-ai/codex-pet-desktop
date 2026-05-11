@@ -23,6 +23,7 @@ const topToggle = document.querySelector("#topToggle");
 const quitButton = document.querySelector("#quitButton");
 
 const tauriInvoke = window.__TAURI__?.core?.invoke;
+const tauriConvertFileSrc = window.__TAURI__?.core?.convertFileSrc;
 const petDesktop =
   window.petDesktop ||
   (tauriInvoke
@@ -36,6 +37,16 @@ const petDesktop =
         quit: () => tauriInvoke("quit")
       }
     : null);
+
+function resolveSpritesheetSource(pet) {
+  if (!pet) {
+    return "";
+  }
+  if (typeof tauriConvertFileSrc === "function" && pet.spritesheetPath) {
+    return tauriConvertFileSrc(pet.spritesheetPath);
+  }
+  return pet.spritesheetUrl || "";
+}
 
 let pets = [];
 let activePet = null;
@@ -112,9 +123,12 @@ function pickPet(id) {
   if (!activePet) {
     petEl.style.backgroundImage = "";
     petEl.setAttribute("aria-label", "No pet found");
+    petEl.textContent = "No pet resource";
     return;
   }
-  petEl.style.backgroundImage = `url("${activePet.spritesheetUrl}")`;
+  const source = resolveSpritesheetSource(activePet);
+  petEl.style.backgroundImage = source ? `url("${source}")` : "";
+  petEl.textContent = "";
   petEl.setAttribute("aria-label", activePet.displayName);
   petSelect.value = activePet.id;
   setState("idle");
@@ -300,6 +314,9 @@ async function init() {
   topToggle.checked = Boolean(windowState.alwaysOnTop);
   const result = await petDesktop.listPets();
   pets = result.pets;
+  if (!pets.length) {
+    throw new Error("No bundled pet found. Please reinstall or import pet resources.");
+  }
   renderPetOptions();
   pickPet(pets[0]?.id);
   petDesktop.setIgnoreMouseEvents(true);
