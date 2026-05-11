@@ -14,6 +14,10 @@ function getBundledPetsDir() {
     : path.join(__dirname, "..", "resources", "pets");
 }
 
+function getAssetPath(fileName) {
+  return path.join(__dirname, "assets", fileName);
+}
+
 function getPetData() {
   const roots = defaultPetRoots({
     app,
@@ -27,17 +31,10 @@ function getPetData() {
 }
 
 function createTrayIcon() {
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-      <rect width="32" height="32" rx="7" fill="#20242b"/>
-      <path d="M8 18c0-5 3-9 8-9 5 0 8 4 8 9 0 4-3 7-8 7s-8-3-8-7z" fill="#b38351"/>
-      <path d="M11 10 8 6l1 6M21 10l3-4-1 6" fill="#7a5639"/>
-      <path d="M12 15c2-2 6-2 8 0" stroke="#2b211a" stroke-width="2" fill="none" stroke-linecap="round"/>
-      <circle cx="12" cy="17" r="1.5" fill="#111"/>
-      <circle cx="20" cy="17" r="1.5" fill="#111"/>
-      <path d="M14 21c1.5 1 2.5 1 4 0" stroke="#111" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-    </svg>`;
-  return nativeImage.createFromDataURL(`data:image/svg+xml,${encodeURIComponent(svg)}`);
+  const iconFile = process.platform === "win32" ? "app-icon.ico" : "tray-icon.png";
+  const icon = nativeImage.createFromPath(getAssetPath(iconFile));
+  icon.setTemplateImage(false);
+  return icon;
 }
 
 function setMouseEventsIgnored(ignored) {

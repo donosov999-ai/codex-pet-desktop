@@ -11,7 +11,7 @@
 - Windows 下默认不进任务栏，使用系统托盘图标控制显示、隐藏、重置位置、置顶和退出。
 - 支持拖动桌宠到屏幕边缘和角落，窗口只保留最小可见区域避免完全拖丢。
 - 支持单击招手、双击跳跃、自动游走、右键控制面板。
-- 内置一只虎斑色惠比特示例宠物 `Tigris`。
+- 内置两只猫咪宠物：全白猫 `米粉` 和深色长毛虎斑猫 `米酒`。
 - 可加载外部宠物目录，兼容 Codex 自定义宠物包。
 
 ## 交互
@@ -77,9 +77,9 @@ my-pet/
 
 ```json
 {
-  "id": "tigris-whippet",
-  "displayName": "Tigris",
-  "description": "A slim brindle whippet with quiet sprint energy.",
+  "id": "mi-fen",
+  "displayName": "米粉",
+  "description": "米粉，一只全白猫咪，常态趴着待机。",
   "spritesheetPath": "spritesheet.webp"
 }
 ```

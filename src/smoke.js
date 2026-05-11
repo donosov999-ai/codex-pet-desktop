@@ -1,16 +1,16 @@
 const path = require("node:path");
-const { defaultPetRoots, listPets } = require("./pets");
+const { listPets } = require("./pets");
 const { EDGE_VISIBILITY_PX, looseWindowLimits } = require("./windowBounds");
 
 const projectRoot = path.resolve(__dirname, "..");
-const roots = defaultPetRoots({
-  bundledPetsDir: path.join(projectRoot, "resources", "pets")
-});
+const roots = [path.join(projectRoot, "resources", "pets")];
 const result = listPets(roots);
-const tigris = result.pets.find((pet) => pet.id === "tigris-whippet");
+const bundledPets = new Map(result.pets.map((pet) => [pet.id, pet]));
+const requiredPets = ["mi-fen", "mi-jiu"];
+const missingPets = requiredPets.filter((id) => !bundledPets.has(id));
 
-if (!tigris) {
-  console.error(JSON.stringify({ ok: false, roots, result }, null, 2));
+if (missingPets.length > 0) {
+  console.error(JSON.stringify({ ok: false, roots, missingPets, result }, null, 2));
   process.exit(1);
 }
 
@@ -29,11 +29,14 @@ console.log(
       ok: true,
       roots,
       petCount: result.pets.length,
-      firstPet: {
-        id: tigris.id,
-        displayName: tigris.displayName,
-        spritesheetPath: tigris.spritesheetPath
-      },
+      pets: requiredPets.map((id) => {
+        const pet = bundledPets.get(id);
+        return {
+          id: pet.id,
+          displayName: pet.displayName,
+          spritesheetPath: pet.spritesheetPath
+        };
+      }),
       movement: {
         edgeVisibilityPx: EDGE_VISIBILITY_PX,
         limitsFor1920x1080: movementLimits
