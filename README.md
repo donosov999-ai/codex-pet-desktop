@@ -29,10 +29,14 @@
 
 ## 下载
 
-推荐从 GitHub Releases 下载。每个版本会提供两个 Windows 安装包：
+推荐从 GitHub Releases 下载。每个版本会提供 Windows 和 macOS 安装包：
 
 - `codex-pet-desktop-cats-windows-x64.exe`：内置 `米粉` 和 `米酒`。
 - `codex-pet-desktop-tigris-windows-x64.exe`：内置 `Tigris` 惠比特。
+- `codex-pet-desktop-cats-macos-arm64.dmg`：内置 `米粉` 和 `米酒`，适合 Apple Silicon Mac。
+- `codex-pet-desktop-cats-macos-x64.dmg`：内置 `米粉` 和 `米酒`，适合 Intel Mac。
+- `codex-pet-desktop-tigris-macos-arm64.dmg`：内置 `Tigris` 惠比特，适合 Apple Silicon Mac。
+- `codex-pet-desktop-tigris-macos-x64.dmg`：内置 `Tigris` 惠比特，适合 Intel Mac。
 
 ## 安装与运行
 
@@ -59,7 +63,12 @@ Electron 旧打包脚本仍可用，但不再是推荐路线。
 
 ## Mac 打包
 
-Tauri 支持 Mac 打包，但当前优先验证 Windows。Mac 透明窗口可能需要额外启用平台私有 API。
+macOS 打包建议在 macOS 环境或 GitHub Actions 中执行：
+
+```bash
+node scripts/build-variant.js cats build macos-arm64
+node scripts/build-variant.js tigris build macos-arm64
+```
 
 ## 宠物资源格式
 

@@ -19,17 +19,48 @@ const variants = Object.freeze({
 
 const variantName = process.argv[2];
 const target = process.argv[3] || "build";
+const platform = process.argv[4] || process.env.PET_DESKTOP_PLATFORM || process.platform;
 const variant = variants[variantName];
 
 if (!variant) {
-  console.error(`Usage: node scripts/build-variant.js <${Object.keys(variants).join("|")}> [dev|build]`);
+  console.error(
+    `Usage: node scripts/build-variant.js <${Object.keys(variants).join("|")}> [dev|build|prepare] [windows|macos]`
+  );
   process.exit(1);
+}
+
+function bundleTargetsForPlatform(value) {
+  if (value === "windows" || value === "win32") {
+    return ["nsis"];
+  }
+  if (value === "macos" || value === "macos-arm64" || value === "macos-x64" || value === "darwin") {
+    return ["dmg"];
+  }
+  return process.platform === "darwin" ? ["dmg"] : ["nsis"];
+}
+
+function buildTargetForPlatform(value) {
+  if (value === "macos-arm64") {
+    return "aarch64-apple-darwin";
+  }
+  if (value === "macos-x64") {
+    return "x86_64-apple-darwin";
+  }
+  return null;
+}
+
+function releaseBundleDirForTarget(tauriRoot, buildTarget) {
+  if (buildTarget) {
+    return path.join(tauriRoot, "target", buildTarget, "release", "bundle");
+  }
+  return path.join(tauriRoot, "target", "release", "bundle");
 }
 
 const root = path.resolve(__dirname, "..");
 const tauriDir = path.join(root, "src-tauri");
 const generatedResources = path.join(tauriDir, "generated", variantName, "pets");
 const configPath = path.join(tauriDir, `tauri.${variantName}.conf.json`);
+const buildTarget = buildTargetForPlatform(platform);
 
 fs.rmSync(generatedResources, { recursive: true, force: true });
 fs.mkdirSync(generatedResources, { recursive: true });
@@ -56,6 +87,7 @@ const config = {
   },
   app: {
     withGlobalTauri: true,
+    macOSPrivateApi: true,
     windows: [
       {
         label: "main",
@@ -84,7 +116,7 @@ const config = {
   },
   bundle: {
     active: true,
-    targets: ["nsis"],
+    targets: bundleTargetsForPlatform(platform),
     icon: ["icons/icon.png", "icons/icon.ico"],
     resources: {
       [`generated/${variantName}/pets`]: "pets"
@@ -99,7 +131,14 @@ if (target === "prepare") {
   process.exit(0);
 }
 
-const cargoArgs = target === "dev" ? ["run"] : ["tauri", "build", "--config", configPath];
+if (target === "build") {
+  fs.rmSync(releaseBundleDirForTarget(tauriDir, buildTarget), { recursive: true, force: true });
+}
+
+const cargoArgs =
+  target === "dev"
+    ? ["run"]
+    : ["tauri", "build", "--config", configPath, ...(buildTarget ? ["--target", buildTarget] : [])];
 const command = target === "dev" ? "cargo" : "cargo";
 const result = spawnSync(command, cargoArgs, {
   cwd: tauriDir,

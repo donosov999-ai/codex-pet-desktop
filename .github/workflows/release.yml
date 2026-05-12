@@ -49,7 +49,7 @@ jobs:
           }
 
       - name: Build ${{ matrix.variant }}
-        run: node scripts/build-variant.js ${{ matrix.variant }} build
+        run: node scripts/build-variant.js ${{ matrix.variant }} build windows
 
       - name: Rename installers
         shell: pwsh
@@ -64,8 +64,67 @@ jobs:
           name: codex-pet-desktop-${{ matrix.variant }}-windows-x64
           path: release-assets/*.exe
 
+  build-macos:
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [cats, tigris]
+        include:
+          - arch: x64
+            runner: macos-13
+            target: x86_64-apple-darwin
+          - arch: arm64
+            runner: macos-latest
+            target: aarch64-apple-darwin
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache Cargo registry and git
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cargo/bin/cargo-tauri
+            src-tauri/target/${{ matrix.target }}
+          key: cargo-macos-${{ matrix.arch }}-${{ matrix.variant }}-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: |
+            cargo-macos-${{ matrix.arch }}-${{ matrix.variant }}-
+            cargo-macos-
+
+      - name: Install Tauri CLI
+        run: |
+          if command -v cargo-tauri >/dev/null 2>&1; then
+            cargo tauri --version
+          else
+            cargo install tauri-cli --version "^2"
+          fi
+
+      - name: Build ${{ matrix.variant }}
+        run: node scripts/build-variant.js ${{ matrix.variant }} build macos-${{ matrix.arch }}
+
+      - name: Rename installers
+        run: |
+          mkdir -p release-assets
+          cp src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg "release-assets/codex-pet-desktop-${{ matrix.variant }}-macos-${{ matrix.arch }}.dmg"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: codex-pet-desktop-${{ matrix.variant }}-macos-${{ matrix.arch }}
+          path: release-assets/*.dmg
+
   publish:
-    needs: build-windows
+    needs: [build-windows, build-macos]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
 
@@ -77,9 +136,15 @@ jobs:
 
       - uses: softprops/action-gh-release@v2
         with:
-          files: release-assets/*.exe
+          files: |
+            release-assets/*.exe
+            release-assets/*.dmg
           body: |
-            Choose the Windows build you want:
+            Choose the build you want:
 
             - `codex-pet-desktop-cats-windows-x64.exe`: 米粉 + 米酒
             - `codex-pet-desktop-tigris-windows-x64.exe`: Tigris Whippet
+            - `codex-pet-desktop-cats-macos-arm64.dmg`: 米粉 + 米酒
+            - `codex-pet-desktop-cats-macos-x64.dmg`: 米粉 + 米酒
+            - `codex-pet-desktop-tigris-macos-arm64.dmg`: Tigris Whippet
+            - `codex-pet-desktop-tigris-macos-x64.dmg`: Tigris Whippet
