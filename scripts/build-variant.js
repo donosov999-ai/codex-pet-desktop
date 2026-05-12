@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 
-const variants = {
+const variants = Object.freeze({
   cats: {
     productName: "Codex Pet Desktop Cats",
     pets: ["mi-fen", "mi-jiu"],
@@ -15,7 +15,7 @@ const variants = {
     pets: ["tigris-whippet"],
     outName: "codex-pet-desktop-tigris"
   }
-};
+});
 
 const variantName = process.argv[2];
 const target = process.argv[3] || "build";
@@ -37,6 +37,10 @@ fs.mkdirSync(generatedResources, { recursive: true });
 for (const petId of variant.pets) {
   const source = path.join(root, "resources", "pets", petId);
   const destination = path.join(generatedResources, petId);
+  if (!fs.existsSync(source)) {
+    console.error(`Missing pet resource: ${source}`);
+    process.exit(1);
+  }
   fs.cpSync(source, destination, { recursive: true });
 }
 
@@ -90,6 +94,10 @@ const config = {
 };
 
 fs.writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
+
+if (target === "prepare") {
+  process.exit(0);
+}
 
 const cargoArgs = target === "dev" ? ["run"] : ["tauri", "build", "--config", configPath];
 const command = target === "dev" ? "cargo" : "cargo";

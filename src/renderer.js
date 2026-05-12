@@ -37,6 +37,7 @@ const petDesktop =
         quit: () => tauriInvoke("quit")
       }
     : null);
+const isTauriRuntime = Boolean(tauriInvoke);
 
 function resolveSpritesheetSource(pet) {
   if (!pet) {
@@ -62,6 +63,13 @@ let wanderTimer = 0;
 let wanderDirection = 0;
 let wanderUntil = 0;
 
+function setMousePassthrough(ignored) {
+  if (isTauriRuntime) {
+    return;
+  }
+  petDesktop?.setIgnoreMouseEvents(ignored);
+}
+
 function isInteractiveTarget(target) {
   return Boolean(target?.closest?.("#pet, #panel, #panelBackdrop"));
 }
@@ -72,7 +80,7 @@ function updateMousePassthrough(event) {
     return;
   }
   pointerInsideInteractiveArea = shouldReceiveMouse;
-  petDesktop?.setIgnoreMouseEvents(!shouldReceiveMouse);
+  setMousePassthrough(!shouldReceiveMouse);
 }
 
 function stopWander() {
@@ -192,7 +200,7 @@ function wanderLoop(now) {
 function setPanelVisible(show) {
   panelEl.classList.toggle("hidden", !show);
   panelBackdropEl.classList.toggle("hidden", !show);
-  petDesktop?.setIgnoreMouseEvents(false);
+  setMousePassthrough(false);
 }
 
 function togglePanel(show = panelEl.classList.contains("hidden")) {
@@ -208,7 +216,7 @@ petEl.addEventListener("pointerdown", (event) => {
   pointerInsideInteractiveArea = true;
   dragLastScreenX = event.screenX;
   dragLastScreenY = event.screenY;
-  petDesktop?.setIgnoreMouseEvents(false);
+  setMousePassthrough(false);
   petEl.setPointerCapture?.(event.pointerId);
 });
 
@@ -265,7 +273,7 @@ panelBackdropEl.addEventListener("pointerdown", () => {
   if (!dragging) {
     setPanelVisible(false);
     pointerInsideInteractiveArea = false;
-    petDesktop?.setIgnoreMouseEvents(true);
+    setMousePassthrough(true);
   }
 });
 
@@ -273,7 +281,7 @@ window.addEventListener("blur", () => {
   if (!dragging) {
     setPanelVisible(false);
     pointerInsideInteractiveArea = false;
-    petDesktop?.setIgnoreMouseEvents(true);
+    setMousePassthrough(true);
   }
 });
 
@@ -281,15 +289,15 @@ document.addEventListener("mousemove", updateMousePassthrough);
 document.addEventListener("mouseleave", () => {
   if (!dragging && panelEl.classList.contains("hidden")) {
     pointerInsideInteractiveArea = false;
-    petDesktop?.setIgnoreMouseEvents(true);
+    setMousePassthrough(true);
   }
 });
 
-panelEl.addEventListener("pointerenter", () => petDesktop?.setIgnoreMouseEvents(false));
+panelEl.addEventListener("pointerenter", () => setMousePassthrough(false));
 panelEl.addEventListener("pointerleave", () => {
   if (!dragging) {
     pointerInsideInteractiveArea = false;
-    petDesktop?.setIgnoreMouseEvents(true);
+    setMousePassthrough(true);
   }
 });
 
@@ -319,7 +327,7 @@ async function init() {
   }
   renderPetOptions();
   pickPet(pets[0]?.id);
-  petDesktop.setIgnoreMouseEvents(true);
+  setMousePassthrough(true);
   requestAnimationFrame(animationLoop);
   requestAnimationFrame(wanderLoop);
   scheduleWander();

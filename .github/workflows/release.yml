@@ -26,8 +26,27 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      - name: Cache Cargo registry and git
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            ~/.cargo/bin/cargo-tauri.exe
+            src-tauri/target
+          key: cargo-windows-${{ matrix.variant }}-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: |
+            cargo-windows-${{ matrix.variant }}-
+            cargo-windows-
+
       - name: Install Tauri CLI
-        run: cargo install tauri-cli --version "^2"
+        shell: pwsh
+        run: |
+          if (Get-Command cargo-tauri -ErrorAction SilentlyContinue) {
+            cargo tauri --version
+          } else {
+            cargo install tauri-cli --version "^2"
+          }
 
       - name: Build ${{ matrix.variant }}
         run: node scripts/build-variant.js ${{ matrix.variant }} build

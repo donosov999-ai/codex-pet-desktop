@@ -137,9 +137,6 @@ pub(crate) fn position_initial_window<R: Runtime>(app: &AppHandle<R>) -> Result<
     let _ = window.set_size(Size::Physical(tauri::PhysicalSize::new(320u32, 340u32)));
     reset_window_position(&window)?;
     window.show().map_err(|error| error.to_string())?;
-    window
-        .set_ignore_cursor_events(true)
-        .map_err(|error| error.to_string())?;
     Ok(())
 }
 

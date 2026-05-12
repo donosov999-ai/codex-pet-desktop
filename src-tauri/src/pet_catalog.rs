@@ -115,6 +115,7 @@ fn find_pet_packages(root: &Path) -> Result<Vec<PathBuf>, String> {
         }
     }
 
+    packages.sort();
     Ok(packages)
 }
 
@@ -188,7 +189,6 @@ fn list_pet_packages_from_roots(roots: Vec<PathBuf>) -> PetList {
         }
     }
 
-    pets.sort_by(|a, b| a.display_name.cmp(&b.display_name));
     PetList {
         roots: roots
             .iter()
@@ -274,5 +274,33 @@ mod tests {
         assert_eq!(list.pets[0].id, "good");
         assert_eq!(list.errors.len(), 1);
         assert!(list.errors[0].error.contains("Missing spritesheet"));
+    }
+
+    #[test]
+    fn keeps_earlier_roots_before_later_roots_when_display_names_sort_differently() {
+        let bundled_root = temp_root();
+        let external_root = temp_root();
+        let bundled_pet = bundled_root.join("mi-fen");
+        let external_pet = external_root.join("tigris-whippet");
+        fs::create_dir_all(&bundled_pet).expect("create bundled pet");
+        fs::create_dir_all(&external_pet).expect("create external pet");
+        fs::write(bundled_pet.join("spritesheet.webp"), b"webp").expect("write bundled sprite");
+        fs::write(external_pet.join("spritesheet.webp"), b"webp").expect("write external sprite");
+        fs::write(
+            bundled_pet.join("pet.json"),
+            r#"{"id":"mi-fen","displayName":"米粉"}"#,
+        )
+        .expect("write bundled manifest");
+        fs::write(
+            external_pet.join("pet.json"),
+            r#"{"id":"tigris-whippet","displayName":"Tigris Whippet"}"#,
+        )
+        .expect("write external manifest");
+
+        let list = list_pet_packages_from_roots(vec![bundled_root, external_root]);
+
+        assert_eq!(list.pets.len(), 2);
+        assert_eq!(list.pets[0].id, "mi-fen");
+        assert_eq!(list.pets[1].id, "tigris-whippet");
     }
 }
