@@ -72,7 +72,7 @@ jobs:
         include:
           - variant: cats
             arch: x64
-            runner: macos-13
+            runner: macos-15-intel
             target: x86_64-apple-darwin
           - variant: cats
             arch: arm64
@@ -80,7 +80,7 @@ jobs:
             target: aarch64-apple-darwin
           - variant: tigris
             arch: x64
-            runner: macos-13
+            runner: macos-15-intel
             target: x86_64-apple-darwin
           - variant: tigris
             arch: arm64
