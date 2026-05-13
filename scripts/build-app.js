@@ -4,30 +4,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
 
-const variants = Object.freeze({
-  cats: {
-    productName: "Codex Pet Desktop Cats",
-    pets: ["mi-fen", "mi-jiu"],
-    outName: "codex-pet-desktop-cats"
-  },
-  tigris: {
-    productName: "Codex Pet Desktop Tigris",
-    pets: ["tigris-whippet"],
-    outName: "codex-pet-desktop-tigris"
-  }
-});
-
-const variantName = process.argv[2];
-const target = process.argv[3] || "build";
-const platform = process.argv[4] || process.env.PET_DESKTOP_PLATFORM || process.platform;
-const variant = variants[variantName];
-
-if (!variant) {
-  console.error(
-    `Usage: node scripts/build-variant.js <${Object.keys(variants).join("|")}> [dev|build|prepare] [windows|macos]`
-  );
-  process.exit(1);
-}
+const target = process.argv[2] || "build";
+const platform = process.argv[3] || process.env.PET_DESKTOP_PLATFORM || process.platform;
 
 function bundleTargetsForPlatform(value) {
   if (value === "windows" || value === "win32") {
@@ -58,28 +36,14 @@ function releaseBundleDirForTarget(tauriRoot, buildTarget) {
 
 const root = path.resolve(__dirname, "..");
 const tauriDir = path.join(root, "src-tauri");
-const generatedResources = path.join(tauriDir, "generated", variantName, "pets");
-const configPath = path.join(tauriDir, `tauri.${variantName}.conf.json`);
+const configPath = path.join(tauriDir, "tauri.generated.conf.json");
 const buildTarget = buildTargetForPlatform(platform);
-
-fs.rmSync(generatedResources, { recursive: true, force: true });
-fs.mkdirSync(generatedResources, { recursive: true });
-
-for (const petId of variant.pets) {
-  const source = path.join(root, "resources", "pets", petId);
-  const destination = path.join(generatedResources, petId);
-  if (!fs.existsSync(source)) {
-    console.error(`Missing pet resource: ${source}`);
-    process.exit(1);
-  }
-  fs.cpSync(source, destination, { recursive: true });
-}
 
 const config = {
   $schema: "https://schema.tauri.app/config/2",
-  productName: variant.productName,
+  productName: "Codex Pet Desktop",
   version: "0.1.0",
-  identifier: `com.local.codexpetdesktop.${variantName}`,
+  identifier: "com.local.codexpetdesktop",
   build: {
     frontendDist: "../src",
     beforeDevCommand: "",
@@ -91,7 +55,7 @@ const config = {
     windows: [
       {
         label: "main",
-        title: variant.productName,
+        title: "Codex Pet Desktop",
         url: "renderer.html",
         width: 320,
         height: 340,
@@ -118,9 +82,7 @@ const config = {
     active: true,
     targets: bundleTargetsForPlatform(platform),
     icon: ["icons/icon.png", "icons/icon.ico"],
-    resources: {
-      [`generated/${variantName}/pets`]: "pets"
-    },
+    resources: {},
     windows: {}
   }
 };
@@ -139,14 +101,10 @@ const cargoArgs =
   target === "dev"
     ? ["run"]
     : ["tauri", "build", "--config", configPath, ...(buildTarget ? ["--target", buildTarget] : [])];
-const command = target === "dev" ? "cargo" : "cargo";
-const result = spawnSync(command, cargoArgs, {
+
+const result = spawnSync("cargo", cargoArgs, {
   cwd: tauriDir,
-  stdio: "inherit",
-  env: {
-    ...process.env,
-    CODEX_PET_VARIANT: variantName
-  }
+  stdio: "inherit"
 });
 
 process.exit(result.status ?? 1);

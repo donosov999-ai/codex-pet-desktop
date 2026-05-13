@@ -45,8 +45,34 @@ body {
   pointer-events: auto;
 }
 
+#pet.empty {
+  display: none;
+}
+
 #pet:active {
   cursor: grabbing;
+}
+
+.empty-state {
+  width: 230px;
+  padding: 14px;
+  display: grid;
+  gap: 8px;
+  color: var(--text);
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.28);
+  pointer-events: auto;
+}
+
+.empty-state strong {
+  font-size: 14px;
+}
+
+.empty-state span {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .panel-backdrop {

@@ -17,13 +17,18 @@
         margin: 0;
       }
       main {
-        max-width: 840px;
+        max-width: 920px;
         margin: 0 auto;
         padding: 48px 20px;
       }
       h1 {
         margin: 0 0 12px;
         font-size: 32px;
+        letter-spacing: 0;
+      }
+      h2 {
+        margin: 0 0 10px;
+        font-size: 21px;
         letter-spacing: 0;
       }
       p {
@@ -34,7 +39,10 @@
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
         gap: 16px;
-        margin-top: 28px;
+        margin-top: 24px;
+      }
+      .section {
+        margin-top: 34px;
       }
       .download {
         padding: 20px;
@@ -42,9 +50,9 @@
         border-radius: 8px;
         background: #ffffff;
       }
-      .download h2 {
+      .download h3 {
         margin: 0 0 8px;
-        font-size: 20px;
+        font-size: 18px;
         letter-spacing: 0;
       }
       .download a {
@@ -53,6 +61,7 @@
         justify-content: center;
         min-height: 38px;
         margin-top: 10px;
+        margin-right: 8px;
         padding: 0 14px;
         color: #ffffff;
         background: #1f7a55;
@@ -85,27 +94,46 @@
   <body>
     <main>
       <h1>Codex Pet Desktop</h1>
-      <p>选择你想要的版本。最新安装包托管在 GitHub Releases；这里的按钮会跳转到对应文件名。</p>
-      <section class="downloads" aria-label="Downloads">
-        <article class="download">
-          <h2>猫咪版</h2>
-          <p>内置 <strong>米粉</strong> 和 <strong>米酒</strong>。适合想要两只猫咪桌宠的版本。</p>
-          <a href="https://github.com/jieyangxchen/codex-pet-desktop/releases/latest/download/codex-pet-desktop-cats-windows-x64.exe">下载 Windows 版</a>
-          <a href="https://github.com/jieyangxchen/codex-pet-desktop/releases/latest/download/codex-pet-desktop-cats-macos-arm64.dmg">下载 Mac Apple Silicon</a>
-          <a href="https://github.com/jieyangxchen/codex-pet-desktop/releases/latest/download/codex-pet-desktop-cats-macos-x64.dmg">下载 Mac Intel</a>
-        </article>
-        <article class="download">
-          <h2>Tigris 版</h2>
-          <p>内置 <strong>Tigris Whippet</strong>。保留原来的虎斑惠比特资源。</p>
-          <a href="https://github.com/jieyangxchen/codex-pet-desktop/releases/latest/download/codex-pet-desktop-tigris-windows-x64.exe">下载 Windows 版</a>
-          <a href="https://github.com/jieyangxchen/codex-pet-desktop/releases/latest/download/codex-pet-desktop-tigris-macos-arm64.dmg">下载 Mac Apple Silicon</a>
-          <a href="https://github.com/jieyangxchen/codex-pet-desktop/releases/latest/download/codex-pet-desktop-tigris-macos-x64.dmg">下载 Mac Intel</a>
-        </article>
+      <p>先安装主程序，再下载宠物资源包。主程序更新和宠物资源更新彼此独立。</p>
+
+      <section class="section" aria-label="App downloads">
+        <h2>主程序</h2>
+        <div class="downloads">
+          <article class="download">
+            <h3>Windows</h3>
+            <p>适合 Windows x64。</p>
+            <a href="https://github.com/jieyangxchen/codex-pet-desktop/releases/latest/download/codex-pet-desktop-windows-x64.exe">下载 Windows 版</a>
+          </article>
+          <article class="download">
+            <h3>macOS</h3>
+            <p>根据 Mac 芯片选择 Apple Silicon 或 Intel。</p>
+            <a href="https://github.com/jieyangxchen/codex-pet-desktop/releases/latest/download/codex-pet-desktop-macos-arm64.dmg">Apple Silicon</a>
+            <a href="https://github.com/jieyangxchen/codex-pet-desktop/releases/latest/download/codex-pet-desktop-macos-x64.dmg">Intel</a>
+          </article>
+        </div>
       </section>
-      <p>
-        如果按钮暂时不可用，请先在仓库推送 <code>v*</code> tag，GitHub Actions 会自动生成 Release
-        附件。
-      </p>
+
+      <section class="section" aria-label="Petpacks">
+        <h2>宠物资源包</h2>
+        <p>下载 <code>.petpack</code> 后，在主程序里点击 Import Petpack 导入。</p>
+        <div class="downloads">
+          <article class="download">
+            <h3>米粉</h3>
+            <p>全白猫咪，常态趴着待机。</p>
+            <a href="./petpacks/mi-fen-1.0.0.petpack">下载米粉</a>
+          </article>
+          <article class="download">
+            <h3>米酒</h3>
+            <p>深色长毛虎斑猫，常态趴着待机。</p>
+            <a href="./petpacks/mi-jiu-1.0.0.petpack">下载米酒</a>
+          </article>
+          <article class="download">
+            <h3>Tigris</h3>
+            <p>虎斑色惠比特桌宠。</p>
+            <a href="./petpacks/tigris-whippet-1.0.0.petpack">下载 Tigris</a>
+          </article>
+        </div>
+      </section>
     </main>
   </body>
 </html>

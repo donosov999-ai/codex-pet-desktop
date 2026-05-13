@@ -1,5 +1,6 @@
 mod commands;
 mod pet_catalog;
+mod petpack;
 mod state;
 mod tray;
 mod windowing;

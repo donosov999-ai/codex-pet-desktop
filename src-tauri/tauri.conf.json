@@ -49,9 +49,7 @@
       "icons/icon.png",
       "icons/icon.ico"
     ],
-    "resources": {
-      "../resources/pets": "pets"
-    },
+    "resources": {},
     "windows": {}
   }
 }

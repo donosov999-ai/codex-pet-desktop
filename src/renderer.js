@@ -13,6 +13,7 @@ const STATES = {
 };
 
 const petEl = document.querySelector("#pet");
+const emptyStateEl = document.querySelector("#emptyState");
 const panelEl = document.querySelector("#panel");
 const panelBackdropEl = document.querySelector("#panelBackdrop");
 const petSelect = document.querySelector("#petSelect");
@@ -20,6 +21,9 @@ const stateSelect = document.querySelector("#stateSelect");
 const scaleRange = document.querySelector("#scaleRange");
 const wanderToggle = document.querySelector("#wanderToggle");
 const topToggle = document.querySelector("#topToggle");
+const importButton = document.querySelector("#importButton");
+const importEmptyButton = document.querySelector("#importEmptyButton");
+const petpackInput = document.querySelector("#petpackInput");
 const quitButton = document.querySelector("#quitButton");
 
 const tauriInvoke = window.__TAURI__?.core?.invoke;
@@ -29,6 +33,7 @@ const petDesktop =
   (tauriInvoke
     ? {
         listPets: () => tauriInvoke("list_pets"),
+        importPetpack: (data) => tauriInvoke("import_petpack", { data }),
         moveBy: (x, y) => tauriInvoke("move_by", { x, y }),
         setIgnoreMouseEvents: (ignored) => tauriInvoke("set_ignore_mouse_events", { ignored }),
         resetPosition: () => tauriInvoke("reset_position"),
@@ -71,7 +76,7 @@ function setMousePassthrough(ignored) {
 }
 
 function isInteractiveTarget(target) {
-  return Boolean(target?.closest?.("#pet, #panel, #panelBackdrop"));
+  return Boolean(target?.closest?.("#pet, #emptyState, #panel, #panelBackdrop"));
 }
 
 function updateMousePassthrough(event) {
@@ -131,9 +136,13 @@ function pickPet(id) {
   if (!activePet) {
     petEl.style.backgroundImage = "";
     petEl.setAttribute("aria-label", "No pet found");
-    petEl.textContent = "No pet resource";
+    petEl.textContent = "";
+    petEl.classList.add("empty");
+    emptyStateEl.classList.remove("hidden");
     return;
   }
+  petEl.classList.remove("empty");
+  emptyStateEl.classList.add("hidden");
   const source = resolveSpritesheetSource(activePet);
   petEl.style.backgroundImage = source ? `url("${source}")` : "";
   petEl.textContent = "";
@@ -151,6 +160,12 @@ function renderPetOptions() {
       return option;
     })
   );
+}
+
+function refreshPetList(result, preferredPetId) {
+  pets = result.pets;
+  renderPetOptions();
+  pickPet(preferredPetId || pets[0]?.id);
 }
 
 function renderStateOptions() {
@@ -198,6 +213,9 @@ function wanderLoop(now) {
 }
 
 function setPanelVisible(show) {
+  if (show && !pets.length) {
+    show = false;
+  }
   panelEl.classList.toggle("hidden", !show);
   panelBackdropEl.classList.toggle("hidden", !show);
   setMousePassthrough(false);
@@ -263,6 +281,9 @@ petEl.addEventListener("dblclick", () => {
 
 document.addEventListener("contextmenu", (event) => {
   event.preventDefault();
+  if (!pets.length) {
+    return;
+  }
   if (panelEl.contains(event.target)) {
     return;
   }
@@ -294,7 +315,14 @@ document.addEventListener("mouseleave", () => {
 });
 
 panelEl.addEventListener("pointerenter", () => setMousePassthrough(false));
+emptyStateEl.addEventListener("pointerenter", () => setMousePassthrough(false));
 panelEl.addEventListener("pointerleave", () => {
+  if (!dragging) {
+    pointerInsideInteractiveArea = false;
+    setMousePassthrough(true);
+  }
+});
+emptyStateEl.addEventListener("pointerleave", () => {
   if (!dragging) {
     pointerInsideInteractiveArea = false;
     setMousePassthrough(true);
@@ -309,6 +337,40 @@ scaleRange.addEventListener("input", () => {
 topToggle.addEventListener("change", () => {
   petDesktop?.setAlwaysOnTop(topToggle.checked);
 });
+function openPetpackPicker() {
+  petpackInput.value = "";
+  petpackInput.click();
+}
+
+async function readFileAsBase64(file) {
+  const buffer = await file.arrayBuffer();
+  let binary = "";
+  const bytes = new Uint8Array(buffer);
+  const chunkSize = 0x8000;
+  for (let index = 0; index < bytes.length; index += chunkSize) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + chunkSize));
+  }
+  return btoa(binary);
+}
+
+async function importSelectedPetpack(file) {
+  if (!file) {
+    return;
+  }
+  const data = await readFileAsBase64(file);
+  const result = await petDesktop.importPetpack(data);
+  refreshPetList(result.pets, result.importedPetId);
+  setPanelVisible(false);
+}
+
+importButton.addEventListener("click", openPetpackPicker);
+importEmptyButton.addEventListener("click", openPetpackPicker);
+petpackInput.addEventListener("change", () => {
+  importSelectedPetpack(petpackInput.files?.[0]).catch((error) => {
+    emptyStateEl.classList.remove("hidden");
+    emptyStateEl.querySelector("span").textContent = error.message;
+  });
+});
 quitButton.addEventListener("click", () => {
   petDesktop?.quit();
 });
@@ -320,13 +382,7 @@ async function init() {
   renderStateOptions();
   const windowState = await petDesktop.getWindowState();
   topToggle.checked = Boolean(windowState.alwaysOnTop);
-  const result = await petDesktop.listPets();
-  pets = result.pets;
-  if (!pets.length) {
-    throw new Error("No bundled pet found. Please reinstall or import pet resources.");
-  }
-  renderPetOptions();
-  pickPet(pets[0]?.id);
+  refreshPetList(await petDesktop.listPets());
   setMousePassthrough(true);
   requestAnimationFrame(animationLoop);
   requestAnimationFrame(wanderLoop);

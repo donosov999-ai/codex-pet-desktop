@@ -9,6 +9,11 @@
   <body>
     <main id="stage" aria-label="Desktop pet">
       <div id="pet" role="img" aria-label="Desktop pet"></div>
+      <section id="emptyState" class="empty-state hidden" aria-label="Import pet">
+        <strong>No pet installed</strong>
+        <span>Import a .petpack to start.</span>
+        <button id="importEmptyButton" type="button">Import Petpack</button>
+      </section>
       <div id="panelBackdrop" class="panel-backdrop hidden" aria-hidden="true"></div>
       <section id="panel" class="panel hidden" aria-label="Pet controls">
         <div class="panel-row">
@@ -31,8 +36,10 @@
           <input id="topToggle" type="checkbox" checked />
           <span>Always on top</span>
         </label>
+        <button id="importButton" type="button">Import Petpack</button>
         <button id="quitButton" type="button">Quit</button>
       </section>
+      <input id="petpackInput" class="hidden" type="file" accept=".petpack,application/zip" />
     </main>
     <script src="./renderer.js"></script>
   </body>

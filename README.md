@@ -11,7 +11,7 @@
 - Windows 下默认不进任务栏，使用系统托盘图标控制显示、隐藏、重置位置、置顶和退出。
 - 支持拖动桌宠到屏幕边缘和角落，窗口只保留最小可见区域避免完全拖丢。
 - 支持单击招手、双击跳跃、自动游走、右键控制面板。
-- 内置资源包含两组可分发版本：猫咪版 `米粉 + 米酒`，以及 `Tigris` 惠比特版。
+- 主程序不内置宠物资源，宠物通过独立 `.petpack` 资源包导入。
 - 可加载外部宠物目录，兼容 Codex 自定义宠物包。
 
 ## 交互
@@ -25,18 +25,18 @@
 | 系统托盘左键 | 显示或隐藏桌宠 |
 | 系统托盘右键 | 打开菜单，支持显示、隐藏、重置、置顶、退出 |
 
-控制面板支持切换宠物、切换动作状态、调整大小、开启/关闭自动游走、开启/关闭置顶、退出应用。
+控制面板支持导入宠物包、切换宠物、切换动作状态、调整大小、开启/关闭自动游走、开启/关闭置顶、退出应用。
 
 ## 下载
 
-推荐从 GitHub Releases 下载。每个版本会提供 Windows 和 macOS 安装包：
+推荐先从 GitHub Releases 下载主程序，再从 GitHub Pages 下载宠物资源包并在应用内导入。
 
-- `codex-pet-desktop-cats-windows-x64.exe`：内置 `米粉` 和 `米酒`。
-- `codex-pet-desktop-tigris-windows-x64.exe`：内置 `Tigris` 惠比特。
-- `codex-pet-desktop-cats-macos-arm64.dmg`：内置 `米粉` 和 `米酒`，适合 Apple Silicon Mac。
-- `codex-pet-desktop-cats-macos-x64.dmg`：内置 `米粉` 和 `米酒`，适合 Intel Mac。
-- `codex-pet-desktop-tigris-macos-arm64.dmg`：内置 `Tigris` 惠比特，适合 Apple Silicon Mac。
-- `codex-pet-desktop-tigris-macos-x64.dmg`：内置 `Tigris` 惠比特，适合 Intel Mac。
+- `codex-pet-desktop-windows-x64.exe`：Windows x64 主程序。
+- `codex-pet-desktop-macos-arm64.dmg`：Apple Silicon Mac 主程序。
+- `codex-pet-desktop-macos-x64.dmg`：Intel Mac 主程序。
+- `mi-fen-1.0.0.petpack`：米粉宠物包。
+- `mi-jiu-1.0.0.petpack`：米酒宠物包。
+- `tigris-whippet-1.0.0.petpack`：Tigris 惠比特宠物包。
 
 ## 安装与运行
 
@@ -48,16 +48,17 @@ cd src-tauri
 cargo run
 ```
 
+开发模式会扫描仓库里的 `resources/pets`，方便预览和制作资源；正式安装包不内置这些资源。
+
 ## Windows 打包
 
 Windows 打包建议在 Windows 环境或 GitHub Actions 中执行：
 
 ```bash
-node scripts/build-variant.js cats build
-node scripts/build-variant.js tigris build
+node scripts/build-app.js build windows
 ```
 
-GitHub Actions 会在推送 `v*` tag 时自动构建两个安装包并发布到 Releases。
+GitHub Actions 会在推送 `v*` tag 时自动构建主程序安装包并发布到 Releases。
 
 Electron 旧打包脚本仍可用，但不再是推荐路线。
 
@@ -66,9 +67,16 @@ Electron 旧打包脚本仍可用，但不再是推荐路线。
 macOS 打包建议在 macOS 环境或 GitHub Actions 中执行：
 
 ```bash
-node scripts/build-variant.js cats build macos-arm64
-node scripts/build-variant.js tigris build macos-arm64
+node scripts/build-app.js build macos-arm64
 ```
+
+## 宠物包打包
+
+```bash
+node scripts/build-petpacks.js
+```
+
+生成文件位于 `release/petpacks/`。GitHub Pages workflow 会自动生成 `.petpack` 并部署下载页。
 
 ## 宠物资源格式
 
@@ -88,6 +96,26 @@ my-pet/
   "displayName": "米粉",
   "description": "米粉，一只全白猫咪，常态趴着待机。",
   "spritesheetPath": "spritesheet.webp"
+}
+```
+
+`.petpack` 是 zip 容器，根目录包含：
+
+```text
+petpack.json
+pet.json
+spritesheet.webp
+```
+
+`petpack.json` 示例：
+
+```json
+{
+  "format": "codex-petpack",
+  "formatVersion": 1,
+  "id": "mi-fen",
+  "displayName": "米粉",
+  "version": "1.0.0"
 }
 ```
 
@@ -114,8 +142,8 @@ my-pet/
 应用会按顺序扫描这些位置：
 
 1. `CODEX_PETS_DIR` 环境变量指定的目录，多个目录按系统路径分隔符分开。
-2. 应用内置资源目录。
-3. 应用用户数据目录下的 `pets`。
+2. 应用用户数据目录下的 `pets`。
+3. 应用内置资源目录。
 4. `~/.codex/pets`。
 
 如果多个目录里出现相同 `id` 的宠物，先扫描到的会优先使用。
@@ -126,7 +154,7 @@ my-pet/
 npm run smoke
 ```
 
-这个检查会验证内置宠物可被加载，并验证桌宠窗口拖动边界逻辑。
+这个检查会验证宠物资源格式，并验证桌宠窗口拖动边界逻辑。
 
 也可以运行 Tauri 启动冒烟检查：
 
@@ -138,11 +166,12 @@ PET_DESKTOP_E2E=1 cargo run
 ## 项目结构
 
 ```text
-resources/pets/        内置宠物资源
+resources/pets/        用于生成独立 .petpack 的宠物资源
 src-tauri/             Rust/Tauri 主进程、窗口、托盘、打包配置
 src/renderer.*         桌宠界面、动画和交互逻辑
 src/main.js            Electron 旧主进程，保留作迁移参考
-scripts/build-variant.js 生成猫咪版/Tigris 版 Tauri 打包配置
+scripts/build-app.js   生成无内置资源的 Tauri 主程序安装包
+scripts/build-petpacks.js 生成独立宠物资源包
 src/smoke.js           本地冒烟检查
 ```
 

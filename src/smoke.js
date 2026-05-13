@@ -6,11 +6,17 @@ const projectRoot = path.resolve(__dirname, "..");
 const roots = [path.join(projectRoot, "resources", "pets")];
 const result = listPets(roots);
 const bundledPets = new Map(result.pets.map((pet) => [pet.id, pet]));
-const requiredPets = ["mi-fen", "mi-jiu"];
+const requiredPets = ["mi-fen", "mi-jiu", "tigris-whippet"];
 const missingPets = requiredPets.filter((id) => !bundledPets.has(id));
 
 if (missingPets.length > 0) {
   console.error(JSON.stringify({ ok: false, roots, missingPets, result }, null, 2));
+  process.exit(1);
+}
+
+const emptyResult = listPets([]);
+if (emptyResult.pets.length !== 0) {
+  console.error(JSON.stringify({ ok: false, emptyResult }, null, 2));
   process.exit(1);
 }
 
@@ -41,7 +47,8 @@ console.log(
         edgeVisibilityPx: EDGE_VISIBILITY_PX,
         limitsFor1920x1080: movementLimits
       },
-      errors: result.errors
+      errors: result.errors,
+      emptyPetCount: emptyResult.pets.length
     },
     null,
     2

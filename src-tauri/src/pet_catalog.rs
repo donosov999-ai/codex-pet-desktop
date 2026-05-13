@@ -66,8 +66,14 @@ fn unique_existing_dirs(dirs: Vec<PathBuf>) -> Vec<PathBuf> {
     result
 }
 
-fn user_data_dir<R: Runtime>(app: &AppHandle<R>) -> Option<PathBuf> {
+pub(crate) fn user_data_dir<R: Runtime>(app: &AppHandle<R>) -> Option<PathBuf> {
     app.path().app_data_dir().ok()
+}
+
+pub(crate) fn user_pets_dir<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, String> {
+    user_data_dir(app)
+        .map(|dir| dir.join("pets"))
+        .ok_or_else(|| "Could not resolve app data directory".to_string())
 }
 
 fn bundled_pets_dir<R: Runtime>(app: &AppHandle<R>) -> Option<PathBuf> {
@@ -90,11 +96,11 @@ fn pet_roots<R: Runtime>(app: &AppHandle<R>) -> Vec<PathBuf> {
     if let Ok(raw) = env::var("CODEX_PETS_DIR") {
         roots.extend(env::split_paths(&raw));
     }
-    if let Some(dir) = bundled_pets_dir(app) {
-        roots.push(dir);
-    }
     if let Some(dir) = user_data_dir(app) {
         roots.push(dir.join("pets"));
+    }
+    if let Some(dir) = bundled_pets_dir(app) {
+        roots.push(dir);
     }
     if let Ok(home) = env::var("HOME") {
         roots.push(PathBuf::from(home).join(".codex").join("pets"));

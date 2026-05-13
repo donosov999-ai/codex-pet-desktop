@@ -1,8 +1,10 @@
+use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use serde::Serialize;
 use tauri::{AppHandle, Wry};
 
 use crate::{
     pet_catalog::{self, PetList},
+    petpack,
     state::AppState,
     windowing::{self, WindowBounds},
 };
@@ -13,9 +15,32 @@ struct WindowState {
     always_on_top: bool,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ImportPetpackResult {
+    imported_pet_id: String,
+    pets: PetList,
+}
+
 #[tauri::command]
 fn list_pets(app: AppHandle<Wry>) -> PetList {
     pet_catalog::list_pet_packages(&app)
+}
+
+#[tauri::command]
+fn import_petpack(app: AppHandle<Wry>, data: String) -> Result<ImportPetpackResult, String> {
+    let bytes = BASE64.decode(data).map_err(|error| error.to_string())?;
+    let pets_dir = pet_catalog::user_pets_dir(&app)?;
+    let installed = petpack::install_petpack_bytes(&bytes, &pets_dir)?;
+    let imported_pet_id = installed
+        .file_name()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .to_string();
+    Ok(ImportPetpackResult {
+        imported_pet_id,
+        pets: pet_catalog::list_pet_packages(&app),
+    })
 }
 
 #[tauri::command]
@@ -74,6 +99,7 @@ fn quit(app: AppHandle<Wry>) {
 pub(crate) fn handler() -> impl Fn(tauri::ipc::Invoke<Wry>) -> bool + Send + Sync + 'static {
     tauri::generate_handler![
         list_pets,
+        import_petpack,
         move_by,
         set_ignore_mouse_events,
         reset_position,
