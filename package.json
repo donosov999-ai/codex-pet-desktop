@@ -1,7 +1,7 @@
 {
-  "name": "codex-pet-desktop",
-  "version": "0.1.0",
-  "description": "Standalone desktop pet app compatible with Codex custom pet spritesheets.",
+  "name": "yongsheng-plan",
+  "version": "0.1.8",
+  "description": "Standalone desktop pet app for the Internet Immortality Project.",
   "license": "MIT",
   "author": "jieyangxchen",
   "homepage": "https://github.com/jieyangxchen/codex-pet-desktop#readme",
@@ -25,7 +25,7 @@
     "start:tauri": "cd src-tauri && cargo run",
     "check:tauri": "cd src-tauri && cargo check",
     "e2e:tauri": "cd src-tauri && PET_DESKTOP_E2E=1 cargo run",
-    "smoke": "node src/smoke.js",
+    "smoke": "node src/smoke.js && node src/renderer-empty-smoke.js",
     "build:app": "node scripts/build-app.js build",
     "build:petpacks": "node scripts/build-petpacks.js",
     "pack:win": "electron-builder --win dir --x64",
@@ -34,7 +34,7 @@
   },
   "build": {
     "appId": "com.local.codexpetdesktop",
-    "productName": "Codex Pet Desktop",
+    "productName": "永生计划",
     "directories": {
       "output": "dist"
     },

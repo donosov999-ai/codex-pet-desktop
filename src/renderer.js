@@ -68,6 +68,10 @@ let wanderTimer = 0;
 let wanderDirection = 0;
 let wanderUntil = 0;
 
+function hasActivePet() {
+  return Boolean(activePet && pets.some((pet) => pet.id === activePet.id));
+}
+
 function setMousePassthrough(ignored) {
   if (isTauriRuntime) {
     return;
@@ -134,6 +138,7 @@ function animationLoop(now) {
 function pickPet(id) {
   activePet = pets.find((pet) => pet.id === id) || pets[0];
   if (!activePet) {
+    stopWander();
     petEl.style.backgroundImage = "";
     petEl.setAttribute("aria-label", "No pet found");
     petEl.textContent = "";
@@ -149,6 +154,7 @@ function pickPet(id) {
   petEl.setAttribute("aria-label", activePet.displayName);
   petSelect.value = activePet.id;
   setState("idle");
+  scheduleWander();
 }
 
 function renderPetOptions() {
@@ -181,8 +187,18 @@ function renderStateOptions() {
 
 function scheduleWander() {
   window.clearTimeout(wanderTimer);
+  if (!hasActivePet()) {
+    wanderDirection = 0;
+    wanderUntil = 0;
+    return;
+  }
   wanderTimer = window.setTimeout(() => {
-    if (!wanderToggle.checked || dragging || panelEl.classList.contains("hidden") === false) {
+    if (
+      !hasActivePet() ||
+      !wanderToggle.checked ||
+      dragging ||
+      panelEl.classList.contains("hidden") === false
+    ) {
       scheduleWander();
       return;
     }
@@ -200,7 +216,13 @@ function scheduleWander() {
 }
 
 function wanderLoop(now) {
-  if (wanderDirection !== 0 && now < wanderUntil && wanderToggle.checked && !dragging) {
+  if (
+    hasActivePet() &&
+    wanderDirection !== 0 &&
+    now < wanderUntil &&
+    wanderToggle.checked &&
+    !dragging
+  ) {
     petDesktop?.moveBy(wanderDirection * 2, 0);
   }
   if (wanderUntil && now >= wanderUntil) {
@@ -386,7 +408,9 @@ async function init() {
   setMousePassthrough(true);
   requestAnimationFrame(animationLoop);
   requestAnimationFrame(wanderLoop);
-  scheduleWander();
+  if (hasActivePet()) {
+    scheduleWander();
+  }
 }
 
 init().catch((error) => {

@@ -1,6 +1,7 @@
 {
   "id": "tigris-whippet",
-  "displayName": "Tigris",
-  "description": "A slim brindle whippet with quiet sprint energy.",
+  "displayName": "\u7ea2\u7cd6",
+  "description": "\u7ea2\u7cd6\uff0c\u4e00\u53ea\u864e\u6591\u8272\u60e0\u6bd4\u7279\uff0c\u5e38\u6001\u8d34\u8fd1\u5730\u9762\u4f11\u606f\u3002",
+  "version": "1.0.1",
   "spritesheetPath": "spritesheet.webp"
 }

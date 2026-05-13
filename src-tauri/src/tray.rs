@@ -36,7 +36,7 @@ pub(crate) fn setup_tray(app: &AppHandle<Wry>) -> tauri::Result<()> {
 
     TrayIconBuilder::new()
         .icon(icon)
-        .tooltip("Codex Pet Desktop")
+        .tooltip("永生计划")
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| {

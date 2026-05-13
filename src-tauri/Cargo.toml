@@ -1,7 +1,7 @@
 [package]
-name = "codex-pet-desktop"
-version = "0.1.0"
-description = "Standalone desktop pet app compatible with Codex custom pet spritesheets."
+name = "yongsheng-plan"
+version = "0.1.8"
+description = "Standalone desktop pet app for the Internet Immortality Project."
 authors = ["jieyangxchen"]
 license = "MIT"
 repository = "https://github.com/jieyangxchen/codex-pet-desktop"
@@ -13,7 +13,7 @@ name = "codex_pet_desktop_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [[bin]]
-name = "codex-pet-desktop"
+name = "yongsheng-plan"
 path = "src/main.rs"
 
 [build-dependencies]

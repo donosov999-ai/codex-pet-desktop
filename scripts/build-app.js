@@ -41,8 +41,8 @@ const buildTarget = buildTargetForPlatform(platform);
 
 const config = {
   $schema: "https://schema.tauri.app/config/2",
-  productName: "Codex Pet Desktop",
-  version: "0.1.0",
+  productName: "永生计划",
+  version: "0.1.8",
   identifier: "com.local.codexpetdesktop",
   build: {
     frontendDist: "../src",
@@ -55,7 +55,7 @@ const config = {
     windows: [
       {
         label: "main",
-        title: "Codex Pet Desktop",
+        title: "永生计划",
         url: "renderer.html",
         width: 320,
         height: 340,

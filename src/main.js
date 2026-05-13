@@ -64,7 +64,7 @@ function resetWindowPosition() {
 
 function createTray() {
   tray = new Tray(createTrayIcon());
-  tray.setToolTip("Codex Pet Desktop");
+  tray.setToolTip("永生计划");
   tray.setContextMenu(
     Menu.buildFromTemplate([
       {

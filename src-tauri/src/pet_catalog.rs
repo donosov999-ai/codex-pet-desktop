@@ -299,7 +299,7 @@ mod tests {
         .expect("write bundled manifest");
         fs::write(
             external_pet.join("pet.json"),
-            r#"{"id":"tigris-whippet","displayName":"Tigris Whippet"}"#,
+            r#"{"id":"tigris-whippet","displayName":"红糖"}"#,
         )
         .expect("write external manifest");
 

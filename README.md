@@ -1,6 +1,6 @@
-# Codex Pet Desktop
+# 互联网永生计划
 
-一个独立运行的 Tauri/Rust 桌面宠物应用，兼容 Codex 风格的自定义宠物图集。它不依赖 Codex 启动或运行，只是复用了 `pet.json` + `spritesheet.webp` 的宠物资源格式，方便把已有宠物直接放到桌面上。
+永生计划是一个独立运行的 Tauri/Rust 桌面宠物应用，兼容 Codex 风格的自定义宠物图集。它不依赖 Codex 启动或运行，只是复用了 `pet.json` + `spritesheet.webp` 的宠物资源格式，方便把已有宠物直接放到桌面上。
 
 > 这是社区项目，不是 OpenAI 或 Codex 官方应用。
 
@@ -31,12 +31,12 @@
 
 推荐先从 GitHub Releases 下载主程序，再从 GitHub Pages 下载宠物资源包并在应用内导入。
 
-- `codex-pet-desktop-windows-x64.exe`：Windows x64 主程序。
-- `codex-pet-desktop-macos-arm64.dmg`：Apple Silicon Mac 主程序。
-- `codex-pet-desktop-macos-x64.dmg`：Intel Mac 主程序。
-- `mi-fen-1.0.0.petpack`：米粉宠物包。
+- `yongsheng-plan-windows-x64.exe`：Windows x64 主程序。
+- `yongsheng-plan-macos-arm64.dmg`：Apple Silicon Mac 主程序。
+- `yongsheng-plan-macos-x64.dmg`：Intel Mac 主程序。
+- `mi-fen-1.0.1.petpack`：米粉宠物包。
 - `mi-jiu-1.0.0.petpack`：米酒宠物包。
-- `tigris-whippet-1.0.0.petpack`：Tigris 惠比特宠物包。
+- `tigris-whippet-1.0.1.petpack`：红糖宠物包。
 
 ## 安装与运行
 
@@ -154,7 +154,7 @@ spritesheet.webp
 npm run smoke
 ```
 
-这个检查会验证宠物资源格式，并验证桌宠窗口拖动边界逻辑。
+这个检查会验证宠物资源格式、空宠物状态和桌宠窗口拖动边界逻辑。
 
 也可以运行 Tauri 启动冒烟检查：
 

@@ -7,10 +7,23 @@ const roots = [path.join(projectRoot, "resources", "pets")];
 const result = listPets(roots);
 const bundledPets = new Map(result.pets.map((pet) => [pet.id, pet]));
 const requiredPets = ["mi-fen", "mi-jiu", "tigris-whippet"];
+const requiredDisplayNames = {
+  "mi-fen": "米粉",
+  "mi-jiu": "米酒",
+  "tigris-whippet": "红糖"
+};
 const missingPets = requiredPets.filter((id) => !bundledPets.has(id));
 
 if (missingPets.length > 0) {
   console.error(JSON.stringify({ ok: false, roots, missingPets, result }, null, 2));
+  process.exit(1);
+}
+
+const displayNameErrors = requiredPets
+  .filter((id) => bundledPets.get(id).displayName !== requiredDisplayNames[id])
+  .map((id) => ({ id, actual: bundledPets.get(id).displayName, expected: requiredDisplayNames[id] }));
+if (displayNameErrors.length > 0) {
+  console.error(JSON.stringify({ ok: false, displayNameErrors }, null, 2));
   process.exit(1);
 }
 
