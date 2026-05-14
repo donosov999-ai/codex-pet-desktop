@@ -48,10 +48,18 @@ function resolveSpritesheetSource(pet) {
   if (!pet) {
     return "";
   }
+  const revision = pet.spritesheetRevision || pet.version || "";
+  const appendRevision = (source) => {
+    if (!source || !revision) {
+      return source;
+    }
+    const separator = source.includes("?") ? "&" : "?";
+    return `${source}${separator}spriteRevision=${encodeURIComponent(revision)}`;
+  };
   if (typeof tauriConvertFileSrc === "function" && pet.spritesheetPath) {
-    return tauriConvertFileSrc(pet.spritesheetPath);
+    return appendRevision(tauriConvertFileSrc(pet.spritesheetPath));
   }
-  return pet.spritesheetUrl || "";
+  return appendRevision(pet.spritesheetUrl || "");
 }
 
 let pets = [];

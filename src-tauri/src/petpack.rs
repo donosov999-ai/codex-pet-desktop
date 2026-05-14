@@ -188,6 +188,32 @@ mod tests {
     }
 
     #[test]
+    fn replacing_existing_petpack_overwrites_old_files() {
+        let root = temp_root();
+        let installed = install_petpack_bytes(&valid_petpack(), &root).expect("install petpack");
+        fs::write(installed.join("spritesheet.webp"), b"old").expect("write old sprite");
+
+        let replacement = petpack(&[
+            (
+                "petpack.json",
+                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.1"}"#,
+            ),
+            (
+                "pet.json",
+                br#"{"id":"mi-fen","displayName":"Mi Fen","spritesheetPath":"spritesheet.webp"}"#,
+            ),
+            ("spritesheet.webp", b"new"),
+        ]);
+        install_petpack_bytes(&replacement, &root).expect("replace petpack");
+
+        assert_eq!(
+            fs::read(installed.join("spritesheet.webp")).expect("read replaced sprite"),
+            b"new"
+        );
+        assert!(!root.join(".mi-fen.installing").exists());
+    }
+
+    #[test]
     fn rejects_missing_pet_json() {
         let root = temp_root();
         let pack = petpack(&[

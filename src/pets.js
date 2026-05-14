@@ -65,6 +65,7 @@ function normalizePetPackage(dir) {
   if (!fs.existsSync(resolvedSpritesheet)) {
     throw new Error(`Missing spritesheet for ${id}: ${resolvedSpritesheet}`);
   }
+  const spritesheetStat = fs.statSync(resolvedSpritesheet);
 
   return {
     id,
@@ -73,7 +74,8 @@ function normalizePetPackage(dir) {
     manifestPath,
     root: dir,
     spritesheetPath: resolvedSpritesheet,
-    spritesheetUrl: pathToFileURL(resolvedSpritesheet).toString()
+    spritesheetUrl: pathToFileURL(resolvedSpritesheet).toString(),
+    spritesheetRevision: `${spritesheetStat.size}-${Math.trunc(spritesheetStat.mtimeMs)}`
   };
 }
 

@@ -42,7 +42,7 @@ const buildTarget = buildTargetForPlatform(platform);
 const config = {
   $schema: "https://schema.tauri.app/config/2",
   productName: "永生计划",
-  version: "0.1.8",
+  version: "0.1.9",
   identifier: "com.local.codexpetdesktop",
   build: {
     frontendDist: "../src",

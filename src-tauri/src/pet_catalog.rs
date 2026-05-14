@@ -3,6 +3,7 @@ use std::{
     collections::HashSet,
     env, fs,
     path::{Path, PathBuf},
+    time::UNIX_EPOCH,
 };
 use tauri::{AppHandle, Manager, Runtime};
 use url::Url;
@@ -17,6 +18,7 @@ pub(crate) struct PetPackage {
     root: String,
     spritesheet_path: String,
     spritesheet_url: String,
+    spritesheet_revision: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -47,6 +49,19 @@ fn file_url(path: &Path) -> Result<String, String> {
     Url::from_file_path(path)
         .map_err(|_| format!("could not convert path to file URL: {}", path.display()))
         .map(|url| url.to_string())
+}
+
+fn file_revision(path: &Path) -> String {
+    let Ok(metadata) = fs::metadata(path) else {
+        return "unknown".to_string();
+    };
+    let modified = metadata
+        .modified()
+        .ok()
+        .and_then(|time| time.duration_since(UNIX_EPOCH).ok())
+        .map(|duration| duration.as_nanos())
+        .unwrap_or_default();
+    format!("{}-{modified}", metadata.len())
 }
 
 fn unique_existing_dirs(dirs: Vec<PathBuf>) -> Vec<PathBuf> {
@@ -162,6 +177,7 @@ fn normalize_pet_package(dir: &Path) -> Result<PetPackage, String> {
         root: dir.display().to_string(),
         spritesheet_path: resolved_spritesheet.display().to_string(),
         spritesheet_url: file_url(&resolved_spritesheet)?,
+        spritesheet_revision: file_revision(&resolved_spritesheet),
     })
 }
 
