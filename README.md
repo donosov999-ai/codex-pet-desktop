@@ -34,7 +34,7 @@
 - `yongsheng-plan-windows-x64.exe`：Windows x64 主程序。
 - `yongsheng-plan-macos-arm64.dmg`：Apple Silicon Mac 主程序。
 - `yongsheng-plan-macos-x64.dmg`：Intel Mac 主程序。
-- `mi-fen-1.0.1.petpack`：米粉宠物包。
+- `mi-fen-1.0.2.petpack`：米粉宠物包。
 - `mi-jiu-1.0.0.petpack`：米酒宠物包。
 - `tigris-whippet-1.0.1.petpack`：红糖宠物包。
 

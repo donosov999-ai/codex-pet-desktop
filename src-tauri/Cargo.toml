@@ -27,3 +27,6 @@ tauri = { version = "2.11.1", features = ["macos-private-api", "tray-icon", "ima
 tauri-plugin-opener = "2"
 url = "2"
 zip = { version = "2", default-features = false, features = ["deflate"] }
+
+[dev-dependencies]
+image = { version = "0.25", default-features = false, features = ["webp"] }

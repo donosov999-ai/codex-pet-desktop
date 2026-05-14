@@ -1,6 +1,8 @@
 mod commands;
 mod pet_catalog;
 mod petpack;
+#[cfg(test)]
+mod sprite_quality;
 mod state;
 mod tray;
 mod windowing;
