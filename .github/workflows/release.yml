@@ -17,16 +17,16 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
 
       - uses: dtolnay/rust-toolchain@stable
 
       - name: Cache Cargo registry and git
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cargo/registry
@@ -58,7 +58,7 @@ jobs:
             Copy-Item $_.FullName "release-assets\yongsheng-plan-windows-x64.exe"
           }
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: yongsheng-plan-windows-x64
           path: release-assets/*.exe
@@ -77,9 +77,9 @@ jobs:
             target: aarch64-apple-darwin
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
 
@@ -88,7 +88,7 @@ jobs:
           targets: ${{ matrix.target }}
 
       - name: Cache Cargo registry and git
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             ~/.cargo/registry
@@ -116,7 +116,7 @@ jobs:
           mkdir -p release-assets
           cp src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg "release-assets/yongsheng-plan-macos-${{ matrix.arch }}.dmg"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: yongsheng-plan-macos-${{ matrix.arch }}
           path: release-assets/*.dmg
@@ -127,12 +127,12 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
 
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: release-assets
           merge-multiple: true
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v3
         with:
           files: |
             release-assets/*.exe

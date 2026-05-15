@@ -7,17 +7,42 @@ const workflowPaths = [
   ".github/workflows/pages.yml"
 ];
 
+const minimumActionMajors = new Map([
+  ["actions/cache", 5],
+  ["actions/checkout", 6],
+  ["actions/configure-pages", 6],
+  ["actions/deploy-pages", 5],
+  ["actions/download-artifact", 8],
+  ["actions/setup-node", 6],
+  ["actions/upload-artifact", 7],
+  ["actions/upload-pages-artifact", 5],
+  ["softprops/action-gh-release", 3]
+]);
+
 function hasNode24RuntimeOptIn(source) {
   return /^env:\n(?:[ \t]+[A-Z0-9_]+:.*\n)*[ \t]+FORCE_JAVASCRIPT_ACTIONS_TO_NODE24:[ \t]*(true|"true"|'true')[ \t]*$/m.test(
     source
   );
 }
 
+function actionReferenceFailures(source, workflowPath) {
+  return [...source.matchAll(/^\s*-?\s*uses:\s+([^@\s]+)@(v(\d+)(?:\.\d+){0,2})\s*$/gm)].flatMap(
+    ([, action, version, major]) => {
+      const minimumMajor = minimumActionMajors.get(action);
+      if (!minimumMajor || Number(major) >= minimumMajor) {
+        return [];
+      }
+      return [`${workflowPath} uses ${action}@${version}; expected ${action}@v${minimumMajor} or newer.`];
+    }
+  );
+}
+
 const failures = workflowPaths.flatMap((workflowPath) => {
   const source = fs.readFileSync(path.join(root, workflowPath), "utf8");
-  return hasNode24RuntimeOptIn(source)
+  const runtimeFailures = hasNode24RuntimeOptIn(source)
     ? []
     : [`${workflowPath} must opt into Node 24 JavaScript action runtime.`];
+  return [...runtimeFailures, ...actionReferenceFailures(source, workflowPath)];
 });
 
 if (failures.length) {
