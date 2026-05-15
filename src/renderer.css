@@ -154,6 +154,18 @@ button:hover {
   border-color: var(--accent);
 }
 
+.app-update-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.app-update-actions button {
+  min-height: 28px;
+  margin-top: 0;
+  font-size: 11px;
+}
+
 .check-row {
   display: flex;
   align-items: center;
@@ -161,12 +173,17 @@ button:hover {
   min-height: 28px;
 }
 
-.pet-status {
+.pet-status,
+.update-status {
   min-height: 16px;
   margin: 8px 0 0;
   color: var(--accent);
   font-size: 12px;
   line-height: 1.35;
+}
+
+.update-status {
+  color: var(--muted);
 }
 
 .panel-heading {

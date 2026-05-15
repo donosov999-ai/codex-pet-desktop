@@ -10,6 +10,19 @@ use crate::{
     windowing::{self, WindowBounds},
 };
 
+const DOWNLOADS_URL: &str = "https://jieyangxchen.github.io/codex-pet-desktop/";
+const LATEST_RELEASE_API: &str =
+    "https://api.github.com/repos/jieyangxchen/codex-pet-desktop/releases/latest";
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct AppInfo {
+    display_name: &'static str,
+    version: &'static str,
+    downloads_url: &'static str,
+    latest_release_api: &'static str,
+}
+
 #[derive(Debug, Serialize)]
 struct WindowState {
     #[serde(rename = "alwaysOnTop")]
@@ -30,6 +43,23 @@ struct ImportPetpackResult {
 #[tauri::command]
 fn list_pets(app: AppHandle<Wry>) -> PetList {
     pet_catalog::list_pet_packages(&app)
+}
+
+#[tauri::command]
+fn get_app_info() -> AppInfo {
+    AppInfo {
+        display_name: "永生计划",
+        version: env!("CARGO_PKG_VERSION"),
+        downloads_url: DOWNLOADS_URL,
+        latest_release_api: LATEST_RELEASE_API,
+    }
+}
+
+#[tauri::command]
+fn open_downloads(app: AppHandle<Wry>) -> Result<(), String> {
+    app.opener()
+        .open_url(DOWNLOADS_URL, None::<&str>)
+        .map_err(|error| error.to_string())
 }
 
 #[tauri::command]
@@ -133,6 +163,8 @@ fn quit(app: AppHandle<Wry>) {
 pub(crate) fn handler() -> impl Fn(tauri::ipc::Invoke<Wry>) -> bool + Send + Sync + 'static {
     tauri::generate_handler![
         list_pets,
+        get_app_info,
+        open_downloads,
         import_petpack,
         uninstall_pet,
         reveal_pet,

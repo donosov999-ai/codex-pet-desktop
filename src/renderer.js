@@ -26,6 +26,9 @@ const importEmptyButton = document.querySelector("#importEmptyButton");
 const petpackInput = document.querySelector("#petpackInput");
 const petManagerEl = document.querySelector("#petManager");
 const petStatusEl = document.querySelector("#petStatus");
+const checkUpdateButton = document.querySelector("#checkUpdateButton");
+const openDownloadsButton = document.querySelector("#openDownloadsButton");
+const updateStatusEl = document.querySelector("#updateStatus");
 const quitButton = document.querySelector("#quitButton");
 
 const tauriInvoke = window.__TAURI__?.core?.invoke;
@@ -35,6 +38,8 @@ const petDesktop =
   (tauriInvoke
     ? {
         listPets: () => tauriInvoke("list_pets"),
+        getAppInfo: () => tauriInvoke("get_app_info"),
+        openDownloads: () => tauriInvoke("open_downloads"),
         importPetpack: (data) => tauriInvoke("import_petpack", { data }),
         uninstallPet: (id) => tauriInvoke("uninstall_pet", { id }),
         revealPet: (id) => tauriInvoke("reveal_pet", { id }),
@@ -79,6 +84,11 @@ let dragLastScreenY = 0;
 let wanderTimer = 0;
 let wanderDirection = 0;
 let wanderUntil = 0;
+let appInfo = {
+  version: "0.0.0",
+  downloadsUrl: "https://jieyangxchen.github.io/codex-pet-desktop/",
+  latestReleaseApi: "https://api.github.com/repos/jieyangxchen/codex-pet-desktop/releases/latest"
+};
 
 function hasActivePet() {
   return Boolean(activePet && pets.some((pet) => pet.id === activePet.id));
@@ -187,6 +197,72 @@ function versionLabel(pet) {
 function setPetStatus(message) {
   if (petStatusEl) {
     petStatusEl.textContent = message || "";
+  }
+}
+
+function setUpdateStatus(message) {
+  if (updateStatusEl) {
+    updateStatusEl.textContent = message || "";
+  }
+}
+
+function cleanVersion(value) {
+  return String(value || "")
+    .trim()
+    .replace(/^v/i, "")
+    .split(/[+-]/)[0];
+}
+
+function versionParts(value) {
+  return cleanVersion(value)
+    .split(".")
+    .slice(0, 3)
+    .map((part) => {
+      const match = part.match(/^\d+/);
+      return match ? Number(match[0]) : 0;
+    });
+}
+
+function compareVersions(left, right) {
+  const leftParts = versionParts(left);
+  const rightParts = versionParts(right);
+  for (let index = 0; index < 3; index += 1) {
+    const difference = (leftParts[index] || 0) - (rightParts[index] || 0);
+    if (difference !== 0) {
+      return difference;
+    }
+  }
+  return 0;
+}
+
+async function checkForUpdates() {
+  if (!appInfo.latestReleaseApi || typeof fetch !== "function") {
+    setUpdateStatus("检查更新不可用。");
+    return;
+  }
+  checkUpdateButton.disabled = true;
+  setUpdateStatus("正在检查更新...");
+  try {
+    const response = await fetch(appInfo.latestReleaseApi, {
+      headers: { Accept: "application/vnd.github+json" }
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const latest = await response.json();
+    const latestTag = latest.tag_name || latest.name || "";
+    if (!latestTag) {
+      throw new Error("latest release tag is missing");
+    }
+    if (compareVersions(latestTag, appInfo.version) > 0) {
+      setUpdateStatus(`发现新版本 ${latestTag}，点击 Open Downloads 下载。`);
+      return;
+    }
+    setUpdateStatus(`当前已是最新版本 v${cleanVersion(appInfo.version)}。`);
+  } catch (error) {
+    setUpdateStatus(`检查更新失败：${error.message}`);
+  } finally {
+    checkUpdateButton.disabled = false;
   }
 }
 
@@ -436,6 +512,18 @@ scaleRange.addEventListener("input", () => {
 topToggle.addEventListener("change", () => {
   petDesktop?.setAlwaysOnTop(topToggle.checked);
 });
+
+checkUpdateButton?.addEventListener("click", () => {
+  checkForUpdates();
+});
+
+openDownloadsButton?.addEventListener("click", () => {
+  petDesktop
+    ?.openDownloads?.()
+    .then(() => setUpdateStatus("已打开下载页。"))
+    .catch((error) => setUpdateStatus(`打开下载页失败：${error.message}`));
+});
+
 function openPetpackPicker() {
   petpackInput.value = "";
   petpackInput.click();
@@ -501,6 +589,8 @@ async function init() {
     throw new Error("Desktop bridge is not available.");
   }
   renderStateOptions();
+  appInfo = (await petDesktop.getAppInfo?.()) || appInfo;
+  setUpdateStatus(`当前版本 v${cleanVersion(appInfo.version)}`);
   const windowState = await petDesktop.getWindowState();
   topToggle.checked = Boolean(windowState.alwaysOnTop);
   refreshPetList(await petDesktop.listPets());

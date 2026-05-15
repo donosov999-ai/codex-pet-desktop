@@ -56,3 +56,18 @@
 - [x] Generate petpack cards from `release/petpacks/petpacks.json`.
 - [x] Keep app installer links static but pet resource links data-driven.
 - [x] Add smoke verification that the generated page contains all petpack file names.
+
+### Task 5: App Update Entry
+
+**Files:**
+- Modify: `src-tauri/src/commands.rs`
+- Modify: `src/renderer.html`
+- Modify: `src/renderer.css`
+- Modify: `src/renderer.js`
+- Add: `src/renderer-update-smoke.js`
+- Modify: `package.json`
+
+- [x] Expose current app version and download page metadata to the renderer.
+- [x] Add a compact right-click panel section for checking the latest GitHub Release.
+- [x] Add a button that opens the GitHub Pages download page from the desktop app.
+- [x] Add a JS smoke test proving update discovery and download-page opening.

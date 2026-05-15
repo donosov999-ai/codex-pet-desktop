@@ -36,6 +36,14 @@
           <input id="topToggle" type="checkbox" checked />
           <span>Always on top</span>
         </label>
+        <section class="app-update" aria-label="App updates">
+          <div class="panel-heading">App updates</div>
+          <div class="app-update-actions">
+            <button id="checkUpdateButton" type="button">Check Updates</button>
+            <button id="openDownloadsButton" type="button">Open Downloads</button>
+          </div>
+          <p id="updateStatus" class="update-status" aria-live="polite"></p>
+        </section>
         <button id="importButton" type="button">Import Petpack</button>
         <p id="petStatus" class="pet-status" aria-live="polite"></p>
         <section class="pet-manager" aria-label="Installed pets">
