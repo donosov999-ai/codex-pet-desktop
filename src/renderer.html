@@ -37,6 +37,11 @@
           <span>Always on top</span>
         </label>
         <button id="importButton" type="button">Import Petpack</button>
+        <p id="petStatus" class="pet-status" aria-live="polite"></p>
+        <section class="pet-manager" aria-label="Installed pets">
+          <div class="panel-heading">Installed pets</div>
+          <div id="petManager" class="pet-manager-list"></div>
+        </section>
         <button id="quitButton" type="button">Quit</button>
       </section>
       <input id="petpackInput" class="hidden" type="file" accept=".petpack,application/zip" />

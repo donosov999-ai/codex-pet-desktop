@@ -1,4 +1,38 @@
-<!doctype html>
+#!/usr/bin/env node
+
+const fs = require("node:fs");
+const path = require("node:path");
+
+const ROOT = path.resolve(__dirname, "..");
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
+function petCard(pet) {
+  const displayName = escapeHtml(pet.displayName || pet.id);
+  const description = escapeHtml(pet.description || "宠物资源包。");
+  const version = escapeHtml(pet.version || "1.0.0");
+  const fileName = escapeHtml(pet.fileName);
+  return `          <article class="download">
+            <h3>${displayName}</h3>
+            <p>${description}</p>
+            <p class="meta">v${version}</p>
+            <a href="./petpacks/${fileName}">下载 ${displayName}</a>
+          </article>`;
+}
+
+function renderDownloadPage(petpacks) {
+  const cards = [...petpacks]
+    .sort((a, b) => String(a.displayName || a.id).localeCompare(String(b.displayName || b.id), "zh-CN"))
+    .map(petCard)
+    .join("\n");
+
+  return `<!doctype html>
 <html lang="zh-CN">
   <head>
     <meta charset="utf-8" />
@@ -125,26 +159,30 @@
         <h2>宠物资源包</h2>
         <p>下载 <code>.petpack</code> 后，在主程序里点击 Import Petpack 导入。</p>
         <div class="downloads">
-          <article class="download">
-            <h3>红糖</h3>
-            <p>红糖，一只虎斑色惠比特，常态贴近地面休息。</p>
-            <p class="meta">v1.0.1</p>
-            <a href="./petpacks/tigris-whippet-1.0.1.petpack">下载 红糖</a>
-          </article>
-          <article class="download">
-            <h3>米粉</h3>
-            <p>米粉，一只全白猫咪，常态趴着待机。</p>
-            <p class="meta">v1.0.2</p>
-            <a href="./petpacks/mi-fen-1.0.2.petpack">下载 米粉</a>
-          </article>
-          <article class="download">
-            <h3>米酒</h3>
-            <p>米酒，一只深色长毛虎斑猫，常态趴着待机。</p>
-            <p class="meta">v1.0.0</p>
-            <a href="./petpacks/mi-jiu-1.0.0.petpack">下载 米酒</a>
-          </article>
+${cards}
         </div>
       </section>
     </main>
   </body>
 </html>
+`;
+}
+
+function main() {
+  const indexPath = process.argv[2]
+    ? path.resolve(process.argv[2])
+    : path.join(ROOT, "release", "petpacks", "petpacks.json");
+  const outPath = process.argv[3] ? path.resolve(process.argv[3]) : path.join(ROOT, "docs", "index.html");
+  const petpacks = JSON.parse(fs.readFileSync(indexPath, "utf8"));
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  fs.writeFileSync(outPath, renderDownloadPage(petpacks));
+  console.log(JSON.stringify({ ok: true, outPath, petCount: petpacks.length }, null, 2));
+}
+
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  renderDownloadPage
+};

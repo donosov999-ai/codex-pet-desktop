@@ -8,14 +8,82 @@ use std::{
 use tauri::{AppHandle, Manager, Runtime};
 use url::Url;
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum PetSourceKind {
+    Managed,
+    External,
+    Bundled,
+    Codex,
+}
+
+impl PetSourceKind {
+    fn as_str(self) -> &'static str {
+        match self {
+            PetSourceKind::Managed => "managed",
+            PetSourceKind::External => "external",
+            PetSourceKind::Bundled => "bundled",
+            PetSourceKind::Codex => "codex",
+        }
+    }
+
+    fn can_uninstall(self) -> bool {
+        self == PetSourceKind::Managed
+    }
+}
+
+#[derive(Clone, Debug)]
+struct PetRoot {
+    path: PathBuf,
+    source_kind: PetSourceKind,
+}
+
+impl PetRoot {
+    fn managed(path: PathBuf) -> Self {
+        Self {
+            path,
+            source_kind: PetSourceKind::Managed,
+        }
+    }
+
+    fn external(path: PathBuf) -> Self {
+        Self {
+            path,
+            source_kind: PetSourceKind::External,
+        }
+    }
+
+    fn bundled(path: PathBuf) -> Self {
+        Self {
+            path,
+            source_kind: PetSourceKind::Bundled,
+        }
+    }
+
+    fn codex(path: PathBuf) -> Self {
+        Self {
+            path,
+            source_kind: PetSourceKind::Codex,
+        }
+    }
+}
+
+impl From<PathBuf> for PetRoot {
+    fn from(path: PathBuf) -> Self {
+        PetRoot::external(path)
+    }
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub(crate) struct PetPackage {
     pub(crate) id: String,
     display_name: String,
     description: String,
+    pub(crate) version: String,
     manifest_path: String,
-    root: String,
+    pub(crate) root: String,
+    pub(crate) source_kind: String,
+    pub(crate) can_uninstall: bool,
     spritesheet_path: String,
     spritesheet_url: String,
     spritesheet_revision: String,
@@ -41,8 +109,14 @@ struct PetManifest {
     display_name: Option<String>,
     name: Option<String>,
     description: Option<String>,
+    version: Option<String>,
     #[serde(rename = "spritesheetPath")]
     spritesheet_path: Option<String>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct PetpackManifest {
+    version: Option<String>,
 }
 
 fn file_url(path: &Path) -> Result<String, String> {
@@ -64,18 +138,21 @@ fn file_revision(path: &Path) -> String {
     format!("{}-{modified}", metadata.len())
 }
 
-fn unique_existing_dirs(dirs: Vec<PathBuf>) -> Vec<PathBuf> {
+fn unique_existing_dirs(dirs: Vec<PetRoot>) -> Vec<PetRoot> {
     let mut seen = HashSet::new();
     let mut result = Vec::new();
 
-    for dir in dirs {
-        let Ok(resolved) = dir.canonicalize() else {
+    for root in dirs {
+        let Ok(resolved) = root.path.canonicalize() else {
             continue;
         };
         if !resolved.is_dir() || !seen.insert(resolved.clone()) {
             continue;
         }
-        result.push(resolved);
+        result.push(PetRoot {
+            path: resolved,
+            source_kind: root.source_kind,
+        });
     }
 
     result
@@ -105,20 +182,22 @@ fn bundled_pets_dir<R: Runtime>(app: &AppHandle<R>) -> Option<PathBuf> {
     dev.filter(|path| path.exists())
 }
 
-fn pet_roots<R: Runtime>(app: &AppHandle<R>) -> Vec<PathBuf> {
+fn pet_roots<R: Runtime>(app: &AppHandle<R>) -> Vec<PetRoot> {
     let mut roots = Vec::new();
 
     if let Ok(raw) = env::var("CODEX_PETS_DIR") {
-        roots.extend(env::split_paths(&raw));
+        roots.extend(env::split_paths(&raw).map(PetRoot::external));
     }
     if let Some(dir) = user_data_dir(app) {
-        roots.push(dir.join("pets"));
+        roots.push(PetRoot::managed(dir.join("pets")));
     }
     if let Some(dir) = bundled_pets_dir(app) {
-        roots.push(dir);
+        roots.push(PetRoot::bundled(dir));
     }
     if let Ok(home) = env::var("HOME") {
-        roots.push(PathBuf::from(home).join(".codex").join("pets"));
+        roots.push(PetRoot::codex(
+            PathBuf::from(home).join(".codex").join("pets"),
+        ));
     }
 
     unique_existing_dirs(roots)
@@ -140,7 +219,7 @@ fn find_pet_packages(root: &Path) -> Result<Vec<PathBuf>, String> {
     Ok(packages)
 }
 
-fn normalize_pet_package(dir: &Path) -> Result<PetPackage, String> {
+fn normalize_pet_package(dir: &Path, source_kind: PetSourceKind) -> Result<PetPackage, String> {
     let manifest_path = dir.join("pet.json");
     let manifest: PetManifest = serde_json::from_str(
         &fs::read_to_string(&manifest_path).map_err(|error| error.to_string())?,
@@ -158,6 +237,7 @@ fn normalize_pet_package(dir: &Path) -> Result<PetPackage, String> {
         .or(manifest.name)
         .unwrap_or_else(|| id.clone());
     let description = manifest.description.unwrap_or_default();
+    let version = petpack_version(dir).unwrap_or_else(|| manifest.version.unwrap_or_default());
     let spritesheet_path = manifest
         .spritesheet_path
         .unwrap_or_else(|| "spritesheet.webp".to_string());
@@ -173,28 +253,82 @@ fn normalize_pet_package(dir: &Path) -> Result<PetPackage, String> {
         id,
         display_name,
         description,
+        version,
         manifest_path: manifest_path.display().to_string(),
         root: dir.display().to_string(),
+        source_kind: source_kind.as_str().to_string(),
+        can_uninstall: source_kind.can_uninstall(),
         spritesheet_path: resolved_spritesheet.display().to_string(),
         spritesheet_url: file_url(&resolved_spritesheet)?,
         spritesheet_revision: file_revision(&resolved_spritesheet),
     })
 }
 
+fn petpack_version(dir: &Path) -> Option<String> {
+    let manifest_path = dir.join("petpack.json");
+    let content = fs::read_to_string(manifest_path).ok()?;
+    let manifest: PetpackManifest = serde_json::from_str(&content).ok()?;
+    manifest
+        .version
+        .filter(|version| !version.trim().is_empty())
+}
+
+pub(crate) fn pet_version(dir: &Path) -> String {
+    let manifest_path = dir.join("pet.json");
+    let manifest_version = fs::read_to_string(manifest_path)
+        .ok()
+        .and_then(|content| serde_json::from_str::<PetManifest>(&content).ok())
+        .and_then(|manifest| manifest.version);
+    petpack_version(dir).unwrap_or_else(|| manifest_version.unwrap_or_default())
+}
+
+fn safe_pet_id(id: &str) -> Result<&str, String> {
+    let valid = !id.is_empty()
+        && id
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'_'));
+    if valid {
+        Ok(id)
+    } else {
+        Err(format!("Invalid pet id: {id}"))
+    }
+}
+
+pub(crate) fn uninstall_user_pet(pets_dir: &Path, id: &str) -> Result<(), String> {
+    safe_pet_id(id)?;
+    let destination = pets_dir.join(id);
+    if !destination.is_dir() {
+        return Err(format!("Pet is not installed in app data: {id}"));
+    }
+    fs::remove_dir_all(destination).map_err(|error| error.to_string())
+}
+
+pub(crate) fn user_pet_dir(pets_dir: &Path, id: &str) -> Result<PathBuf, String> {
+    safe_pet_id(id)?;
+    let destination = pets_dir.join(id);
+    if !destination.is_dir() {
+        return Err(format!("Pet is not installed in app data: {id}"));
+    }
+    destination
+        .canonicalize()
+        .map_err(|error| error.to_string())
+}
+
 pub(crate) fn list_pet_packages<R: Runtime>(app: &AppHandle<R>) -> PetList {
     list_pet_packages_from_roots(pet_roots(app))
 }
 
-fn list_pet_packages_from_roots(roots: Vec<PathBuf>) -> PetList {
+fn list_pet_packages_from_roots<T: Into<PetRoot>>(roots: Vec<T>) -> PetList {
+    let roots: Vec<PetRoot> = roots.into_iter().map(Into::into).collect();
     let mut seen = HashSet::new();
     let mut pets = Vec::new();
     let mut errors = Vec::new();
 
     for root in &roots {
-        match find_pet_packages(root) {
+        match find_pet_packages(&root.path) {
             Ok(packages) => {
                 for package in packages {
-                    match normalize_pet_package(&package) {
+                    match normalize_pet_package(&package, root.source_kind) {
                         Ok(pet) if seen.insert(pet.id.clone()) => pets.push(pet),
                         Ok(_) => {}
                         Err(error) => errors.push(PetError {
@@ -205,7 +339,7 @@ fn list_pet_packages_from_roots(roots: Vec<PathBuf>) -> PetList {
                 }
             }
             Err(error) => errors.push(PetError {
-                root: root.display().to_string(),
+                root: root.path.display().to_string(),
                 error,
             }),
         }
@@ -214,7 +348,7 @@ fn list_pet_packages_from_roots(roots: Vec<PathBuf>) -> PetList {
     PetList {
         roots: roots
             .iter()
-            .map(|root| root.display().to_string())
+            .map(|root| root.path.display().to_string())
             .collect(),
         pets,
         errors,
@@ -324,5 +458,61 @@ mod tests {
         assert_eq!(list.pets.len(), 2);
         assert_eq!(list.pets[0].id, "mi-fen");
         assert_eq!(list.pets[1].id, "tigris-whippet");
+    }
+
+    #[test]
+    fn surfaces_version_source_and_management_metadata() {
+        let managed_root = temp_root();
+        let external_root = temp_root();
+        let managed_pet = managed_root.join("mi-fen");
+        let external_pet = external_root.join("hong-tang");
+        fs::create_dir_all(&managed_pet).expect("create managed pet");
+        fs::create_dir_all(&external_pet).expect("create external pet");
+        fs::write(managed_pet.join("spritesheet.webp"), b"webp").expect("write managed sprite");
+        fs::write(external_pet.join("spritesheet.webp"), b"webp").expect("write external sprite");
+        fs::write(
+            managed_pet.join("petpack.json"),
+            r#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"米粉","version":"1.2.3"}"#,
+        )
+        .expect("write managed petpack manifest");
+        fs::write(
+            managed_pet.join("pet.json"),
+            r#"{"id":"mi-fen","displayName":"米粉","version":"1.0.0"}"#,
+        )
+        .expect("write managed manifest");
+        fs::write(
+            external_pet.join("pet.json"),
+            r#"{"id":"hong-tang","displayName":"红糖","version":"2.0.0"}"#,
+        )
+        .expect("write external manifest");
+
+        let list = list_pet_packages_from_roots(vec![
+            PetRoot::managed(managed_root),
+            PetRoot::external(external_root),
+        ]);
+
+        assert_eq!(list.pets.len(), 2);
+        assert_eq!(list.pets[0].id, "mi-fen");
+        assert_eq!(list.pets[0].version, "1.2.3");
+        assert_eq!(list.pets[0].source_kind, "managed");
+        assert!(list.pets[0].can_uninstall);
+        assert_eq!(list.pets[1].id, "hong-tang");
+        assert_eq!(list.pets[1].version, "2.0.0");
+        assert_eq!(list.pets[1].source_kind, "external");
+        assert!(!list.pets[1].can_uninstall);
+    }
+
+    #[test]
+    fn uninstall_user_pet_removes_only_safe_managed_ids() {
+        let pets_dir = temp_root();
+        let pet_dir = pets_dir.join("mi-fen");
+        fs::create_dir_all(&pet_dir).expect("create pet dir");
+        fs::write(pet_dir.join("pet.json"), "{}").expect("write pet manifest");
+
+        uninstall_user_pet(&pets_dir, "mi-fen").expect("uninstall managed pet");
+
+        assert!(!pet_dir.exists());
+        assert!(uninstall_user_pet(&pets_dir, "../mi-fen").is_err());
+        assert!(uninstall_user_pet(&pets_dir, "missing").is_err());
     }
 }

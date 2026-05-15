@@ -87,7 +87,9 @@ body {
   left: 50%;
   top: 12px;
   transform: translateX(-50%);
-  width: 232px;
+  width: 272px;
+  max-height: calc(100vh - 24px);
+  overflow: auto;
   padding: 12px;
   color: var(--text);
   background: var(--panel-bg);
@@ -157,4 +159,71 @@ button:hover {
   align-items: center;
   gap: 8px;
   min-height: 28px;
+}
+
+.pet-status {
+  min-height: 16px;
+  margin: 8px 0 0;
+  color: var(--accent);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.panel-heading {
+  margin: 12px 0 6px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pet-manager-list {
+  display: grid;
+  gap: 8px;
+}
+
+.pet-manager-empty,
+.pet-manager-row {
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.pet-manager-empty {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.pet-manager-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pet-manager-meta {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.pet-manager-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.pet-manager-actions button {
+  min-height: 26px;
+  margin-top: 0;
+  font-size: 11px;
+}
+
+button:disabled {
+  cursor: default;
+  opacity: 0.45;
 }

@@ -3,6 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { spawnSync } = require("node:child_process");
+const { validatePetResources, writeQaReport } = require("./qa-petpack-assets");
 
 const root = path.resolve(__dirname, "..");
 const petsRoot = path.join(root, "resources", "pets");
@@ -51,6 +52,13 @@ fs.rmSync(outDir, { recursive: true, force: true });
 fs.rmSync(stagingRoot, { recursive: true, force: true });
 fs.mkdirSync(outDir, { recursive: true });
 fs.mkdirSync(stagingRoot, { recursive: true });
+
+const qaReport = validatePetResources(petsRoot);
+writeQaReport(qaReport, path.join(outDir, "qa.json"));
+if (!qaReport.ok) {
+  console.error(JSON.stringify(qaReport, null, 2));
+  process.exit(1);
+}
 
 const index = [];
 

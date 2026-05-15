@@ -19,6 +19,13 @@ struct PetpackManifest {
     version: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct PetpackSummary {
+    pub(crate) id: String,
+    pub(crate) display_name: String,
+    pub(crate) version: String,
+}
+
 #[derive(Debug, Deserialize)]
 struct PetManifest {
     id: Option<String>,
@@ -43,39 +50,7 @@ fn safe_pet_id(id: &str) -> Result<&str, String> {
 
 pub(crate) fn install_petpack_bytes(bytes: &[u8], pets_dir: &Path) -> Result<PathBuf, String> {
     let mut archive = ZipArchive::new(Cursor::new(bytes)).map_err(|error| error.to_string())?;
-    let petpack: PetpackManifest = read_json_entry(&mut archive, "petpack.json")?;
-    if petpack.format != PETPACK_FORMAT {
-        return Err(format!("Unsupported petpack format: {}", petpack.format));
-    }
-    if petpack.format_version != PETPACK_FORMAT_VERSION {
-        return Err(format!(
-            "Unsupported petpack format version: {}",
-            petpack.format_version
-        ));
-    }
-    safe_pet_id(&petpack.id)?;
-    if petpack.display_name.trim().is_empty() {
-        return Err("Petpack displayName is required".to_string());
-    }
-    if petpack.version.trim().is_empty() {
-        return Err("Petpack version is required".to_string());
-    }
-
-    let pet: PetManifest = read_json_entry(&mut archive, "pet.json")?;
-    let pet_id = pet.id.unwrap_or_else(|| petpack.id.clone());
-    if pet_id != petpack.id {
-        return Err(format!(
-            "Pet id mismatch: petpack id is {}, pet.json id is {}",
-            petpack.id, pet_id
-        ));
-    }
-    let pet_display = pet.display_name.or(pet.name).unwrap_or_default();
-    if pet_display.trim().is_empty() {
-        return Err("pet.json displayName is required".to_string());
-    }
-    let spritesheet_path = pet
-        .spritesheet_path
-        .unwrap_or_else(|| "spritesheet.webp".to_string());
+    let (petpack, spritesheet_path) = validate_petpack_archive(&mut archive)?;
     let required_files = ["petpack.json", "pet.json", spritesheet_path.as_str()];
     for file in required_files {
         if archive.by_name(file).is_err() {
@@ -108,6 +83,56 @@ pub(crate) fn install_petpack_bytes(bytes: &[u8], pets_dir: &Path) -> Result<Pat
     let _ = fs::remove_dir_all(&destination);
     fs::rename(&temp_destination, &destination).map_err(|error| error.to_string())?;
     Ok(destination)
+}
+
+pub(crate) fn inspect_petpack_bytes(bytes: &[u8]) -> Result<PetpackSummary, String> {
+    let mut archive = ZipArchive::new(Cursor::new(bytes)).map_err(|error| error.to_string())?;
+    let (petpack, _) = validate_petpack_archive(&mut archive)?;
+    Ok(PetpackSummary {
+        id: petpack.id,
+        display_name: petpack.display_name,
+        version: petpack.version,
+    })
+}
+
+fn validate_petpack_archive(
+    archive: &mut ZipArchive<Cursor<&[u8]>>,
+) -> Result<(PetpackManifest, String), String> {
+    let petpack: PetpackManifest = read_json_entry(archive, "petpack.json")?;
+    if petpack.format != PETPACK_FORMAT {
+        return Err(format!("Unsupported petpack format: {}", petpack.format));
+    }
+    if petpack.format_version != PETPACK_FORMAT_VERSION {
+        return Err(format!(
+            "Unsupported petpack format version: {}",
+            petpack.format_version
+        ));
+    }
+    safe_pet_id(&petpack.id)?;
+    if petpack.display_name.trim().is_empty() {
+        return Err("Petpack displayName is required".to_string());
+    }
+    if petpack.version.trim().is_empty() {
+        return Err("Petpack version is required".to_string());
+    }
+
+    let pet: PetManifest = read_json_entry(archive, "pet.json")?;
+    let pet_id = pet.id.unwrap_or_else(|| petpack.id.clone());
+    if pet_id != petpack.id {
+        return Err(format!(
+            "Pet id mismatch: petpack id is {}, pet.json id is {}",
+            petpack.id, pet_id
+        ));
+    }
+    let pet_display = pet.display_name.or(pet.name).unwrap_or_default();
+    if pet_display.trim().is_empty() {
+        return Err("pet.json displayName is required".to_string());
+    }
+    Ok((
+        petpack,
+        pet.spritesheet_path
+            .unwrap_or_else(|| "spritesheet.webp".to_string()),
+    ))
 }
 
 fn read_json_entry<T: for<'de> Deserialize<'de>>(
@@ -275,5 +300,19 @@ mod tests {
         let error = install_petpack_bytes(&pack, &root).expect_err("reject id mismatch");
 
         assert!(error.contains("mismatch"));
+    }
+
+    #[test]
+    fn inspects_valid_petpack_without_installing() {
+        let summary = inspect_petpack_bytes(&valid_petpack()).expect("inspect petpack");
+
+        assert_eq!(
+            summary,
+            PetpackSummary {
+                id: "mi-fen".to_string(),
+                display_name: "Mi Fen".to_string(),
+                version: "1.0.0".to_string(),
+            }
+        );
     }
 }

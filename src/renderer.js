@@ -24,6 +24,8 @@ const topToggle = document.querySelector("#topToggle");
 const importButton = document.querySelector("#importButton");
 const importEmptyButton = document.querySelector("#importEmptyButton");
 const petpackInput = document.querySelector("#petpackInput");
+const petManagerEl = document.querySelector("#petManager");
+const petStatusEl = document.querySelector("#petStatus");
 const quitButton = document.querySelector("#quitButton");
 
 const tauriInvoke = window.__TAURI__?.core?.invoke;
@@ -34,6 +36,8 @@ const petDesktop =
     ? {
         listPets: () => tauriInvoke("list_pets"),
         importPetpack: (data) => tauriInvoke("import_petpack", { data }),
+        uninstallPet: (id) => tauriInvoke("uninstall_pet", { id }),
+        revealPet: (id) => tauriInvoke("reveal_pet", { id }),
         moveBy: (x, y) => tauriInvoke("move_by", { x, y }),
         setIgnoreMouseEvents: (ignored) => tauriInvoke("set_ignore_mouse_events", { ignored }),
         resetPosition: () => tauriInvoke("reset_position"),
@@ -176,10 +180,75 @@ function renderPetOptions() {
   );
 }
 
+function versionLabel(pet) {
+  return pet?.version ? pet.version : "unversioned";
+}
+
+function setPetStatus(message) {
+  if (petStatusEl) {
+    petStatusEl.textContent = message || "";
+  }
+}
+
+function renderPetManager() {
+  if (!petManagerEl) {
+    return;
+  }
+  if (!pets.length) {
+    const empty = document.createElement("div");
+    empty.className = "pet-manager-empty";
+    empty.textContent = "No pets installed.";
+    petManagerEl.replaceChildren(empty);
+    return;
+  }
+  petManagerEl.replaceChildren(
+    ...pets.map((pet) => {
+      const row = document.createElement("article");
+      row.className = "pet-manager-row";
+
+      const title = document.createElement("div");
+      title.className = "pet-manager-title";
+      const name = document.createElement("span");
+      name.textContent = pet.displayName;
+      const version = document.createElement("span");
+      version.textContent = versionLabel(pet);
+      title.append(name, version);
+
+      const meta = document.createElement("div");
+      meta.className = "pet-manager-meta";
+      meta.textContent = `${pet.id} · ${pet.sourceKind || "external"}`;
+
+      const actions = document.createElement("div");
+      actions.className = "pet-manager-actions";
+      const reveal = document.createElement("button");
+      reveal.type = "button";
+      reveal.textContent = "Reveal";
+      reveal.addEventListener("click", () => {
+        petDesktop?.revealPet?.(pet.id).catch((error) => setPetStatus(error.message));
+      });
+      const uninstall = document.createElement("button");
+      uninstall.type = "button";
+      uninstall.textContent = "Uninstall";
+      uninstall.disabled = !pet.canUninstall;
+      uninstall.addEventListener("click", () => {
+        uninstallPet(pet).catch((error) => setPetStatus(error.message));
+      });
+      actions.append(reveal, uninstall);
+
+      row.append(title, meta, actions);
+      return row;
+    })
+  );
+}
+
 function refreshPetList(result, preferredPetId) {
-  pets = result.pets;
+  pets = result.pets || [];
   renderPetOptions();
+  renderPetManager();
   pickPet(preferredPetId || pets[0]?.id);
+  if (result.errors?.length) {
+    setPetStatus(`Skipped ${result.errors.length} invalid pet folder(s).`);
+  }
 }
 
 function renderStateOptions() {
@@ -390,15 +459,37 @@ async function importSelectedPetpack(file) {
   const data = await readFileAsBase64(file);
   const result = await petDesktop.importPetpack(data);
   refreshPetList(result.pets, result.importedPetId);
+  if (result.replaced) {
+    setPetStatus(
+      `已覆盖 ${result.displayName || result.importedPetId}: ${result.previousVersion || "unknown"} -> ${
+        result.version || "unknown"
+      }`
+    );
+  } else {
+    setPetStatus(`已导入 ${result.displayName || result.importedPetId} ${result.version || ""}`.trim());
+  }
   setPanelVisible(false);
+}
+
+async function uninstallPet(pet) {
+  if (!pet?.canUninstall) {
+    setPetStatus("Only imported app-data petpacks can be uninstalled here.");
+    return;
+  }
+  const result = await petDesktop.uninstallPet(pet.id);
+  setPetStatus(`已卸载 ${pet.displayName}`);
+  refreshPetList(result, activePet?.id === pet.id ? undefined : activePet?.id);
 }
 
 importButton.addEventListener("click", openPetpackPicker);
 importEmptyButton.addEventListener("click", openPetpackPicker);
 petpackInput.addEventListener("change", () => {
   importSelectedPetpack(petpackInput.files?.[0]).catch((error) => {
-    emptyStateEl.classList.remove("hidden");
-    emptyStateEl.querySelector("span").textContent = error.message;
+    if (!pets.length) {
+      emptyStateEl.classList.remove("hidden");
+      emptyStateEl.querySelector("span").textContent = error.message;
+    }
+    setPetStatus(error.message);
   });
 });
 quitButton.addEventListener("click", () => {

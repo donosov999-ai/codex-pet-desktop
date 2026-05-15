@@ -12,6 +12,8 @@
 - 支持拖动桌宠到屏幕边缘和角落，窗口只保留最小可见区域避免完全拖丢。
 - 支持单击招手、双击跳跃、自动游走、右键控制面板。
 - 主程序不内置宠物资源，宠物通过独立 `.petpack` 资源包导入。
+- 右键控制面板内置资源管理：查看已安装宠物版本和来源、打开资源目录、卸载已导入资源。
+- 导入同 id `.petpack` 时会覆盖应用数据目录里的旧版本，并显示旧版本到新版本的变化。
 - 可加载外部宠物目录，兼容 Codex 自定义宠物包。
 
 ## 交互
@@ -25,7 +27,7 @@
 | 系统托盘左键 | 显示或隐藏桌宠 |
 | 系统托盘右键 | 打开菜单，支持显示、隐藏、重置、置顶、退出 |
 
-控制面板支持导入宠物包、切换宠物、切换动作状态、调整大小、开启/关闭自动游走、开启/关闭置顶、退出应用。
+控制面板支持导入宠物包、切换宠物、切换动作状态、调整大小、开启/关闭自动游走、开启/关闭置顶、资源目录打开、卸载已导入宠物和退出应用。
 
 ## 下载
 
@@ -76,7 +78,13 @@ node scripts/build-app.js build macos-arm64
 node scripts/build-petpacks.js
 ```
 
-生成文件位于 `release/petpacks/`。GitHub Pages workflow 会自动生成 `.petpack` 并部署下载页。
+生成文件位于 `release/petpacks/`。脚本会先校验每个资源包的 `pet.json`、`spritesheet.webp` 和图集尺寸，并输出 `release/petpacks/qa.json`。GitHub Pages workflow 会自动生成 `.petpack`、资源索引和下载页。
+
+单独运行资源 QA：
+
+```bash
+node scripts/qa-petpack-assets.js
+```
 
 ## 宠物资源格式
 
@@ -154,7 +162,7 @@ spritesheet.webp
 npm run smoke
 ```
 
-这个检查会验证宠物资源格式、空宠物状态和桌宠窗口拖动边界逻辑。
+这个检查会验证宠物资源格式、空宠物状态、导入缓存刷新、资源管理器、下载页生成和桌宠窗口拖动边界逻辑。
 
 也可以运行 Tauri 启动冒烟检查：
 
@@ -172,6 +180,8 @@ src/renderer.*         桌宠界面、动画和交互逻辑
 src/main.js            Electron 旧主进程，保留作迁移参考
 scripts/build-app.js   生成无内置资源的 Tauri 主程序安装包
 scripts/build-petpacks.js 生成独立宠物资源包
+scripts/qa-petpack-assets.js 校验宠物资源 manifest 和 spritesheet 尺寸
+scripts/render-download-page.js 根据 petpacks.json 生成下载页
 src/smoke.js           本地冒烟检查
 ```
 
