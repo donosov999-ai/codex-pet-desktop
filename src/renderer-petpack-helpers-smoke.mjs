@@ -2,8 +2,8 @@ import {
   friendlyPetpackError,
   importConfirmLabel,
   importPreviewMessage
-} from "./renderer/petpack.js";
-import { summarizePetpackUpdates } from "./renderer/version.js";
+} from "./app/renderer/petpack.js";
+import { summarizePetpackUpdates } from "./app/renderer/version.js";
 
 const errors = [];
 

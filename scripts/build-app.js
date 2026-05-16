@@ -42,10 +42,10 @@ const buildTarget = buildTargetForPlatform(platform);
 const config = {
   $schema: "https://schema.tauri.app/config/2",
   productName: "永生计划",
-  version: "0.2.1",
-  identifier: "com.local.codexpetdesktop",
+  version: "0.2.2",
+  identifier: "io.github.jieyangxchen.yongshengplan",
   build: {
-    frontendDist: "../src",
+    frontendDist: "../src/app",
     beforeDevCommand: "",
     beforeBuildCommand: ""
   },
@@ -71,7 +71,7 @@ const config = {
       }
     ],
     security: {
-      csp: null,
+      csp: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: https://asset.localhost http://asset.localhost data:; connect-src 'self' https://api.github.com https://jieyangxchen.github.io; object-src 'none'; base-uri 'none'",
       assetProtocol: {
         enable: true,
         scope: ["$APPDATA/**", "$RESOURCE/**", "$HOME/.codex/pets/**", "../resources/pets/**"]

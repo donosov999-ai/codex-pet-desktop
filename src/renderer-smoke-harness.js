@@ -172,7 +172,7 @@ async function loadRenderer(options = {}) {
   windowObject.document = documentObject;
   windowObject.requestAnimationFrame = globalThis.requestAnimationFrame;
 
-  const entry = pathToFileURL(path.join(__dirname, "renderer", "index.js")).href;
+  const entry = pathToFileURL(path.join(__dirname, "app", "renderer", "index.js")).href;
   await import(`${entry}?smoke=${process.pid}-${Date.now()}-${Math.random()}`);
   await flush();
 

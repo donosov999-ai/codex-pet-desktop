@@ -162,7 +162,7 @@ spritesheet.webp
 npm run smoke
 ```
 
-这个检查会验证宠物资源格式、空宠物状态、导入预览确认、导入缓存刷新、资源管理器、主程序和宠物资源更新入口、下载页生成、视觉 QA 页面和 workflow 配置。
+这个检查会验证宠物资源格式、空宠物状态、导入预览确认、导入缓存刷新、资源管理器、主程序和宠物资源更新入口、下载页生成、视觉 QA 页面和 workflow 配置。Rust 测试还会读取每个 `spritesheet.webp`，确认所有声明动作帧都有可见内容。
 
 也可以运行 Tauri 启动冒烟检查：
 
@@ -176,9 +176,8 @@ PET_DESKTOP_E2E=1 cargo run
 ```text
 resources/pets/        用于生成独立 .petpack 的宠物资源
 src-tauri/             Rust/Tauri 主进程、窗口、托盘、打包配置
-src/renderer/          桌宠界面模块、动画、导入和更新逻辑
-src/renderer.html      桌宠窗口 HTML
-src/renderer.css       桌宠窗口样式
+src/app/               打包进主程序的前端运行时文件
+src/*-smoke.js         Node 冒烟测试，不进入主程序前端运行目录
 scripts/build-app.js   生成无内置资源的 Tauri 主程序安装包
 scripts/build-petpacks.js 生成独立宠物资源包
 scripts/qa-petpack-assets.js 校验宠物资源 manifest 和 spritesheet 尺寸
