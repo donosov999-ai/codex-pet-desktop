@@ -12,7 +12,10 @@ function localPetFor(remote, localPets) {
   return (localPets || []).find((pet) => pet.id === remote?.id);
 }
 
-function actionLabel(remote, local) {
+function actionLabel(remote, local, appVersion) {
+  if (!isCompatible(remote, appVersion)) {
+    return "需要更新主程序";
+  }
   if (!local) {
     return "安装";
   }
@@ -41,10 +44,29 @@ function formatBytes(bytes) {
   return `${Number.isInteger(kb) ? kb : kb.toFixed(1)} KB`;
 }
 
-function storeFilter(remote, local, selectedFilter) {
-  const hasUpdate = local && remote.version && compareVersions(remote.version, local.version) > 0;
+function normalizeTags(remote) {
+  return Array.isArray(remote?.tags) ? remote.tags.filter(Boolean) : [];
+}
+
+function changelogEntries(remote) {
+  if (Array.isArray(remote?.changelog)) {
+    return remote.changelog.filter(Boolean);
+  }
+  return typeof remote?.changelog === "string" && remote.changelog.trim() ? [remote.changelog.trim()] : [];
+}
+
+function isCompatible(remote, appVersion = window.petDesktopAppVersion || "0.0.0") {
+  return !remote?.minAppVersion || compareVersions(appVersion, remote.minAppVersion) >= 0;
+}
+
+function hasUpdate(remote, local, appVersion) {
+  return Boolean(local && isCompatible(remote, appVersion) && remote.version && compareVersions(remote.version, local.version) > 0);
+}
+
+function storeFilter(remote, local, selectedFilter, appVersion) {
+  const updateAvailable = hasUpdate(remote, local, appVersion);
   if (selectedFilter === "updates") {
-    return hasUpdate;
+    return updateAvailable;
   }
   if (selectedFilter === "installed") {
     return Boolean(local);
@@ -53,6 +75,36 @@ function storeFilter(remote, local, selectedFilter) {
     return !local;
   }
   return true;
+}
+
+function matchesSearch(remote, search) {
+  const query = search.trim().toLowerCase();
+  if (!query) {
+    return true;
+  }
+  const haystack = [
+    remote.id,
+    remote.displayName,
+    remote.description,
+    ...(normalizeTags(remote))
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(query);
+}
+
+function matchesTag(remote, tag) {
+  return !tag || tag === "all" || normalizeTags(remote).includes(tag);
+}
+
+async function sha256Hex(buffer) {
+  const subtle = globalThis.crypto?.subtle || window.crypto?.subtle;
+  if (!subtle) {
+    throw new Error("当前运行环境不支持 SHA-256 校验。");
+  }
+  const digest = await subtle.digest("SHA-256", buffer);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
 export function createStoreController({ dom, petDesktop, refreshPetList, state }) {
@@ -65,14 +117,50 @@ export function createStoreController({ dom, petDesktop, refreshPetList, state }
     }
   }
 
+  function appVersion() {
+    return state.appInfo.version || "0.0.0";
+  }
+
+  function renderTagOptions() {
+    if (!dom.storeTagFilter) {
+      return;
+    }
+    const selected = dom.storeTagFilter.value || "all";
+    const tags = [...new Set(remotePetpacks.flatMap(normalizeTags))].sort((a, b) => a.localeCompare(b, "zh-CN"));
+    const options = [
+      ["all", "全部分类"],
+      ...tags.map((tag) => [tag, tag])
+    ].map(([value, label]) => {
+      const option = document.createElement("option");
+      option.value = value;
+      option.textContent = label;
+      return option;
+    });
+    dom.storeTagFilter.replaceChildren(...options);
+    dom.storeTagFilter.value = tags.includes(selected) ? selected : "all";
+  }
+
+  function visiblePetpacks() {
+    const selectedFilter = dom.storeFilter?.value || "all";
+    const selectedTag = dom.storeTagFilter?.value || "all";
+    const search = dom.storeSearch?.value || "";
+    return remotePetpacks.filter((remote) => {
+      const local = localPetFor(remote, state.pets);
+      return (
+        storeFilter(remote, local, selectedFilter, appVersion()) &&
+        matchesTag(remote, selectedTag) &&
+        matchesSearch(remote, search)
+      );
+    });
+  }
+
   function renderStore() {
     if (!dom.petStoreListEl) {
       return;
     }
-    const visiblePetpacks = remotePetpacks.filter((remote) =>
-      storeFilter(remote, localPetFor(remote, state.pets), dom.storeFilter?.value || "all")
-    );
-    if (!visiblePetpacks.length) {
+    renderTagOptions();
+    const pets = visiblePetpacks();
+    if (!pets.length) {
       const empty = document.createElement("div");
       empty.className = "pet-store-empty";
       empty.textContent = loading ? "正在载入资源库..." : "当前筛选下没有宠物包。";
@@ -81,8 +169,9 @@ export function createStoreController({ dom, petDesktop, refreshPetList, state }
     }
 
     dom.petStoreListEl.replaceChildren(
-      ...visiblePetpacks.map((remote) => {
+      ...pets.map((remote) => {
         const local = localPetFor(remote, state.pets);
+        const compatible = isCompatible(remote, appVersion());
         const card = document.createElement("article");
         card.className = "pet-store-card";
 
@@ -107,13 +196,27 @@ export function createStoreController({ dom, petDesktop, refreshPetList, state }
         description.textContent = remote.description || "暂无描述";
         const details = document.createElement("div");
         details.className = "pet-store-details";
-        const parts = [formatBytes(remote.sizeBytes), remote.updatedAt].filter(Boolean);
+        const tags = normalizeTags(remote);
+        const compatibility = compatible ? "" : `需要主程序 v${remote.minAppVersion} 或更高版本`;
+        const hash = remote.sha256 ? `sha256 ${String(remote.sha256).slice(0, 8)}` : "";
+        const parts = [
+          formatBytes(remote.sizeBytes),
+          remote.updatedAt,
+          remote.author ? `作者 ${remote.author}` : "",
+          remote.license,
+          remote.minAppVersion ? `最低主程序 v${remote.minAppVersion}` : "",
+          tags.length ? tags.join(" · ") : "",
+          changelogEntries(remote)[0] ? `更新说明：${changelogEntries(remote)[0]}` : "",
+          hash,
+          compatibility
+        ].filter(Boolean);
         details.textContent = parts.join(" · ");
         body.append(title, meta, description, details);
 
         const install = document.createElement("button");
         install.type = "button";
-        install.textContent = actionLabel(remote, local);
+        install.textContent = actionLabel(remote, local, appVersion());
+        install.disabled = !compatible;
         install.addEventListener("click", () => {
           installFromStore(remote, install).catch((error) => setStoreStatus(friendlyPetpackError(error)));
         });
@@ -159,30 +262,58 @@ export function createStoreController({ dom, petDesktop, refreshPetList, state }
     }
     button.disabled = true;
     const local = localPetFor(remote, state.pets);
-    const action = actionLabel(remote, local);
+    const action = actionLabel(remote, local, appVersion());
     setStoreStatus(`正在${action} ${remote.displayName || remote.id}...`);
     try {
-      try {
-        const response = await fetch(url, { headers: { Accept: "application/octet-stream" } });
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
-        }
-        const data = arrayBufferToBase64(await response.arrayBuffer());
-        const preview = await petDesktop.inspectPetpack(data);
-        if (preview.id !== remote.id) {
-          throw new Error(`资源索引和宠物包 id 不一致：${remote.id} / ${preview.id}`);
-        }
-        const result = await petDesktop.importPetpack(data);
-        refreshPetList(result.pets, result.importedPetId);
-        renderStore();
-        const done = action === "重新安装" ? "已重新安装" : result.replaced ? "已更新" : "已安装";
-        setStoreStatus(`${done} ${result.displayName || result.importedPetId}。`);
-      } catch (error) {
-        setStoreStatus(`${action}失败：${friendlyPetpackError(error)}。可以打开下载页手动下载。`);
+      if (!isCompatible(remote, appVersion())) {
+        throw new Error(`需要主程序 v${remote.minAppVersion} 或更高版本。`);
       }
+      const response = await fetch(url, { headers: { Accept: "application/octet-stream" } });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const buffer = await response.arrayBuffer();
+      if (remote.sha256) {
+        const actual = await sha256Hex(buffer);
+        if (actual !== remote.sha256) {
+          throw new Error("资源包 SHA-256 校验失败。");
+        }
+      }
+      const data = arrayBufferToBase64(buffer);
+      const preview = await petDesktop.inspectPetpack(data);
+      if (preview.id !== remote.id) {
+        throw new Error(`资源索引和宠物包 id 不一致：${remote.id} / ${preview.id}`);
+      }
+      const result = await petDesktop.importPetpack(data);
+      refreshPetList(result.pets, result.importedPetId);
+      renderStore();
+      const done = action === "重新安装" ? "已重新安装" : result.replaced ? "已更新" : "已安装";
+      setStoreStatus(`${done} ${result.displayName || result.importedPetId}。`);
+      return true;
+    } catch (error) {
+      setStoreStatus(`${action}失败：${friendlyPetpackError(error)}。可以打开下载页手动下载。`);
+      return false;
     } finally {
       button.disabled = false;
     }
+  }
+
+  async function updateAllPetpacks() {
+    const updates = remotePetpacks.filter((remote) => hasUpdate(remote, localPetFor(remote, state.pets), appVersion()));
+    if (!updates.length) {
+      setStoreStatus("当前没有可更新的宠物包。");
+      return;
+    }
+    dom.updateAllPetpacksButton.disabled = true;
+    let updated = 0;
+    for (const remote of updates) {
+      const ok = await installFromStore(remote, dom.updateAllPetpacksButton);
+      if (ok) {
+        updated += 1;
+      }
+    }
+    setStoreStatus(`已更新 ${updated}/${updates.length} 个宠物包。`);
+    dom.updateAllPetpacksButton.disabled = false;
   }
 
   function openStore() {
@@ -195,6 +326,11 @@ export function createStoreController({ dom, petDesktop, refreshPetList, state }
       loadStore();
     });
     dom.storeFilter?.addEventListener("change", renderStore);
+    dom.storeTagFilter?.addEventListener("change", renderStore);
+    dom.storeSearch?.addEventListener("input", renderStore);
+    dom.updateAllPetpacksButton?.addEventListener("click", () => {
+      updateAllPetpacks().catch((error) => setStoreStatus(friendlyPetpackError(error)));
+    });
   }
 
   return {

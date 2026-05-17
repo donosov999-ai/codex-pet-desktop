@@ -27,9 +27,14 @@ export function compareVersions(left, right) {
   return 0;
 }
 
-export function summarizePetpackUpdates(localPets, remotePetpacks) {
+function isRemoteCompatible(remote, appVersion) {
+  return !appVersion || !remote?.minAppVersion || compareVersions(appVersion, remote.minAppVersion) >= 0;
+}
+
+export function summarizePetpackUpdates(localPets, remotePetpacks, appVersion = "") {
   const localById = new Map((localPets || []).map((pet) => [pet.id, pet]));
   const upgrades = [];
+  const incompatibleUpgrades = [];
   const missing = [];
 
   for (const remote of remotePetpacks || []) {
@@ -42,7 +47,11 @@ export function summarizePetpackUpdates(localPets, remotePetpacks) {
       continue;
     }
     if (remote.version && compareVersions(remote.version, local.version) > 0) {
-      upgrades.push({ local, remote });
+      if (isRemoteCompatible(remote, appVersion)) {
+        upgrades.push({ local, remote });
+      } else {
+        incompatibleUpgrades.push({ local, remote });
+      }
     }
   }
 
@@ -55,6 +64,18 @@ export function summarizePetpackUpdates(localPets, remotePetpacks) {
       message: `${name}有新资源 v${first.remote.version}，当前 v${
         first.local.version || "未知"
       }${more}。可以在宠物资源库里直接更新。`
+    };
+  }
+
+  if (incompatibleUpgrades.length) {
+    const first = incompatibleUpgrades[0];
+    const name = first.remote.displayName || first.remote.id;
+    const more = incompatibleUpgrades.length > 1 ? `，另有 ${incompatibleUpgrades.length - 1} 个资源也需要新版主程序` : "";
+    return {
+      kind: "app-upgrade-required",
+      message: `${name}有新资源 v${first.remote.version}，但需要先升级主程序到 v${
+        first.remote.minAppVersion || "更高版本"
+      }${more}。`
     };
   }
 

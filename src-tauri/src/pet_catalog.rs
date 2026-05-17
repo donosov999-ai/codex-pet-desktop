@@ -75,11 +75,41 @@ impl From<PathBuf> for PetRoot {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub(crate) struct PetBehavior {
+    click_state: String,
+    double_click_state: String,
+    idle_states: Vec<String>,
+    wander_directions: Vec<i32>,
+}
+
+impl Default for PetBehavior {
+    fn default() -> Self {
+        Self {
+            click_state: "waving".to_string(),
+            double_click_state: "jumping".to_string(),
+            idle_states: vec![
+                "review".to_string(),
+                "waiting".to_string(),
+                "idle".to_string(),
+            ],
+            wander_directions: vec![-1, 1, 0],
+        }
+    }
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct PetPackage {
     pub(crate) id: String,
     display_name: String,
     description: String,
     pub(crate) version: String,
+    author: String,
+    license: String,
+    min_app_version: String,
+    tags: Vec<String>,
+    changelog: Vec<String>,
+    behavior: PetBehavior,
     manifest_path: String,
     pub(crate) root: String,
     pub(crate) source_kind: String,
@@ -110,13 +140,55 @@ struct PetManifest {
     name: Option<String>,
     description: Option<String>,
     version: Option<String>,
+    author: Option<String>,
+    license: Option<String>,
+    #[serde(rename = "minAppVersion")]
+    min_app_version: Option<String>,
+    tags: Option<Vec<String>>,
+    changelog: Option<Vec<String>>,
+    behavior: Option<PetBehaviorManifest>,
     #[serde(rename = "spritesheetPath")]
     spritesheet_path: Option<String>,
 }
 
 #[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct PetBehaviorManifest {
+    click_state: Option<String>,
+    double_click_state: Option<String>,
+    idle_states: Option<Vec<String>>,
+    wander_directions: Option<Vec<i32>>,
+}
+
+impl From<PetBehaviorManifest> for PetBehavior {
+    fn from(value: PetBehaviorManifest) -> Self {
+        let default = PetBehavior::default();
+        Self {
+            click_state: value.click_state.unwrap_or(default.click_state),
+            double_click_state: value
+                .double_click_state
+                .unwrap_or(default.double_click_state),
+            idle_states: value
+                .idle_states
+                .filter(|states| !states.is_empty())
+                .unwrap_or(default.idle_states),
+            wander_directions: value
+                .wander_directions
+                .filter(|directions| !directions.is_empty())
+                .unwrap_or(default.wander_directions),
+        }
+    }
+}
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct PetpackManifest {
     version: Option<String>,
+    author: Option<String>,
+    license: Option<String>,
+    min_app_version: Option<String>,
+    tags: Option<Vec<String>>,
+    changelog: Option<Vec<String>>,
 }
 
 fn file_url(path: &Path) -> Result<String, String> {
@@ -236,8 +308,45 @@ fn normalize_pet_package(dir: &Path, source_kind: PetSourceKind) -> Result<PetPa
         .display_name
         .or(manifest.name)
         .unwrap_or_else(|| id.clone());
+    let petpack_manifest = petpack_manifest(dir);
     let description = manifest.description.unwrap_or_default();
-    let version = petpack_version(dir).unwrap_or_else(|| manifest.version.unwrap_or_default());
+    let version = non_empty(
+        petpack_manifest
+            .as_ref()
+            .and_then(|manifest| manifest.version.clone()),
+    )
+    .unwrap_or_else(|| manifest.version.unwrap_or_default());
+    let author = non_empty(
+        petpack_manifest
+            .as_ref()
+            .and_then(|manifest| manifest.author.clone()),
+    )
+    .unwrap_or_else(|| manifest.author.unwrap_or_default());
+    let license = non_empty(
+        petpack_manifest
+            .as_ref()
+            .and_then(|manifest| manifest.license.clone()),
+    )
+    .unwrap_or_else(|| manifest.license.unwrap_or_default());
+    let min_app_version = non_empty(
+        petpack_manifest
+            .as_ref()
+            .and_then(|manifest| manifest.min_app_version.clone()),
+    )
+    .unwrap_or_else(|| manifest.min_app_version.unwrap_or_default());
+    let tags = non_empty_vec(
+        petpack_manifest
+            .as_ref()
+            .and_then(|manifest| manifest.tags.clone()),
+    )
+    .unwrap_or_else(|| manifest.tags.unwrap_or_default());
+    let changelog = non_empty_vec(
+        petpack_manifest
+            .as_ref()
+            .and_then(|manifest| manifest.changelog.clone()),
+    )
+    .unwrap_or_else(|| manifest.changelog.unwrap_or_default());
+    let behavior = manifest.behavior.map(Into::into).unwrap_or_default();
     let spritesheet_path = manifest
         .spritesheet_path
         .unwrap_or_else(|| "spritesheet.webp".to_string());
@@ -254,6 +363,12 @@ fn normalize_pet_package(dir: &Path, source_kind: PetSourceKind) -> Result<PetPa
         display_name,
         description,
         version,
+        author,
+        license,
+        min_app_version,
+        tags,
+        changelog,
+        behavior,
         manifest_path: manifest_path.display().to_string(),
         root: dir.display().to_string(),
         source_kind: source_kind.as_str().to_string(),
@@ -264,13 +379,22 @@ fn normalize_pet_package(dir: &Path, source_kind: PetSourceKind) -> Result<PetPa
     })
 }
 
-fn petpack_version(dir: &Path) -> Option<String> {
+fn non_empty(value: Option<String>) -> Option<String> {
+    value.filter(|value| !value.trim().is_empty())
+}
+
+fn non_empty_vec(value: Option<Vec<String>>) -> Option<Vec<String>> {
+    value.filter(|items| !items.is_empty())
+}
+
+fn petpack_manifest(dir: &Path) -> Option<PetpackManifest> {
     let manifest_path = dir.join("petpack.json");
     let content = fs::read_to_string(manifest_path).ok()?;
-    let manifest: PetpackManifest = serde_json::from_str(&content).ok()?;
-    manifest
-        .version
-        .filter(|version| !version.trim().is_empty())
+    serde_json::from_str(&content).ok()
+}
+
+fn petpack_version(dir: &Path) -> Option<String> {
+    non_empty(petpack_manifest(dir)?.version)
 }
 
 pub(crate) fn pet_version(dir: &Path) -> String {
@@ -500,6 +624,34 @@ mod tests {
         assert_eq!(list.pets[1].version, "2.0.0");
         assert_eq!(list.pets[1].source_kind, "external");
         assert!(!list.pets[1].can_uninstall);
+    }
+
+    #[test]
+    fn surfaces_public_metadata_from_petpack_manifest() {
+        let managed_root = temp_root();
+        let managed_pet = managed_root.join("mi-fen");
+        fs::create_dir_all(&managed_pet).expect("create managed pet");
+        fs::write(managed_pet.join("spritesheet.webp"), b"webp").expect("write managed sprite");
+        fs::write(
+            managed_pet.join("petpack.json"),
+            r#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"米粉","version":"1.2.3","author":"Chen","license":"CC-BY-4.0","minAppVersion":"0.2.0","tags":["猫咪","白色"],"changelog":["更新图集"]}"#,
+        )
+        .expect("write managed petpack manifest");
+        fs::write(
+            managed_pet.join("pet.json"),
+            r#"{"id":"mi-fen","displayName":"米粉"}"#,
+        )
+        .expect("write minimal manifest");
+
+        let list = list_pet_packages_from_roots(vec![PetRoot::managed(managed_root)]);
+
+        assert_eq!(list.pets.len(), 1);
+        assert_eq!(list.pets[0].version, "1.2.3");
+        assert_eq!(list.pets[0].author, "Chen");
+        assert_eq!(list.pets[0].license, "CC-BY-4.0");
+        assert_eq!(list.pets[0].min_app_version, "0.2.0");
+        assert_eq!(list.pets[0].tags, vec!["猫咪", "白色"]);
+        assert_eq!(list.pets[0].changelog, vec!["更新图集"]);
     }
 
     #[test]

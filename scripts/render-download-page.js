@@ -17,6 +17,10 @@ function petCard(pet) {
   const displayName = escapeHtml(pet.displayName || pet.id);
   const description = escapeHtml(pet.description || "宠物资源包。");
   const version = escapeHtml(pet.version || "1.0.0");
+  const author = escapeHtml(pet.author || "未知作者");
+  const license = escapeHtml(pet.license || "未标许可");
+  const tags = Array.isArray(pet.tags) ? pet.tags.map(escapeHtml).join(" · ") : "";
+  const changelog = Array.isArray(pet.changelog) && pet.changelog.length ? escapeHtml(pet.changelog[0]) : "暂无更新说明";
   const fileName = escapeHtml(pet.fileName);
   const previewAtlas = escapeHtml(pet.previewAtlas || "");
   const visualQaHref = `./petpacks/visual-qa.html#${encodeURIComponent(pet.id || "")}`;
@@ -26,7 +30,9 @@ function petCard(pet) {
             <div class="download-body">
               <h3>${displayName}</h3>
               <p>${description}</p>
-              <p class="meta">v${version}</p>
+              <p class="meta">v${version} · 作者 ${author} · ${license}</p>
+              <p class="meta">${tags}</p>
+              <p class="meta">更新说明：${changelog}</p>
               <a href="./petpacks/${fileName}">下载 ${displayName}</a>
               <a class="secondary" href="${escapeHtml(visualQaHref)}">视觉 QA</a>
             </div>
@@ -254,7 +260,7 @@ ${[...petpacks]
 
       <section class="section" aria-label="Petpacks">
         <h2>宠物资源包</h2>
-        <p>下载 <code>.petpack</code> 后，在主程序里点击 Import Petpack 导入。</p>
+        <p>下载 <code>.petpack</code> 后，在主程序里点击“导入本地宠物包”导入。</p>
         <div class="downloads">
 ${cards}
         </div>

@@ -28,6 +28,26 @@ if (!report.ok || report.pets.length !== 3) {
   process.exit(1);
 }
 
+const metadataFailures = report.pets.flatMap((pet) => {
+  const failures = [];
+  for (const field of ["author", "license", "minAppVersion"]) {
+    if (!pet[field]) {
+      failures.push(`${pet.id} missing ${field}`);
+    }
+  }
+  if (!Array.isArray(pet.tags) || pet.tags.length === 0) {
+    failures.push(`${pet.id} missing tags`);
+  }
+  if (!Array.isArray(pet.changelog) || pet.changelog.length === 0) {
+    failures.push(`${pet.id} missing changelog`);
+  }
+  return failures;
+});
+if (metadataFailures.length > 0) {
+  console.error(JSON.stringify({ ok: false, reason: "pet metadata QA failed", metadataFailures, report }, null, 2));
+  process.exit(1);
+}
+
 const invalidNames = ["../spritesheet.webp", "nested/spritesheet.webp", "nested\\spritesheet.webp", "sprite..webp"];
 const acceptedInvalid = invalidNames.filter(isRootFileName);
 if (acceptedInvalid.length > 0) {
@@ -52,9 +72,34 @@ try {
     JSON.stringify({ id: "bad-path", displayName: "Bad Path", spritesheetPath: "../spritesheet.webp" })
   );
 
+  const badMetadataDir = path.join(tempRoot, "bad-metadata");
+  fs.mkdirSync(badMetadataDir);
+  fs.writeFileSync(
+    path.join(badMetadataDir, "pet.json"),
+    JSON.stringify({
+      id: "bad-metadata",
+      displayName: "Bad Metadata",
+      spritesheetPath: "spritesheet.webp",
+      author: "",
+      license: "",
+      minAppVersion: "dev",
+      tags: "cat",
+      changelog: "changed"
+    })
+  );
+  fs.writeFileSync(path.join(badMetadataDir, "spritesheet.webp"), makeVp8xWebp(1536, 1872));
+
   const negativeReport = validatePetResources(tempRoot);
   const negativeErrors = negativeReport.errors.flatMap((entry) => entry.errors);
-  const requiredErrors = ["pet.json id must match directory name", "spritesheetPath must be a root-level file name"];
+  const requiredErrors = [
+    "pet.json id must match directory name",
+    "spritesheetPath must be a root-level file name",
+    "author is required",
+    "license is required",
+    "minAppVersion must be x.y.z",
+    "tags must be an array",
+    "changelog must be an array"
+  ];
   const missingErrors = requiredErrors.filter((text) => !negativeErrors.some((error) => error.includes(text)));
   if (negativeReport.ok || missingErrors.length > 0) {
     console.error(JSON.stringify({ ok: false, reason: "negative QA checks failed", missingErrors, negativeReport }, null, 2));

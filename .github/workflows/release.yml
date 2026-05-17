@@ -13,7 +13,46 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
+  quality-gate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Cargo registry and git
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            src-tauri/target
+          key: cargo-quality-${{ hashFiles('src-tauri/Cargo.lock') }}
+          restore-keys: |
+            cargo-quality-
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Run renderer, resource, page, and workflow smoke tests
+        run: npm run smoke
+
+      - name: Run Rust tests
+        run: cd src-tauri && cargo test
+
+      - name: Rebuild petpacks for release validation
+        run: node scripts/build-petpacks.js
+
+      - name: Verify generated download page smoke
+        run: node src/download-page-smoke.js
+
   build-windows:
+    needs: quality-gate
     runs-on: windows-latest
 
     steps:
@@ -64,6 +103,7 @@ jobs:
           path: release-assets/*.exe
 
   build-macos:
+    needs: quality-gate
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false

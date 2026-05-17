@@ -32,6 +32,7 @@ function createFakeElement(selector) {
   const listeners = new Map();
   return {
     selector,
+    id: selector.startsWith("#") ? selector.slice(1) : "",
     style: {
       setProperty(name, value) {
         this[name] = value;
@@ -120,6 +121,14 @@ async function loadRenderer(options = {}) {
     "#scaleRange",
     "#wanderToggle",
     "#topToggle",
+    "#tabControl",
+    "#tabStore",
+    "#tabManager",
+    "#tabUpdate",
+    "#controlSection",
+    "#storeSection",
+    "#managerSection",
+    "#updateSection",
     "#importButton",
     "#importEmptyButton",
     "#openStoreEmptyButton",
@@ -136,15 +145,26 @@ async function loadRenderer(options = {}) {
     "#openStoreButton",
     "#updateStatus",
     "#petStore",
+    "#storeSearch",
+    "#storeTagFilter",
     "#storeFilter",
+    "#updateAllPetpacksButton",
     "#refreshStoreButton",
     "#petStoreStatus",
     "#petStoreList",
     "#quitButton"
   ];
   const elements = new Map(selectors.map((selector) => [selector, createFakeElement(selector)]));
+  elements.get("#tabControl").dataset.panelTab = "controlSection";
+  elements.get("#tabStore").dataset.panelTab = "storeSection";
+  elements.get("#tabManager").dataset.panelTab = "managerSection";
+  elements.get("#tabUpdate").dataset.panelTab = "updateSection";
   elements.get("#panel").classList.add("hidden");
   elements.get("#importPreview").classList.add("hidden");
+  elements.get("#tabControl").classList.add("active");
+  elements.get("#storeSection").classList.add("hidden");
+  elements.get("#managerSection").classList.add("hidden");
+  elements.get("#updateSection").classList.add("hidden");
 
   const timeouts = [];
   const windowObject = {

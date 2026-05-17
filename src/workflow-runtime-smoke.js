@@ -45,6 +45,19 @@ const failures = workflowPaths.flatMap((workflowPath) => {
   return [...runtimeFailures, ...actionReferenceFailures(source, workflowPath)];
 });
 
+const releaseSource = fs.readFileSync(path.join(root, ".github/workflows/release.yml"), "utf8");
+for (const required of ["quality-gate:", "npm run smoke", "cargo test", "node scripts/build-petpacks.js", "node src/download-page-smoke.js"]) {
+  if (!releaseSource.includes(required)) {
+    failures.push(`release workflow missing quality gate step: ${required}`);
+  }
+}
+if (!/build-windows:[\s\S]*needs:\s+quality-gate/.test(releaseSource)) {
+  failures.push("build-windows must depend on quality-gate");
+}
+if (!/build-macos:[\s\S]*needs:\s+quality-gate/.test(releaseSource)) {
+  failures.push("build-macos must depend on quality-gate");
+}
+
 if (failures.length) {
   console.error(JSON.stringify({ ok: false, failures }, null, 2));
   process.exit(1);

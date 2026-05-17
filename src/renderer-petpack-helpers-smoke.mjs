@@ -27,6 +27,17 @@ if (!importPreviewMessage(upgradePreview).includes("1.0.1") || !importConfirmLab
   errors.push("upgrade preview text invalid");
 }
 
+const incompatiblePreview = {
+  id: "future",
+  displayName: "未来宠物",
+  version: "2.0.0",
+  compatible: false,
+  compatibilityMessage: "需要主程序 v9.0.0 或更高版本"
+};
+if (!importPreviewMessage(incompatiblePreview).includes("v9.0.0") || importConfirmLabel(incompatiblePreview) !== "暂不可导入") {
+  errors.push("incompatible preview text invalid");
+}
+
 const summary = summarizePetpackUpdates(
   [{ id: "mi-fen", displayName: "米粉", version: "1.0.1" }],
   [
@@ -36,6 +47,19 @@ const summary = summarizePetpackUpdates(
 );
 if (summary.kind !== "upgrade" || !summary.message.includes("米粉") || !summary.message.includes("v1.0.2")) {
   errors.push("petpack update summary invalid");
+}
+
+const incompatibleSummary = summarizePetpackUpdates(
+  [{ id: "mi-fen", displayName: "米粉", version: "1.0.1" }],
+  [{ id: "mi-fen", displayName: "米粉", version: "1.0.3", minAppVersion: "9.0.0" }],
+  "0.2.5"
+);
+if (
+  incompatibleSummary.kind !== "app-upgrade-required" ||
+  !incompatibleSummary.message.includes("需要先升级主程序") ||
+  incompatibleSummary.message.includes("直接更新")
+) {
+  errors.push("incompatible petpack update summary invalid");
 }
 
 if (errors.length) {

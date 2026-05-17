@@ -20,6 +20,9 @@ export function createImportFlow({
     if (dom.importPreviewTextEl) {
       dom.importPreviewTextEl.textContent = "";
     }
+    if (dom.confirmImportButton) {
+      dom.confirmImportButton.disabled = false;
+    }
   }
 
   function showImportPreview(data, preview) {
@@ -29,6 +32,7 @@ export function createImportFlow({
     }
     if (dom.confirmImportButton) {
       dom.confirmImportButton.textContent = importConfirmLabel(preview);
+      dom.confirmImportButton.disabled = preview.compatible === false;
     }
     dom.importPreviewEl?.classList.remove("hidden");
   }

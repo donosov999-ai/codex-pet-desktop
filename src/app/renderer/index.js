@@ -99,6 +99,20 @@ const store = createStoreController({
 });
 const updates = createUpdateController({ dom, petDesktop, setUpdateStatus, state });
 
+function setPanelTab(tabId) {
+  const tabs = [
+    [dom.tabControl, dom.controlSection],
+    [dom.tabStore, dom.storeSection],
+    [dom.tabManager, dom.managerSection],
+    [dom.tabUpdate, dom.updateSection]
+  ];
+  for (const [button, section] of tabs) {
+    const active = section?.id === tabId;
+    button?.classList.toggle("active", active);
+    section?.classList.toggle("hidden", !active);
+  }
+}
+
 function setWanderPaused(paused) {
   dom.wanderToggle.checked = !paused;
   if (paused) {
@@ -118,6 +132,7 @@ function setWanderPaused(paused) {
 
 async function openStorePanel() {
   interactions.setPanelVisible(true);
+  setPanelTab("storeSection");
   await store.openStore();
 }
 
@@ -155,6 +170,16 @@ async function init() {
   importFlow.bind();
   store.bind();
   updates.bind();
+  [
+    dom.tabControl,
+    dom.tabStore,
+    dom.tabManager,
+    dom.tabUpdate
+  ].forEach((tab) => {
+    tab?.addEventListener("click", () => {
+      setPanelTab(tab.dataset.panelTab);
+    });
+  });
   dom.openStoreButton?.addEventListener("click", () => {
     openStorePanel();
   });

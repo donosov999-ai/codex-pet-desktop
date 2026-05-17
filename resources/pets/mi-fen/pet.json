@@ -3,5 +3,16 @@
   "displayName": "\u7c73\u7c89",
   "description": "\u7c73\u7c89\uff0c\u4e00\u53ea\u5168\u767d\u732b\u54aa\uff0c\u5e38\u6001\u8db4\u7740\u5f85\u673a\u3002",
   "version": "1.0.2",
+  "author": "Chen",
+  "license": "CC-BY-4.0",
+  "minAppVersion": "0.2.0",
+  "tags": ["\u732b\u54aa", "\u767d\u8272", "\u8db4\u7740"],
+  "changelog": ["\u4fee\u6b63\u5355\u51fb\u4e92\u52a8\u52a8\u4f5c\u7684\u6bd4\u4f8b\u548c\u753b\u98ce\u3002"],
+  "behavior": {
+    "clickState": "waiting",
+    "doubleClickState": "jumping",
+    "idleStates": ["idle", "waiting", "review"],
+    "wanderDirections": [-1, 1, 0]
+  },
   "spritesheetPath": "spritesheet.webp"
 }

@@ -26,7 +26,13 @@ async function main() {
       return {
         ok: true,
         json: async () => [
-          { id: "mi-fen", displayName: "米粉", version: "1.0.2", fileName: "mi-fen-1.0.2.petpack" },
+          {
+            id: "mi-fen",
+            displayName: "米粉",
+            version: "1.0.2",
+            minAppVersion: "9.0.0",
+            fileName: "mi-fen-1.0.2.petpack"
+          },
           { id: "mi-jiu", displayName: "米酒", version: "1.0.0", fileName: "mi-jiu-1.0.0.petpack" }
         ]
       };
@@ -72,7 +78,13 @@ async function main() {
   await flush();
 
   const petpackUpdateText = elements.get("#updateStatus").textContent;
-  if (!fetchCalls[1]?.includes("/petpacks/petpacks.json") || !petpackUpdateText.includes("米粉") || !petpackUpdateText.includes("v1.0.2")) {
+  if (
+    !fetchCalls[1]?.includes("/petpacks/petpacks.json") ||
+    !petpackUpdateText.includes("米粉") ||
+    !petpackUpdateText.includes("v1.0.2") ||
+    !petpackUpdateText.includes("需要先升级主程序") ||
+    petpackUpdateText.includes("直接更新")
+  ) {
     console.error(
       JSON.stringify({ ok: false, reason: "petpack update check did not report remote resource", fetchCalls, petpackUpdateText })
     );

@@ -60,7 +60,12 @@ function writePetpackManifest(stagingDir, manifest) {
         formatVersion: 1,
         id: manifest.id,
         displayName: manifest.displayName || manifest.name || manifest.id,
-        version: manifest.version || "1.0.0"
+        version: manifest.version || "1.0.0",
+        author: manifest.author,
+        license: manifest.license,
+        minAppVersion: manifest.minAppVersion,
+        tags: manifest.tags || [],
+        changelog: manifest.changelog || []
       },
       null,
       2
@@ -87,6 +92,8 @@ function renderVisualQaPage(petpacks) {
       const displayName = escapeHtml(pet.displayName || pet.id);
       const id = escapeHtml(pet.id);
       const version = escapeHtml(pet.version);
+      const license = escapeHtml(pet.license || "未标许可");
+      const author = escapeHtml(pet.author || "未知作者");
       const previewAtlas = escapeHtml(pet.previewAtlas);
       const dimensions = `${pet.qa.width}x${pet.qa.height}`;
       const rows = STATES.map(([state, row, frames]) => {
@@ -107,7 +114,7 @@ function renderVisualQaPage(petpacks) {
             <div class="preview" style="background-image: url('./${previewAtlas}')"></div>
             <div>
               <h2>${displayName}</h2>
-              <p class="meta">${id} · v${version} · ${escapeHtml(dimensions)} · ${escapeHtml(pet.spritesheet)}</p>
+              <p class="meta">${id} · v${version} · 作者 ${author} · ${license} · ${escapeHtml(dimensions)} · ${escapeHtml(pet.spritesheet)}</p>
               <a href="./${previewAtlas}">打开完整 atlas</a>
             </div>
           </header>
@@ -305,6 +312,11 @@ for (const id of listPets()) {
     displayName: manifest.displayName || manifest.name || id,
     description: manifest.description || "",
     version: manifest.version || "1.0.0",
+    author: manifest.author || "",
+    license: manifest.license || "",
+    minAppVersion: manifest.minAppVersion || "0.2.0",
+    tags: manifest.tags || [],
+    changelog: manifest.changelog || [],
     fileName,
     sizeBytes: fs.statSync(outPath).size,
     sha256: sha256(outPath),

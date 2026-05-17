@@ -6,6 +6,11 @@ const html = renderDownloadPage([
     displayName: "米粉",
     description: "全白猫咪",
     version: "1.0.2",
+    author: "Chen",
+    license: "CC-BY-4.0",
+    minAppVersion: "0.2.0",
+    tags: ["猫咪", "白色"],
+    changelog: ["修正舔爪动作"],
     fileName: "mi-fen-1.0.2.petpack",
     previewAtlas: "previews/mi-fen-1.0.2-atlas.webp"
   },
@@ -14,6 +19,11 @@ const html = renderDownloadPage([
     displayName: "红糖",
     description: "虎斑色惠比特",
     version: "1.0.1",
+    author: "Chen",
+    license: "CC-BY-4.0",
+    minAppVersion: "0.2.0",
+    tags: ["狗狗"],
+    changelog: ["增加趴卧待机"],
     fileName: "tigris-whippet-1.0.1.petpack",
     previewAtlas: "previews/tigris-whippet-1.0.1-atlas.webp"
   }
@@ -27,6 +37,10 @@ const required = [
   "./petpacks/previews/mi-fen-1.0.2-atlas.webp",
   "./petpacks/visual-qa.html#mi-fen",
   "idle 首帧预览",
+  "作者 Chen",
+  "CC-BY-4.0",
+  "修正舔爪动作",
+  "猫咪",
   "tigris-whippet-1.0.1.petpack",
   "v1.0.2"
 ];

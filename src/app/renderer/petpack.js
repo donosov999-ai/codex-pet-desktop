@@ -35,6 +35,9 @@ export function friendlyPetpackError(error) {
   if (message.includes("Invalid pet id")) {
     return "宠物 id 只能包含英文字母、数字、短横线或下划线。";
   }
+  if (message.includes("requires app version") || message.includes("minAppVersion")) {
+    return "资源包需要更新版本的主程序。";
+  }
   return message || "导入资源包失败。";
 }
 
@@ -44,8 +47,11 @@ export function importPreviewMessage(preview) {
   const existing = preview.existingManagedVersion || preview.existingVisibleVersion || "";
   const source = preview.existingVisibleSourceKind || "";
 
+  if (preview.compatible === false) {
+    return preview.compatibilityMessage || `该资源包需要更新版本的主程序。`;
+  }
   if (preview.versionRelation === "upgrade") {
-    return `将覆盖 ${name}: v${existing || "未知"} -> v${version}。`;
+    return `将覆盖 ${name}: v${existing || "未知"} -> v${version}。${preview.changelog?.[0] ? ` 更新说明：${preview.changelog[0]}。` : ""}`;
   }
   if (preview.versionRelation === "same") {
     return `已安装同版本 ${name} v${version}，继续会重新覆盖资源文件。`;
@@ -68,6 +74,9 @@ export function importConfirmLabel(preview) {
   }
   if (preview.versionRelation === "downgrade") {
     return "确认降级";
+  }
+  if (preview.compatible === false) {
+    return "暂不可导入";
   }
   if (preview.willReplaceManaged || preview.existingVisibleVersion) {
     return "确认覆盖";

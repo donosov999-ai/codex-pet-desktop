@@ -7,7 +7,20 @@ const index = JSON.parse(fs.readFileSync(path.join(petpacksRoot, "petpacks.json"
 const qa = JSON.parse(fs.readFileSync(path.join(petpacksRoot, "qa.json"), "utf8"));
 const html = fs.readFileSync(path.join(petpacksRoot, "visual-qa.html"), "utf8");
 
-const requiredIndexFields = ["sizeBytes", "sha256", "previewAtlas", "sprite", "qa"];
+const crypto = require("node:crypto");
+
+const requiredIndexFields = [
+  "author",
+  "license",
+  "minAppVersion",
+  "changelog",
+  "tags",
+  "sizeBytes",
+  "sha256",
+  "previewAtlas",
+  "sprite",
+  "qa"
+];
 const failures = [];
 
 for (const pet of index) {
@@ -22,6 +35,19 @@ for (const pet of index) {
   if (!/^[a-f0-9]{64}$/.test(pet.sha256 || "")) {
     failures.push(`${pet.id} has invalid sha256`);
   }
+  const petpackPath = path.join(petpacksRoot, pet.fileName);
+  const actualHash = fs.existsSync(petpackPath)
+    ? crypto.createHash("sha256").update(fs.readFileSync(petpackPath)).digest("hex")
+    : "";
+  if (actualHash !== pet.sha256) {
+    failures.push(`${pet.id} sha256 does not match petpack file`);
+  }
+  if (!pet.author || !pet.license || !/^\d+\.\d+\.\d+$/.test(pet.minAppVersion || "")) {
+    failures.push(`${pet.id} has invalid public metadata`);
+  }
+  if (!Array.isArray(pet.tags) || !pet.tags.length || !Array.isArray(pet.changelog) || !pet.changelog.length) {
+    failures.push(`${pet.id} has invalid tag/changelog metadata`);
+  }
   if (!pet.previewAtlas || !fs.existsSync(path.join(petpacksRoot, pet.previewAtlas))) {
     failures.push(`${pet.id} preview atlas missing`);
   }
@@ -34,7 +60,7 @@ for (const pet of index) {
   if (!pet.qa || pet.qa.ok !== true || pet.qa.previewAtlas !== pet.previewAtlas) {
     failures.push(`${pet.id} qa metadata invalid`);
   }
-  if (!html.includes(`id="${pet.id}"`) || !html.includes(pet.previewAtlas)) {
+  if (!html.includes(`id="${pet.id}"`) || !html.includes(pet.previewAtlas) || !html.includes(pet.license)) {
     failures.push(`${pet.id} missing from visual QA page`);
   }
 }

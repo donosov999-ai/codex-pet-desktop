@@ -48,6 +48,11 @@ struct ImportPetpackResult {
     imported_pet_id: String,
     display_name: String,
     version: String,
+    author: String,
+    license: String,
+    min_app_version: String,
+    tags: Vec<String>,
+    changelog: Vec<String>,
     replaced: bool,
     previous_version: String,
     pets: PetList,
@@ -59,6 +64,13 @@ struct InspectPetpackResult {
     id: String,
     display_name: String,
     version: String,
+    author: String,
+    license: String,
+    min_app_version: String,
+    tags: Vec<String>,
+    changelog: Vec<String>,
+    compatible: bool,
+    compatibility_message: String,
     existing_managed_version: String,
     existing_visible_version: String,
     existing_visible_source_kind: String,
@@ -164,6 +176,21 @@ fn version_relation(incoming: &str, existing: Option<&str>) -> String {
     .to_string()
 }
 
+fn petpack_is_compatible(summary: &petpack::PetpackSummary) -> bool {
+    compare_versions(env!("CARGO_PKG_VERSION"), &summary.min_app_version)
+        .is_some_and(|ordering| !ordering.is_lt())
+}
+
+fn ensure_petpack_compatible(summary: &petpack::PetpackSummary) -> Result<(), String> {
+    if petpack_is_compatible(summary) {
+        return Ok(());
+    }
+    Err(format!(
+        "Petpack requires app version {} or newer",
+        summary.min_app_version
+    ))
+}
+
 fn inspect_petpack_summary(
     app: &AppHandle<Wry>,
     summary: petpack::PetpackSummary,
@@ -193,11 +220,24 @@ fn inspect_petpack_summary(
         existing_managed_version.as_str()
     };
     let version_relation = version_relation(&summary.version, Some(baseline_version));
+    let compatible = petpack_is_compatible(&summary);
+    let compatibility_message = if compatible {
+        String::new()
+    } else {
+        format!("需要主程序 v{} 或更高版本", summary.min_app_version)
+    };
 
     Ok(InspectPetpackResult {
         id: summary.id,
         display_name: summary.display_name,
         version: summary.version.clone(),
+        author: summary.author,
+        license: summary.license,
+        min_app_version: summary.min_app_version,
+        tags: summary.tags,
+        changelog: summary.changelog,
+        compatible,
+        compatibility_message,
         existing_managed_version,
         existing_visible_version,
         existing_visible_source_kind,
@@ -218,6 +258,7 @@ fn import_petpack(app: AppHandle<Wry>, data: String) -> Result<ImportPetpackResu
     let bytes = BASE64.decode(data).map_err(|error| error.to_string())?;
     let pets_dir = pet_catalog::user_pets_dir(&app)?;
     let summary = petpack::inspect_petpack_bytes(&bytes)?;
+    ensure_petpack_compatible(&summary)?;
     let previous_dir = pet_catalog::user_pet_dir(&pets_dir, &summary.id).ok();
     let replaced = previous_dir.is_some();
     let previous_version = previous_dir
@@ -233,6 +274,11 @@ fn import_petpack(app: AppHandle<Wry>, data: String) -> Result<ImportPetpackResu
         imported_pet_id,
         display_name: summary.display_name,
         version: summary.version,
+        author: summary.author,
+        license: summary.license,
+        min_app_version: summary.min_app_version,
+        tags: summary.tags,
+        changelog: summary.changelog,
         replaced,
         previous_version,
         pets: pet_catalog::list_pet_packages(&app),
@@ -348,7 +394,8 @@ pub(crate) fn handler() -> impl Fn(tauri::ipc::Invoke<Wry>) -> bool + Send + Syn
 
 #[cfg(test)]
 mod tests {
-    use super::{compare_versions, version_relation};
+    use super::{compare_versions, petpack_is_compatible, version_relation};
+    use crate::petpack::PetpackSummary;
 
     #[test]
     fn compares_common_semver_versions() {
@@ -369,5 +416,21 @@ mod tests {
         assert_eq!(version_relation("", Some("1.0.0")), "unknown");
         assert_eq!(version_relation("dev", Some("1.0.0")), "unknown");
         assert_eq!(version_relation("1.0.0", Some("dev")), "unknown");
+    }
+
+    #[test]
+    fn rejects_petpacks_that_require_newer_app_versions() {
+        let summary = PetpackSummary {
+            id: "future".to_string(),
+            display_name: "Future".to_string(),
+            version: "1.0.0".to_string(),
+            author: "Chen".to_string(),
+            license: "CC-BY-4.0".to_string(),
+            min_app_version: "99.0.0".to_string(),
+            tags: vec!["test".to_string()],
+            changelog: vec!["test".to_string()],
+        };
+
+        assert!(!petpack_is_compatible(&summary));
     }
 }

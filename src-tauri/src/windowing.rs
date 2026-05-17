@@ -6,11 +6,13 @@ use tauri::{
 const EDGE_VISIBILITY_PX: i32 = 48;
 
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub(crate) struct WindowBounds {
     x: i32,
     y: i32,
     width: u32,
     height: u32,
+    hit_edge: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -134,6 +136,7 @@ pub(crate) fn reset_window_position<R: Runtime>(
         y: next.y,
         width: size.width,
         height: size.height,
+        hit_edge: String::new(),
     })
 }
 
@@ -169,6 +172,7 @@ pub(crate) fn center_window_position<R: Runtime>(
         y: next.y,
         width: size.width,
         height: size.height,
+        hit_edge: String::new(),
     })
 }
 
@@ -192,11 +196,24 @@ pub(crate) fn move_window_by<R: Runtime>(
 ) -> Result<WindowBounds, String> {
     let position = window.outer_position().map_err(|error| error.to_string())?;
     let size = window.outer_size().map_err(|error| error.to_string())?;
-    let next = clamp_loose_position(
-        window,
-        position.x + x.round() as i32,
-        position.y + y.round() as i32,
-    )?;
+    let requested_x = position.x + x.round() as i32;
+    let requested_y = position.y + y.round() as i32;
+    let next = clamp_loose_position(window, requested_x, requested_y)?;
+    let hit_edge = if next.x != requested_x {
+        if requested_x < next.x {
+            "left"
+        } else {
+            "right"
+        }
+    } else if next.y != requested_y {
+        if requested_y < next.y {
+            "top"
+        } else {
+            "bottom"
+        }
+    } else {
+        ""
+    };
     window
         .set_position(next)
         .map_err(|error| error.to_string())?;
@@ -205,6 +222,7 @@ pub(crate) fn move_window_by<R: Runtime>(
         y: next.y,
         width: size.width,
         height: size.height,
+        hit_edge: hit_edge.to_string(),
     })
 }
 

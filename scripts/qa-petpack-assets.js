@@ -6,6 +6,7 @@ const path = require("node:path");
 const EXPECTED_ATLAS_WIDTH = 1536;
 const EXPECTED_ATLAS_HEIGHT = 1872;
 const DEFAULT_ROOT = path.resolve(__dirname, "..");
+const SEMVER_RE = /^\d+\.\d+\.\d+$/;
 
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, "utf8"));
@@ -126,6 +127,34 @@ function validatePetResources(petsRoot, options = {}) {
       }
       if (!petReport.displayName) {
         petReport.errors.push("pet.json displayName is required");
+      }
+      petReport.author = typeof manifest.author === "string" ? manifest.author.trim() : "";
+      petReport.license = typeof manifest.license === "string" ? manifest.license.trim() : "";
+      petReport.minAppVersion = typeof manifest.minAppVersion === "string" ? manifest.minAppVersion.trim() : "";
+      petReport.tags = Array.isArray(manifest.tags) ? manifest.tags.filter((tag) => typeof tag === "string" && tag.trim()) : manifest.tags;
+      petReport.changelog = Array.isArray(manifest.changelog)
+        ? manifest.changelog.filter((entry) => typeof entry === "string" && entry.trim())
+        : manifest.changelog;
+      if (!petReport.author) {
+        petReport.errors.push("author is required");
+      }
+      if (!petReport.license) {
+        petReport.errors.push("license is required");
+      }
+      if (!SEMVER_RE.test(petReport.minAppVersion)) {
+        petReport.errors.push("minAppVersion must be x.y.z");
+      }
+      if (!Array.isArray(manifest.tags)) {
+        petReport.errors.push("tags must be an array");
+      } else if (!petReport.tags.length) {
+        petReport.errors.push("tags must include at least one tag");
+      } else if (new Set(petReport.tags).size !== petReport.tags.length) {
+        petReport.errors.push("tags must not contain duplicates");
+      }
+      if (!Array.isArray(manifest.changelog)) {
+        petReport.errors.push("changelog must be an array");
+      } else if (!petReport.changelog.length) {
+        petReport.errors.push("changelog must include at least one entry");
       }
 
       const spritesheet = manifest.spritesheetPath || "spritesheet.webp";

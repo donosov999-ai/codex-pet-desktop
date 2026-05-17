@@ -56,7 +56,7 @@ export function createUpdateController({ dom, petDesktop, setUpdateStatus, state
         throw new Error(`HTTP ${response.status}`);
       }
       const remotePetpacks = await response.json();
-      setUpdateStatus(summarizePetpackUpdates(state.pets, remotePetpacks).message);
+      setUpdateStatus(summarizePetpackUpdates(state.pets, remotePetpacks, state.appInfo.version).message);
     } catch (error) {
       setUpdateStatus(`检查宠物资源更新失败：${error.message}`);
     } finally {

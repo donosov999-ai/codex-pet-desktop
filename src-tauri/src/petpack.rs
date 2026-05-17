@@ -17,6 +17,11 @@ struct PetpackManifest {
     id: String,
     display_name: String,
     version: String,
+    author: String,
+    license: String,
+    min_app_version: String,
+    tags: Vec<String>,
+    changelog: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -24,6 +29,11 @@ pub(crate) struct PetpackSummary {
     pub(crate) id: String,
     pub(crate) display_name: String,
     pub(crate) version: String,
+    pub(crate) author: String,
+    pub(crate) license: String,
+    pub(crate) min_app_version: String,
+    pub(crate) tags: Vec<String>,
+    pub(crate) changelog: Vec<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -88,6 +98,11 @@ pub(crate) fn inspect_petpack_bytes(bytes: &[u8]) -> Result<PetpackSummary, Stri
         id: petpack.id,
         display_name: petpack.display_name,
         version: petpack.version,
+        author: petpack.author,
+        license: petpack.license,
+        min_app_version: petpack.min_app_version,
+        tags: petpack.tags,
+        changelog: petpack.changelog,
     })
 }
 
@@ -110,6 +125,26 @@ fn validate_petpack_archive(
     }
     if petpack.version.trim().is_empty() {
         return Err("Petpack version is required".to_string());
+    }
+    if petpack.author.trim().is_empty() {
+        return Err("Petpack author is required".to_string());
+    }
+    if petpack.license.trim().is_empty() {
+        return Err("Petpack license is required".to_string());
+    }
+    if !is_semver(&petpack.min_app_version) {
+        return Err("Petpack minAppVersion must be x.y.z".to_string());
+    }
+    if petpack.tags.is_empty() || petpack.tags.iter().any(|tag| tag.trim().is_empty()) {
+        return Err("Petpack tags are required".to_string());
+    }
+    if petpack.changelog.is_empty()
+        || petpack
+            .changelog
+            .iter()
+            .any(|entry| entry.trim().is_empty())
+    {
+        return Err("Petpack changelog is required".to_string());
     }
 
     let pet: PetManifest = read_json_entry(archive, "pet.json")?;
@@ -155,6 +190,16 @@ fn validate_required_files(
         }
     }
     Ok(())
+}
+
+fn is_semver(value: &str) -> bool {
+    let mut parts = value.split('.');
+    let valid = (0..3).all(|_| {
+        parts.next().is_some_and(|part| {
+            !part.is_empty() && part.chars().all(|character| character.is_ascii_digit())
+        })
+    });
+    valid && parts.next().is_none()
 }
 
 fn read_json_entry<T: for<'de> Deserialize<'de>>(
@@ -213,7 +258,7 @@ mod tests {
         petpack(&[
             (
                 "petpack.json",
-                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0"}"#,
+                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0","author":"Chen","license":"CC-BY-4.0","minAppVersion":"0.2.0","tags":["cat"],"changelog":["Initial package"]}"#,
             ),
             (
                 "pet.json",
@@ -243,7 +288,7 @@ mod tests {
         let replacement = petpack(&[
             (
                 "petpack.json",
-                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.1"}"#,
+                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.1","author":"Chen","license":"CC-BY-4.0","minAppVersion":"0.2.0","tags":["cat"],"changelog":["Updated package"]}"#,
             ),
             (
                 "pet.json",
@@ -266,7 +311,7 @@ mod tests {
         let pack = petpack(&[
             (
                 "petpack.json",
-                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0"}"#,
+                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0","author":"Chen","license":"CC-BY-4.0","minAppVersion":"0.2.0","tags":["cat"],"changelog":["Initial package"]}"#,
             ),
             ("spritesheet.webp", b"webp"),
         ]);
@@ -282,7 +327,7 @@ mod tests {
         let pack = petpack(&[
             (
                 "petpack.json",
-                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0"}"#,
+                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0","author":"Chen","license":"CC-BY-4.0","minAppVersion":"0.2.0","tags":["cat"],"changelog":["Initial package"]}"#,
             ),
             (
                 "pet.json",
@@ -310,7 +355,7 @@ mod tests {
         let pack = petpack(&[
             (
                 "petpack.json",
-                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0"}"#,
+                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0","author":"Chen","license":"CC-BY-4.0","minAppVersion":"0.2.0","tags":["cat"],"changelog":["Initial package"]}"#,
             ),
             (
                 "pet.json",
@@ -328,14 +373,52 @@ mod tests {
     fn inspects_valid_petpack_without_installing() {
         let summary = inspect_petpack_bytes(&valid_petpack()).expect("inspect petpack");
 
-        assert_eq!(
-            summary,
-            PetpackSummary {
-                id: "mi-fen".to_string(),
-                display_name: "Mi Fen".to_string(),
-                version: "1.0.0".to_string(),
-            }
-        );
+        assert_eq!(summary.id, "mi-fen");
+        assert_eq!(summary.display_name, "Mi Fen");
+        assert_eq!(summary.version, "1.0.0");
+        assert_eq!(summary.author, "Chen");
+        assert_eq!(summary.license, "CC-BY-4.0");
+        assert_eq!(summary.min_app_version, "0.2.0");
+        assert_eq!(summary.tags, vec!["cat"]);
+        assert_eq!(summary.changelog, vec!["Initial package"]);
+    }
+
+    #[test]
+    fn inspect_rejects_missing_required_metadata() {
+        let pack = petpack(&[
+            (
+                "petpack.json",
+                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0"}"#,
+            ),
+            (
+                "pet.json",
+                br#"{"id":"mi-fen","displayName":"Mi Fen","spritesheetPath":"spritesheet.webp"}"#,
+            ),
+            ("spritesheet.webp", b"webp"),
+        ]);
+
+        let error = inspect_petpack_bytes(&pack).expect_err("reject missing metadata");
+
+        assert!(error.contains("author"));
+    }
+
+    #[test]
+    fn inspect_rejects_invalid_min_app_version() {
+        let pack = petpack(&[
+            (
+                "petpack.json",
+                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0","author":"Chen","license":"CC-BY-4.0","minAppVersion":"dev","tags":["cat"],"changelog":["Initial package"]}"#,
+            ),
+            (
+                "pet.json",
+                br#"{"id":"mi-fen","displayName":"Mi Fen","spritesheetPath":"spritesheet.webp"}"#,
+            ),
+            ("spritesheet.webp", b"webp"),
+        ]);
+
+        let error = inspect_petpack_bytes(&pack).expect_err("reject invalid min app version");
+
+        assert!(error.contains("minAppVersion"));
     }
 
     #[test]
@@ -343,7 +426,7 @@ mod tests {
         let pack = petpack(&[
             (
                 "petpack.json",
-                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0"}"#,
+                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0","author":"Chen","license":"CC-BY-4.0","minAppVersion":"0.2.0","tags":["cat"],"changelog":["Initial package"]}"#,
             ),
             ("spritesheet.webp", b"webp"),
         ]);
@@ -358,7 +441,7 @@ mod tests {
         let pack = petpack(&[
             (
                 "petpack.json",
-                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0"}"#,
+                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0","author":"Chen","license":"CC-BY-4.0","minAppVersion":"0.2.0","tags":["cat"],"changelog":["Initial package"]}"#,
             ),
             (
                 "pet.json",
@@ -383,7 +466,7 @@ mod tests {
         let pack = petpack(&[
             (
                 "petpack.json",
-                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0"}"#,
+                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0","author":"Chen","license":"CC-BY-4.0","minAppVersion":"0.2.0","tags":["cat"],"changelog":["Initial package"]}"#,
             ),
             (
                 "pet.json",
@@ -402,7 +485,7 @@ mod tests {
         let pack = petpack(&[
             (
                 "petpack.json",
-                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0"}"#,
+                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0","author":"Chen","license":"CC-BY-4.0","minAppVersion":"0.2.0","tags":["cat"],"changelog":["Initial package"]}"#,
             ),
             (
                 "pet.json",

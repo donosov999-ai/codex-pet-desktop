@@ -1,3 +1,5 @@
+import { STATES } from "./constants.js";
+
 export function createInteractions({ animation, dom, petDesktop, state }) {
   let dragging = false;
   let pointerInsideInteractiveArea = false;
@@ -6,10 +8,30 @@ export function createInteractions({ animation, dom, petDesktop, state }) {
   let wanderTimer = 0;
   let wanderDirection = 0;
   let wanderUntil = 0;
-  const idleStates = ["review", "waiting", "idle"];
+  const defaultBehavior = {
+    clickState: "waving",
+    doubleClickState: "jumping",
+    idleStates: ["review", "waiting", "idle"],
+    wanderDirections: [-1, 1, 0]
+  };
 
   function hasActivePet() {
     return Boolean(state.activePet && state.pets.some((pet) => pet.id === state.activePet.id));
+  }
+
+  function activeBehavior() {
+    const behavior = state.activePet?.behavior || {};
+    const validStates = (states) => states.filter((name) => STATES[name]);
+    const idleStates = Array.isArray(behavior.idleStates) ? validStates(behavior.idleStates) : [];
+    const wanderDirections = Array.isArray(behavior.wanderDirections)
+      ? behavior.wanderDirections.filter((direction) => [-1, 0, 1].includes(direction))
+      : [];
+    return {
+      clickState: STATES[behavior.clickState] ? behavior.clickState : defaultBehavior.clickState,
+      doubleClickState: STATES[behavior.doubleClickState] ? behavior.doubleClickState : defaultBehavior.doubleClickState,
+      idleStates: idleStates.length ? idleStates : defaultBehavior.idleStates,
+      wanderDirections: wanderDirections.length ? wanderDirections : defaultBehavior.wanderDirections
+    };
   }
 
   function setMousePassthrough(ignored) {
@@ -52,7 +74,8 @@ export function createInteractions({ animation, dom, petDesktop, state }) {
         scheduleWander();
         return;
       }
-      const directions = [-1, 1, 0];
+      const behavior = activeBehavior();
+      const directions = behavior.wanderDirections;
       wanderDirection = directions[Math.floor(Math.random() * directions.length)];
       wanderUntil = performance.now() + (wanderDirection === 0 ? 1800 : 3200);
       if (wanderDirection < 0) {
@@ -60,7 +83,7 @@ export function createInteractions({ animation, dom, petDesktop, state }) {
       } else if (wanderDirection > 0) {
         animation.setState("running-right");
       } else {
-        animation.setState(idleStates[Math.floor(Math.random() * idleStates.length)]);
+        animation.setState(behavior.idleStates[Math.floor(Math.random() * behavior.idleStates.length)]);
       }
     }, 3500 + Math.random() * 4500);
   }
@@ -73,7 +96,15 @@ export function createInteractions({ animation, dom, petDesktop, state }) {
       dom.wanderToggle.checked &&
       !dragging
     ) {
-      petDesktop?.moveBy(wanderDirection * 2, 0);
+      petDesktop?.moveBy(wanderDirection * 2, 0)?.then((bounds) => {
+        if (bounds?.hitEdge === "left") {
+          wanderDirection = 1;
+          animation.setState("running-right");
+        } else if (bounds?.hitEdge === "right") {
+          wanderDirection = -1;
+          animation.setState("running-left");
+        }
+      });
     }
     if (wanderUntil && now >= wanderUntil) {
       wanderDirection = 0;
@@ -140,11 +171,11 @@ export function createInteractions({ animation, dom, petDesktop, state }) {
     });
     dom.petEl.addEventListener("click", () => {
       if (!dragging && dom.panelEl.classList.contains("hidden")) {
-        animation.setState("waving");
+        animation.setState(activeBehavior().clickState);
       }
     });
     dom.petEl.addEventListener("dblclick", () => {
-      animation.setState("jumping");
+      animation.setState(activeBehavior().doubleClickState);
     });
 
     document.addEventListener("contextmenu", (event) => {
