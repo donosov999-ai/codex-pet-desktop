@@ -46,10 +46,22 @@ const failures = workflowPaths.flatMap((workflowPath) => {
 });
 
 const releaseSource = fs.readFileSync(path.join(root, ".github/workflows/release.yml"), "utf8");
-for (const required of ["quality-gate:", "npm run smoke", "cargo test", "node scripts/build-petpacks.js", "node src/download-page-smoke.js"]) {
+for (const required of [
+  "quality-gate:",
+  "Install Linux Tauri dependencies",
+  "libwebkit2gtk-4.1-dev",
+  "libappindicator3-dev",
+  "npm run smoke",
+  "cargo test",
+  "node scripts/build-petpacks.js",
+  "node src/download-page-smoke.js"
+]) {
   if (!releaseSource.includes(required)) {
     failures.push(`release workflow missing quality gate step: ${required}`);
   }
+}
+if (releaseSource.indexOf("Install Linux Tauri dependencies") > releaseSource.indexOf("Run Rust tests")) {
+  failures.push("release workflow must install Linux Tauri dependencies before running Rust tests");
 }
 if (!/build-windows:[\s\S]*needs:\s+quality-gate/.test(releaseSource)) {
   failures.push("build-windows must depend on quality-gate");
