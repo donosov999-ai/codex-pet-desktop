@@ -14,3 +14,15 @@ export const STATES = {
   running: { row: 7, frames: 6, fps: 7 },
   review: { row: 8, frames: 6, fps: 6 }
 };
+
+export const STATE_LABELS = {
+  idle: "待机",
+  "running-right": "向右走",
+  "running-left": "向左走",
+  waving: "互动",
+  jumping: "跳跃",
+  failed: "受惊",
+  waiting: "等待",
+  running: "小跑",
+  review: "观察"
+};

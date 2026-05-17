@@ -66,6 +66,13 @@ fn clamp_position(
     )
 }
 
+fn center_position(size: WindowSize, work_area: WorkArea) -> PhysicalPosition<i32> {
+    PhysicalPosition::new(
+        work_area.x + (work_area.width as i32 - size.width as i32) / 2,
+        work_area.y + (work_area.height as i32 - size.height as i32) / 2,
+    )
+}
+
 fn current_work_area<R: Runtime>(window: &WebviewWindow<R>) -> Result<WorkArea, String> {
     let monitor = window
         .current_monitor()
@@ -118,6 +125,41 @@ pub(crate) fn reset_window_position<R: Runtime>(
         work_area.position.y + work_area.size.height as i32
             - size.height as i32
             - EDGE_VISIBILITY_PX,
+    );
+    window
+        .set_position(next)
+        .map_err(|error| error.to_string())?;
+    Ok(WindowBounds {
+        x: next.x,
+        y: next.y,
+        width: size.width,
+        height: size.height,
+    })
+}
+
+pub(crate) fn center_window_position<R: Runtime>(
+    window: &WebviewWindow<R>,
+) -> Result<WindowBounds, String> {
+    let monitor = window
+        .current_monitor()
+        .map_err(|error| error.to_string())?
+        .or(window
+            .primary_monitor()
+            .map_err(|error| error.to_string())?)
+        .ok_or_else(|| "monitor not found".to_string())?;
+    let work_area = monitor.work_area();
+    let size = window.outer_size().map_err(|error| error.to_string())?;
+    let next = center_position(
+        WindowSize {
+            width: size.width,
+            height: size.height,
+        },
+        WorkArea {
+            x: work_area.position.x,
+            y: work_area.position.y,
+            width: work_area.size.width,
+            height: work_area.size.height,
+        },
     );
     window
         .set_position(next)
@@ -216,6 +258,25 @@ mod tests {
         assert_eq!(
             clamp_position(size, work_area, 2200, 1400),
             PhysicalPosition::new(1872, 1032)
+        );
+    }
+
+    #[test]
+    fn center_position_uses_current_work_area_center() {
+        assert_eq!(
+            center_position(
+                WindowSize {
+                    width: 320,
+                    height: 340,
+                },
+                WorkArea {
+                    x: 100,
+                    y: 50,
+                    width: 1920,
+                    height: 1080,
+                },
+            ),
+            PhysicalPosition::new(900, 420)
         );
     }
 }

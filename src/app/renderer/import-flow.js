@@ -55,8 +55,8 @@ export function createImportFlow({
       if (result.replaced) {
         setPetStatus(
           `已覆盖 ${result.displayName || result.importedPetId}: ${
-            result.previousVersion || "unknown"
-          } -> ${result.version || "unknown"}`
+            result.previousVersion || "未知"
+          } -> ${result.version || "未知"}`
         );
       } else {
         setPetStatus(`已导入 ${result.displayName || result.importedPetId} ${result.version || ""}`.trim());

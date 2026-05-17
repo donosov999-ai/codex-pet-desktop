@@ -84,9 +84,6 @@ export function createInteractions({ animation, dom, petDesktop, state }) {
   }
 
   function setPanelVisible(show) {
-    if (show && !state.pets.length && !state.pendingImport) {
-      show = false;
-    }
     dom.panelEl.classList.toggle("hidden", !show);
     dom.panelBackdropEl.classList.toggle("hidden", !show);
     setMousePassthrough(false);

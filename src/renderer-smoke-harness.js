@@ -120,6 +120,7 @@ async function loadRenderer(options = {}) {
     "#topToggle",
     "#importButton",
     "#importEmptyButton",
+    "#openStoreEmptyButton",
     "#petpackInput",
     "#importPreview",
     "#importPreviewText",
@@ -130,7 +131,12 @@ async function loadRenderer(options = {}) {
     "#checkUpdateButton",
     "#checkPetpackUpdatesButton",
     "#openDownloadsButton",
+    "#openStoreButton",
     "#updateStatus",
+    "#petStore",
+    "#refreshStoreButton",
+    "#petStoreStatus",
+    "#petStoreList",
     "#quitButton"
   ];
   const elements = new Map(selectors.map((selector) => [selector, createFakeElement(selector)]));

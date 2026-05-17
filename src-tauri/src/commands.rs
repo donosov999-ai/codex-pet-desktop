@@ -1,5 +1,6 @@
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use serde::Serialize;
+use std::fs;
 use tauri::{AppHandle, Wry};
 use tauri_plugin_opener::OpenerExt;
 
@@ -77,6 +78,20 @@ fn open_downloads(app: AppHandle<Wry>) -> Result<(), String> {
     app.opener()
         .open_url(DOWNLOADS_URL, None::<&str>)
         .map_err(|error| error.to_string())
+}
+
+pub(crate) fn open_app_data_dir(app: &AppHandle<Wry>) -> Result<(), String> {
+    let dir = pet_catalog::user_data_dir(app)
+        .ok_or_else(|| "Could not resolve app data directory".to_string())?;
+    fs::create_dir_all(&dir).map_err(|error| error.to_string())?;
+    app.opener()
+        .open_path(dir.to_string_lossy().to_string(), None::<&str>)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
+fn open_data_dir(app: AppHandle<Wry>) -> Result<(), String> {
+    open_app_data_dir(&app)
 }
 
 fn clean_version(value: &str) -> Option<Vec<u64>> {
@@ -239,6 +254,12 @@ fn reset_position(app: AppHandle<Wry>) -> Result<WindowBounds, String> {
 }
 
 #[tauri::command]
+fn center_position(app: AppHandle<Wry>) -> Result<WindowBounds, String> {
+    let window = windowing::main_window(&app)?;
+    windowing::center_window_position(&window)
+}
+
+#[tauri::command]
 fn set_always_on_top(
     app: AppHandle<Wry>,
     state: tauri::State<AppState>,
@@ -275,6 +296,7 @@ pub(crate) fn handler() -> impl Fn(tauri::ipc::Invoke<Wry>) -> bool + Send + Syn
         list_pets,
         get_app_info,
         open_downloads,
+        open_data_dir,
         inspect_petpack,
         import_petpack,
         uninstall_pet,
@@ -282,6 +304,7 @@ pub(crate) fn handler() -> impl Fn(tauri::ipc::Invoke<Wry>) -> bool + Send + Syn
         move_by,
         set_ignore_mouse_events,
         reset_position,
+        center_position,
         set_always_on_top,
         get_window_state,
         quit

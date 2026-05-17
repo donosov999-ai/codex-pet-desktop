@@ -55,7 +55,7 @@ async function main() {
   });
 
   const managerText = textOf(elements.get("#petManager"));
-  if (!managerText.includes("米粉") || !managerText.includes("1.0.1") || !managerText.includes("managed")) {
+  if (!managerText.includes("米粉") || !managerText.includes("1.0.1") || !managerText.includes("应用内导入")) {
     console.error(JSON.stringify({ ok: false, reason: "manager did not render pet metadata", managerText }));
     process.exit(1);
   }
@@ -80,7 +80,7 @@ async function main() {
     process.exit(1);
   }
 
-  const uninstallButton = findByText(elements.get("#petManager"), "Uninstall");
+  const uninstallButton = findByText(elements.get("#petManager"), "卸载");
   if (!uninstallButton) {
     console.error(JSON.stringify({ ok: false, reason: "missing uninstall button", managerText: textOf(elements.get("#petManager")) }));
     process.exit(1);

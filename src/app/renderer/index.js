@@ -4,11 +4,12 @@ import { getDomRefs, setElementText } from "./dom.js";
 import { createImportFlow } from "./import-flow.js";
 import { createInteractions } from "./interactions.js";
 import { createPetManager } from "./pet-manager.js";
+import { createStoreController } from "./store.js";
 import { createUpdateController } from "./updates.js";
 import { cleanVersion } from "./version.js";
 
 const dom = getDomRefs();
-const { petDesktop, tauriConvertFileSrc } = createDesktopBridge();
+const { petDesktop, tauriConvertFileSrc, listenTrayCommand } = createDesktopBridge();
 const state = {
   pets: [],
   activePet: null,
@@ -49,7 +50,42 @@ const importFlow = createImportFlow({
   setPetStatus,
   state
 });
+const store = createStoreController({
+  dom,
+  petDesktop,
+  refreshPetList: petManager.refreshPetList,
+  state
+});
 const updates = createUpdateController({ dom, petDesktop, setUpdateStatus, state });
+
+function setWanderPaused(paused) {
+  dom.wanderToggle.checked = !paused;
+  if (paused) {
+    interactions.stopWander();
+    setPetStatus("已暂停自动散步。");
+    return;
+  }
+  if (interactions.hasActivePet()) {
+    interactions.scheduleWander();
+  }
+  setPetStatus("已恢复自动散步。");
+}
+
+async function openStorePanel() {
+  interactions.setPanelVisible(true);
+  await store.openStore();
+}
+
+async function handleTrayCommand(payload) {
+  const command = typeof payload === "string" ? payload : payload?.command;
+  if (command === "pause_wander") {
+    setWanderPaused(true);
+  } else if (command === "resume_wander") {
+    setWanderPaused(false);
+  } else if (command === "open_store") {
+    await openStorePanel();
+  }
+}
 
 async function init() {
   if (!petDesktop) {
@@ -67,7 +103,17 @@ async function init() {
 
   interactions.bind({ pickPet: petManager.pickPet });
   importFlow.bind();
+  store.bind();
   updates.bind();
+  dom.openStoreButton?.addEventListener("click", () => {
+    openStorePanel();
+  });
+  dom.openStoreEmptyButton?.addEventListener("click", () => {
+    openStorePanel();
+  });
+  listenTrayCommand?.((payload) => {
+    handleTrayCommand(payload).catch((error) => setPetStatus(error.message));
+  });
   dom.quitButton.addEventListener("click", () => {
     petDesktop?.quit();
   });

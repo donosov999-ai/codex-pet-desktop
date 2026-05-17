@@ -18,10 +18,10 @@ export function createUpdateController({ dom, petDesktop, setUpdateStatus, state
       const latest = await response.json();
       const latestTag = latest.tag_name || latest.name || "";
       if (!latestTag) {
-        throw new Error("latest release tag is missing");
+        throw new Error("最新版本号缺失");
       }
       if (compareVersions(latestTag, state.appInfo.version) > 0) {
-        setUpdateStatus(`发现主程序新版本 ${latestTag}，点击 Open Downloads 下载。`);
+        setUpdateStatus(`发现主程序新版本 ${latestTag}，点击“打开下载页”下载。`);
         return;
       }
       setUpdateStatus(`主程序已是最新版本 v${cleanVersion(state.appInfo.version)}。`);

@@ -1,5 +1,8 @@
 export async function readFileAsBase64(file) {
-  const buffer = await file.arrayBuffer();
+  return arrayBufferToBase64(await file.arrayBuffer());
+}
+
+export function arrayBufferToBase64(buffer) {
   let binary = "";
   const bytes = new Uint8Array(buffer);
   const chunkSize = 0x8000;
@@ -37,18 +40,18 @@ export function friendlyPetpackError(error) {
 
 export function importPreviewMessage(preview) {
   const name = preview.displayName || preview.id;
-  const version = preview.version || "unknown";
+  const version = preview.version || "未知";
   const existing = preview.existingManagedVersion || preview.existingVisibleVersion || "";
   const source = preview.existingVisibleSourceKind || "";
 
   if (preview.versionRelation === "upgrade") {
-    return `将覆盖 ${name}: v${existing || "unknown"} -> v${version}。`;
+    return `将覆盖 ${name}: v${existing || "未知"} -> v${version}。`;
   }
   if (preview.versionRelation === "same") {
     return `已安装同版本 ${name} v${version}，继续会重新覆盖资源文件。`;
   }
   if (preview.versionRelation === "downgrade") {
-    return `当前是 v${existing || "unknown"}，选择的 ${name} 是 v${version}，继续会降级。`;
+    return `当前是 v${existing || "未知"}，选择的 ${name} 是 v${version}，继续会降级。`;
   }
   if (preview.willReplaceManaged) {
     return `将覆盖 ${name}，新版本为 v${version}。`;
@@ -61,13 +64,13 @@ export function importPreviewMessage(preview) {
 
 export function importConfirmLabel(preview) {
   if (!preview) {
-    return "Import";
+    return "导入";
   }
   if (preview.versionRelation === "downgrade") {
-    return "Confirm Downgrade";
+    return "确认降级";
   }
   if (preview.willReplaceManaged || preview.existingVisibleVersion) {
-    return "Confirm Replace";
+    return "确认覆盖";
   }
-  return "Confirm Import";
+  return "确认导入";
 }

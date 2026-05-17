@@ -11,6 +11,7 @@ export function getDomRefs() {
     topToggle: document.querySelector("#topToggle"),
     importButton: document.querySelector("#importButton"),
     importEmptyButton: document.querySelector("#importEmptyButton"),
+    openStoreEmptyButton: document.querySelector("#openStoreEmptyButton"),
     petpackInput: document.querySelector("#petpackInput"),
     importPreviewEl: document.querySelector("#importPreview"),
     importPreviewTextEl: document.querySelector("#importPreviewText"),
@@ -21,7 +22,12 @@ export function getDomRefs() {
     checkUpdateButton: document.querySelector("#checkUpdateButton"),
     checkPetpackUpdatesButton: document.querySelector("#checkPetpackUpdatesButton"),
     openDownloadsButton: document.querySelector("#openDownloadsButton"),
+    openStoreButton: document.querySelector("#openStoreButton"),
     updateStatusEl: document.querySelector("#updateStatus"),
+    petStoreEl: document.querySelector("#petStore"),
+    refreshStoreButton: document.querySelector("#refreshStoreButton"),
+    petStoreStatusEl: document.querySelector("#petStoreStatus"),
+    petStoreListEl: document.querySelector("#petStoreList"),
     quitButton: document.querySelector("#quitButton")
   };
 }

@@ -23,7 +23,7 @@ const upgradePreview = {
   willReplaceManaged: true,
   versionRelation: "upgrade"
 };
-if (!importPreviewMessage(upgradePreview).includes("1.0.1") || !importConfirmLabel(upgradePreview).includes("Replace")) {
+if (!importPreviewMessage(upgradePreview).includes("1.0.1") || !importConfirmLabel(upgradePreview).includes("覆盖")) {
   errors.push("upgrade preview text invalid");
 }
 

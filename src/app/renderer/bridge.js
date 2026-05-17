@@ -1,6 +1,7 @@
 export function createDesktopBridge() {
   const tauriInvoke = window.__TAURI__?.core?.invoke;
   const tauriConvertFileSrc = window.__TAURI__?.core?.convertFileSrc;
+  const tauriListen = window.__TAURI__?.event?.listen;
   const petDesktop =
     window.petDesktop ||
     (tauriInvoke
@@ -8,6 +9,7 @@ export function createDesktopBridge() {
           listPets: () => tauriInvoke("list_pets"),
           getAppInfo: () => tauriInvoke("get_app_info"),
           openDownloads: () => tauriInvoke("open_downloads"),
+          openDataDir: () => tauriInvoke("open_data_dir"),
           inspectPetpack: (data) => tauriInvoke("inspect_petpack", { data }),
           importPetpack: (data) => tauriInvoke("import_petpack", { data }),
           uninstallPet: (id) => tauriInvoke("uninstall_pet", { id }),
@@ -17,6 +19,7 @@ export function createDesktopBridge() {
           resetPosition: () => tauriInvoke("reset_position"),
           setAlwaysOnTop: (value) => tauriInvoke("set_always_on_top", { value }),
           getWindowState: () => tauriInvoke("get_window_state"),
+          centerPosition: () => tauriInvoke("center_position"),
           quit: () => tauriInvoke("quit")
         }
       : null);
@@ -24,6 +27,12 @@ export function createDesktopBridge() {
   return {
     petDesktop,
     tauriConvertFileSrc,
+    listenTrayCommand: (handler) => {
+      if (typeof tauriListen !== "function") {
+        return Promise.resolve(() => {});
+      }
+      return tauriListen("pet-desktop-tray-command", (event) => handler(event.payload));
+    },
     isTauriRuntime: Boolean(tauriInvoke)
   };
 }

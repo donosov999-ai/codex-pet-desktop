@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,58 +7,66 @@
     <link rel="stylesheet" href="./renderer.css" />
   </head>
   <body>
-    <main id="stage" aria-label="Desktop pet">
-      <div id="pet" role="img" aria-label="Desktop pet"></div>
-      <section id="emptyState" class="empty-state hidden" aria-label="Import pet">
-        <strong>No pet installed</strong>
-        <span>Import a .petpack to start.</span>
-        <button id="importEmptyButton" type="button">Import Petpack</button>
+    <main id="stage" aria-label="桌面宠物">
+      <div id="pet" role="img" aria-label="桌面宠物"></div>
+      <section id="emptyState" class="empty-state hidden" aria-label="导入宠物">
+        <strong>还没有宠物</strong>
+        <span>导入宠物包，或从资源库安装一只。</span>
+        <button id="openStoreEmptyButton" type="button">打开资源库</button>
+        <button id="importEmptyButton" type="button">导入宠物包</button>
       </section>
       <div id="panelBackdrop" class="panel-backdrop hidden" aria-hidden="true"></div>
-      <section id="panel" class="panel hidden" aria-label="Pet controls">
+      <section id="panel" class="panel hidden" aria-label="宠物控制">
         <div class="panel-row">
-          <label for="petSelect">Pet</label>
+          <label for="petSelect">宠物</label>
           <select id="petSelect"></select>
         </div>
         <div class="panel-row">
-          <label for="stateSelect">State</label>
+          <label for="stateSelect">动作</label>
           <select id="stateSelect"></select>
         </div>
         <div class="panel-row">
-          <label for="scaleRange">Scale</label>
+          <label for="scaleRange">大小</label>
           <input id="scaleRange" type="range" min="0.6" max="1.8" step="0.1" value="0.6" />
         </div>
         <label class="check-row">
           <input id="wanderToggle" type="checkbox" checked />
-          <span>Auto wander</span>
+          <span>自动散步</span>
         </label>
         <label class="check-row">
           <input id="topToggle" type="checkbox" checked />
-          <span>Always on top</span>
+          <span>保持置顶</span>
         </label>
-        <section class="app-update" aria-label="App updates">
-          <div class="panel-heading">Updates</div>
+        <section class="app-update" aria-label="更新">
+          <div class="panel-heading">更新</div>
           <div class="app-update-actions">
-            <button id="checkUpdateButton" type="button">Check App</button>
-            <button id="checkPetpackUpdatesButton" type="button">Check Pets</button>
-            <button id="openDownloadsButton" type="button">Open Downloads</button>
+            <button id="checkUpdateButton" type="button">检查主程序</button>
+            <button id="checkPetpackUpdatesButton" type="button">检查宠物包</button>
+            <button id="openDownloadsButton" type="button">打开下载页</button>
+            <button id="openStoreButton" type="button">打开资源库</button>
           </div>
           <p id="updateStatus" class="update-status" aria-live="polite"></p>
         </section>
-        <button id="importButton" type="button">Import Petpack</button>
-        <section id="importPreview" class="import-preview hidden" aria-label="Import preview">
+        <section id="petStore" class="pet-store" aria-label="宠物资源库">
+          <div class="panel-heading">宠物资源库</div>
+          <button id="refreshStoreButton" type="button">刷新资源库</button>
+          <p id="petStoreStatus" class="store-status" aria-live="polite"></p>
+          <div id="petStoreList" class="pet-store-list"></div>
+        </section>
+        <button id="importButton" type="button">导入本地宠物包</button>
+        <section id="importPreview" class="import-preview hidden" aria-label="导入预览">
           <p id="importPreviewText"></p>
           <div class="import-preview-actions">
-            <button id="confirmImportButton" type="button">Confirm Import</button>
-            <button id="cancelImportButton" type="button">Cancel</button>
+            <button id="confirmImportButton" type="button">确认导入</button>
+            <button id="cancelImportButton" type="button">取消</button>
           </div>
         </section>
         <p id="petStatus" class="pet-status" aria-live="polite"></p>
-        <section class="pet-manager" aria-label="Installed pets">
-          <div class="panel-heading">Installed pets</div>
+        <section class="pet-manager" aria-label="已安装宠物">
+          <div class="panel-heading">已安装宠物</div>
           <div id="petManager" class="pet-manager-list"></div>
         </section>
-        <button id="quitButton" type="button">Quit</button>
+        <button id="quitButton" type="button">退出</button>
       </section>
       <input id="petpackInput" class="hidden" type="file" accept=".petpack,application/zip" />
     </main>

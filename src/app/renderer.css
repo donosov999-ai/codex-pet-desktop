@@ -174,7 +174,8 @@ button:hover {
 }
 
 .pet-status,
-.update-status {
+.update-status,
+.store-status {
   min-height: 16px;
   margin: 8px 0 0;
   color: var(--accent);
@@ -182,8 +183,75 @@ button:hover {
   line-height: 1.35;
 }
 
-.update-status {
+.update-status,
+.store-status {
   color: var(--muted);
+}
+
+.pet-store-list {
+  display: grid;
+  gap: 8px;
+}
+
+.pet-store-empty,
+.pet-store-card {
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.pet-store-empty {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.pet-store-card {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.pet-store-preview {
+  width: 46px;
+  height: 50px;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  background-size: 368px 449px;
+  background-position: 0 0;
+}
+
+.pet-store-body {
+  min-width: 0;
+}
+
+.pet-store-title {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pet-store-meta,
+.pet-store-description {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.pet-store-description {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.pet-store-card button {
+  grid-column: 1 / -1;
+  min-height: 26px;
+  margin-top: 0;
+  font-size: 11px;
 }
 
 .import-preview {

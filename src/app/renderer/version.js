@@ -53,15 +53,15 @@ export function summarizePetpackUpdates(localPets, remotePetpacks) {
     return {
       kind: "upgrade",
       message: `${name}有新资源 v${first.remote.version}，当前 v${
-        first.local.version || "unknown"
-      }${more}。点击 Open Downloads 下载后手动导入。`
+        first.local.version || "未知"
+      }${more}。可以在宠物资源库里直接更新。`
     };
   }
 
   if (missing.length) {
     return {
       kind: "missing",
-      message: `下载页有 ${missing.length} 个未安装宠物资源。点击 Open Downloads 下载后手动导入。`
+      message: `资源库有 ${missing.length} 个未安装宠物。`
     };
   }
 

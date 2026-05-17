@@ -1,4 +1,4 @@
-import { CELL_HEIGHT, CELL_WIDTH, STATES } from "./constants.js";
+import { CELL_HEIGHT, CELL_WIDTH, STATES, STATE_LABELS } from "./constants.js";
 
 export function createAnimation(dom) {
   let stateName = "idle";
@@ -30,7 +30,7 @@ export function createAnimation(dom) {
       ...Object.keys(STATES).map((state) => {
         const option = document.createElement("option");
         option.value = state;
-        option.textContent = state;
+        option.textContent = STATE_LABELS[state] || state;
         return option;
       })
     );
