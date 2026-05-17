@@ -46,10 +46,12 @@ function createFakeElement(selector) {
     textContent: "",
     files: [],
     addEventListener(type, handler) {
-      listeners.set(type, handler);
+      listeners.set(type, [...(listeners.get(type) || []), handler]);
     },
     dispatch(type, event = {}) {
-      listeners.get(type)?.({ target: this, ...event });
+      for (const handler of listeners.get(type) || []) {
+        handler({ target: this, ...event });
+      }
     },
     append(...children) {
       this.children.push(...children);
@@ -134,6 +136,7 @@ async function loadRenderer(options = {}) {
     "#openStoreButton",
     "#updateStatus",
     "#petStore",
+    "#storeFilter",
     "#refreshStoreButton",
     "#petStoreStatus",
     "#petStoreList",
@@ -154,6 +157,11 @@ async function loadRenderer(options = {}) {
     addEventListener() {},
     __TAURI__: options.tauri
   };
+  if (typeof options.random === "function") {
+    windowObject.Math = Object.create(Math);
+    windowObject.Math.random = options.random;
+    globalThis.Math = windowObject.Math;
+  }
   const documentObject = {
     documentElement: createFakeElement("html"),
     createElement: (tag) => createFakeElement(tag),

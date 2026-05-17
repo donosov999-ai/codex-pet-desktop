@@ -8,6 +8,8 @@ export function createDesktopBridge() {
       ? {
           listPets: () => tauriInvoke("list_pets"),
           getAppInfo: () => tauriInvoke("get_app_info"),
+          getPreferences: () => tauriInvoke("get_preferences"),
+          savePreferences: (preferences) => tauriInvoke("save_preferences", { preferences }),
           openDownloads: () => tauriInvoke("open_downloads"),
           openDataDir: () => tauriInvoke("open_data_dir"),
           inspectPetpack: (data) => tauriInvoke("inspect_petpack", { data }),
@@ -19,6 +21,7 @@ export function createDesktopBridge() {
           resetPosition: () => tauriInvoke("reset_position"),
           setAlwaysOnTop: (value) => tauriInvoke("set_always_on_top", { value }),
           getWindowState: () => tauriInvoke("get_window_state"),
+          updateTrayState: (state) => tauriInvoke("update_tray_state", { state }),
           centerPosition: () => tauriInvoke("center_position"),
           quit: () => tauriInvoke("quit")
         }

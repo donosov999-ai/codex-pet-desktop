@@ -30,6 +30,31 @@ function localVersionLabel(local) {
   return local?.version ? `当前 v${local.version}` : "未安装";
 }
 
+function formatBytes(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) {
+    return "";
+  }
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+  const kb = bytes / 1024;
+  return `${Number.isInteger(kb) ? kb : kb.toFixed(1)} KB`;
+}
+
+function storeFilter(remote, local, selectedFilter) {
+  const hasUpdate = local && remote.version && compareVersions(remote.version, local.version) > 0;
+  if (selectedFilter === "updates") {
+    return hasUpdate;
+  }
+  if (selectedFilter === "installed") {
+    return Boolean(local);
+  }
+  if (selectedFilter === "uninstalled") {
+    return !local;
+  }
+  return true;
+}
+
 export function createStoreController({ dom, petDesktop, refreshPetList, state }) {
   let remotePetpacks = [];
   let loading = false;
@@ -44,16 +69,19 @@ export function createStoreController({ dom, petDesktop, refreshPetList, state }
     if (!dom.petStoreListEl) {
       return;
     }
-    if (!remotePetpacks.length) {
+    const visiblePetpacks = remotePetpacks.filter((remote) =>
+      storeFilter(remote, localPetFor(remote, state.pets), dom.storeFilter?.value || "all")
+    );
+    if (!visiblePetpacks.length) {
       const empty = document.createElement("div");
       empty.className = "pet-store-empty";
-      empty.textContent = loading ? "正在载入资源库..." : "资源库还没有载入。";
+      empty.textContent = loading ? "正在载入资源库..." : "当前筛选下没有宠物包。";
       dom.petStoreListEl.replaceChildren(empty);
       return;
     }
 
     dom.petStoreListEl.replaceChildren(
-      ...remotePetpacks.map((remote) => {
+      ...visiblePetpacks.map((remote) => {
         const local = localPetFor(remote, state.pets);
         const card = document.createElement("article");
         card.className = "pet-store-card";
@@ -77,7 +105,11 @@ export function createStoreController({ dom, petDesktop, refreshPetList, state }
         const description = document.createElement("div");
         description.className = "pet-store-description";
         description.textContent = remote.description || "暂无描述";
-        body.append(title, meta, description);
+        const details = document.createElement("div");
+        details.className = "pet-store-details";
+        const parts = [formatBytes(remote.sizeBytes), remote.updatedAt].filter(Boolean);
+        details.textContent = parts.join(" · ");
+        body.append(title, meta, description, details);
 
         const install = document.createElement("button");
         install.type = "button";
@@ -130,20 +162,24 @@ export function createStoreController({ dom, petDesktop, refreshPetList, state }
     const action = actionLabel(remote, local);
     setStoreStatus(`正在${action} ${remote.displayName || remote.id}...`);
     try {
-      const response = await fetch(url, { headers: { Accept: "application/octet-stream" } });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+      try {
+        const response = await fetch(url, { headers: { Accept: "application/octet-stream" } });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        const data = arrayBufferToBase64(await response.arrayBuffer());
+        const preview = await petDesktop.inspectPetpack(data);
+        if (preview.id !== remote.id) {
+          throw new Error(`资源索引和宠物包 id 不一致：${remote.id} / ${preview.id}`);
+        }
+        const result = await petDesktop.importPetpack(data);
+        refreshPetList(result.pets, result.importedPetId);
+        renderStore();
+        const done = action === "重新安装" ? "已重新安装" : result.replaced ? "已更新" : "已安装";
+        setStoreStatus(`${done} ${result.displayName || result.importedPetId}。`);
+      } catch (error) {
+        setStoreStatus(`${action}失败：${friendlyPetpackError(error)}。可以打开下载页手动下载。`);
       }
-      const data = arrayBufferToBase64(await response.arrayBuffer());
-      const preview = await petDesktop.inspectPetpack(data);
-      if (preview.id !== remote.id) {
-        throw new Error(`资源索引和宠物包 id 不一致：${remote.id} / ${preview.id}`);
-      }
-      const result = await petDesktop.importPetpack(data);
-      refreshPetList(result.pets, result.importedPetId);
-      renderStore();
-      const done = action === "重新安装" ? "已重新安装" : result.replaced ? "已更新" : "已安装";
-      setStoreStatus(`${done} ${result.displayName || result.importedPetId}。`);
     } finally {
       button.disabled = false;
     }
@@ -158,6 +194,7 @@ export function createStoreController({ dom, petDesktop, refreshPetList, state }
     dom.refreshStoreButton?.addEventListener("click", () => {
       loadStore();
     });
+    dom.storeFilter?.addEventListener("change", renderStore);
   }
 
   return {

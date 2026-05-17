@@ -14,6 +14,12 @@ const state = {
   pets: [],
   activePet: null,
   pendingImport: null,
+  preferences: {
+    selectedPetId: "",
+    scale: 0.6,
+    autoWander: true,
+    alwaysOnTop: true
+  },
   appInfo: {
     version: "0.0.0",
     downloadsUrl: "https://jieyangxchen.github.io/codex-pet-desktop/",
@@ -28,6 +34,41 @@ function setPetStatus(message) {
 
 function setUpdateStatus(message) {
   setElementText(dom.updateStatusEl, message);
+}
+
+function currentPreferences(overrides = {}) {
+  return {
+    selectedPetId: state.activePet?.id || dom.petSelect.value || "",
+    scale: Number(dom.scaleRange.value) || 0.6,
+    autoWander: Boolean(dom.wanderToggle.checked),
+    alwaysOnTop: Boolean(dom.topToggle.checked),
+    ...overrides
+  };
+}
+
+function savePreferences(overrides = {}) {
+  const preferences = currentPreferences(overrides);
+  state.preferences = preferences;
+  return petDesktop?.savePreferences?.(preferences)?.catch((error) => {
+    setPetStatus(`保存设置失败：${error.message}`);
+  });
+}
+
+function syncTrayState() {
+  return petDesktop
+    ?.updateTrayState?.({
+      autoWander: Boolean(dom.wanderToggle.checked),
+      alwaysOnTop: Boolean(dom.topToggle.checked)
+    })
+    ?.catch(() => {});
+}
+
+function applyPreferences(preferences) {
+  state.preferences = { ...state.preferences, ...(preferences || {}) };
+  dom.scaleRange.value = String(state.preferences.scale || 0.6);
+  document.documentElement.style.setProperty("--scale", dom.scaleRange.value);
+  dom.wanderToggle.checked = state.preferences.autoWander !== false;
+  dom.topToggle.checked = state.preferences.alwaysOnTop !== false;
 }
 
 const animation = createAnimation(dom);
@@ -63,12 +104,16 @@ function setWanderPaused(paused) {
   if (paused) {
     interactions.stopWander();
     setPetStatus("已暂停自动散步。");
+    savePreferences({ autoWander: false });
+    syncTrayState();
     return;
   }
   if (interactions.hasActivePet()) {
     interactions.scheduleWander();
   }
   setPetStatus("已恢复自动散步。");
+  savePreferences({ autoWander: true });
+  syncTrayState();
 }
 
 async function openStorePanel() {
@@ -94,11 +139,16 @@ async function init() {
 
   animation.renderStateOptions();
   state.appInfo = { ...state.appInfo, ...((await petDesktop.getAppInfo?.()) || {}) };
+  applyPreferences((await petDesktop.getPreferences?.()) || {});
   setUpdateStatus(`当前版本 v${cleanVersion(state.appInfo.version)}`);
 
   const windowState = await petDesktop.getWindowState();
-  dom.topToggle.checked = Boolean(windowState.alwaysOnTop);
-  petManager.refreshPetList(await petDesktop.listPets());
+  if (!state.preferences.alwaysOnTop && windowState.alwaysOnTop) {
+    await petDesktop.setAlwaysOnTop(false);
+  } else if (state.preferences.alwaysOnTop) {
+    dom.topToggle.checked = Boolean(windowState.alwaysOnTop);
+  }
+  petManager.refreshPetList(await petDesktop.listPets(), state.preferences.selectedPetId);
   interactions.setMousePassthrough(true);
 
   interactions.bind({ pickPet: petManager.pickPet });
@@ -111,6 +161,20 @@ async function init() {
   dom.openStoreEmptyButton?.addEventListener("click", () => {
     openStorePanel();
   });
+  dom.scaleRange.addEventListener("input", () => {
+    savePreferences({ scale: Number(dom.scaleRange.value) || 0.6 });
+  });
+  dom.wanderToggle.addEventListener("change", () => {
+    savePreferences({ autoWander: Boolean(dom.wanderToggle.checked) });
+    syncTrayState();
+  });
+  dom.topToggle.addEventListener("change", () => {
+    savePreferences({ alwaysOnTop: Boolean(dom.topToggle.checked) });
+    syncTrayState();
+  });
+  dom.petSelect.addEventListener("change", () => {
+    savePreferences({ selectedPetId: dom.petSelect.value });
+  });
   listenTrayCommand?.((payload) => {
     handleTrayCommand(payload).catch((error) => setPetStatus(error.message));
   });
@@ -122,7 +186,10 @@ async function init() {
   requestAnimationFrame(interactions.wanderLoop);
   if (interactions.hasActivePet()) {
     interactions.scheduleWander();
+  } else {
+    await openStorePanel();
   }
+  syncTrayState();
 }
 
 init().catch((error) => {

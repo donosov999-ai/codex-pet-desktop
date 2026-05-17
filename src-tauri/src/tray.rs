@@ -7,6 +7,8 @@ use tauri::{
 
 use crate::{commands, state::AppState, windowing};
 
+const TRAY_ID: &str = "main-tray";
+
 fn emit_tray_command(window: &tauri::WebviewWindow<Wry>, command: &str) {
     let _ = window.emit(
         "pet-desktop-tray-command",
@@ -14,26 +16,43 @@ fn emit_tray_command(window: &tauri::WebviewWindow<Wry>, command: &str) {
     );
 }
 
-pub(crate) fn setup_tray(app: &AppHandle<Wry>) -> tauri::Result<()> {
+fn tray_menu(
+    app: &AppHandle<Wry>,
+    auto_wander: bool,
+    always_on_top: bool,
+) -> tauri::Result<Menu<Wry>> {
     let show = MenuItem::with_id(app, "show", "显示桌宠", true, None::<&str>)?;
     let hide = MenuItem::with_id(app, "hide", "隐藏桌宠", true, None::<&str>)?;
     let recall = MenuItem::with_id(app, "recall", "召回到屏幕中央", true, None::<&str>)?;
-    let pause_wander = MenuItem::with_id(app, "pause_wander", "暂停自动散步", true, None::<&str>)?;
-    let resume_wander =
-        MenuItem::with_id(app, "resume_wander", "恢复自动散步", true, None::<&str>)?;
+    let wander_id = if auto_wander {
+        "pause_wander"
+    } else {
+        "resume_wander"
+    };
+    let wander_label = if auto_wander {
+        "暂停自动散步"
+    } else {
+        "恢复自动散步"
+    };
+    let wander = MenuItem::with_id(app, wander_id, wander_label, true, None::<&str>)?;
     let open_store = MenuItem::with_id(app, "open_store", "打开宠物资源库", true, None::<&str>)?;
     let open_data = MenuItem::with_id(app, "open_data", "打开数据目录", true, None::<&str>)?;
-    let always =
-        CheckMenuItem::with_id(app, "always_on_top", "保持置顶", true, true, None::<&str>)?;
+    let always = CheckMenuItem::with_id(
+        app,
+        "always_on_top",
+        "保持置顶",
+        true,
+        always_on_top,
+        None::<&str>,
+    )?;
     let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
-    let menu = Menu::with_items(
+    Menu::with_items(
         app,
         &[
             &show,
             &hide,
             &recall,
-            &pause_wander,
-            &resume_wander,
+            &wander,
             &PredefinedMenuItem::separator(app)?,
             &open_store,
             &open_data,
@@ -42,10 +61,25 @@ pub(crate) fn setup_tray(app: &AppHandle<Wry>) -> tauri::Result<()> {
             &PredefinedMenuItem::separator(app)?,
             &quit,
         ],
-    )?;
+    )
+}
+
+pub(crate) fn update_tray_state(
+    app: &AppHandle<Wry>,
+    auto_wander: bool,
+    always_on_top: bool,
+) -> tauri::Result<()> {
+    if let Some(tray) = app.tray_by_id(TRAY_ID) {
+        tray.set_menu(Some(tray_menu(app, auto_wander, always_on_top)?))?;
+    }
+    Ok(())
+}
+
+pub(crate) fn setup_tray(app: &AppHandle<Wry>) -> tauri::Result<()> {
+    let menu = tray_menu(app, true, true)?;
     let icon = Image::from_bytes(include_bytes!("../icons/icon.png"))?;
 
-    TrayIconBuilder::new()
+    TrayIconBuilder::with_id(TRAY_ID)
         .icon(icon)
         .tooltip("永生计划")
         .menu(&menu)

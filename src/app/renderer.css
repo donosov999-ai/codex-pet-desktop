@@ -233,7 +233,8 @@ button:hover {
 }
 
 .pet-store-meta,
-.pet-store-description {
+.pet-store-description,
+.pet-store-details {
   margin-top: 3px;
   color: var(--muted);
   font-size: 11px;
@@ -245,6 +246,10 @@ button:hover {
   overflow: hidden;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+
+#storeFilter {
+  margin-bottom: 6px;
 }
 
 .pet-store-card button {

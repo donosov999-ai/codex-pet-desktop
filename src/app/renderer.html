@@ -49,6 +49,12 @@
         </section>
         <section id="petStore" class="pet-store" aria-label="宠物资源库">
           <div class="panel-heading">宠物资源库</div>
+          <select id="storeFilter" aria-label="资源库筛选">
+            <option value="all">全部宠物</option>
+            <option value="updates">可更新</option>
+            <option value="uninstalled">未安装</option>
+            <option value="installed">已安装</option>
+          </select>
           <button id="refreshStoreButton" type="button">刷新资源库</button>
           <p id="petStoreStatus" class="store-status" aria-live="polite"></p>
           <div id="petStoreList" class="pet-store-list"></div>

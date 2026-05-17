@@ -7,7 +7,9 @@ use tauri_plugin_opener::OpenerExt;
 use crate::{
     pet_catalog::{self, PetList},
     petpack,
+    preferences::{self, UserPreferences},
     state::AppState,
+    tray,
     windowing::{self, WindowBounds},
 };
 
@@ -30,6 +32,13 @@ struct AppInfo {
 #[derive(Debug, Serialize)]
 struct WindowState {
     #[serde(rename = "alwaysOnTop")]
+    always_on_top: bool,
+}
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TrayState {
+    auto_wander: bool,
     always_on_top: bool,
 }
 
@@ -92,6 +101,23 @@ pub(crate) fn open_app_data_dir(app: &AppHandle<Wry>) -> Result<(), String> {
 #[tauri::command]
 fn open_data_dir(app: AppHandle<Wry>) -> Result<(), String> {
     open_app_data_dir(&app)
+}
+
+#[tauri::command]
+fn get_preferences(app: AppHandle<Wry>) -> Result<UserPreferences, String> {
+    let dir = pet_catalog::user_data_dir(&app)
+        .ok_or_else(|| "Could not resolve app data directory".to_string())?;
+    preferences::load_preferences(&dir)
+}
+
+#[tauri::command]
+fn save_preferences(
+    app: AppHandle<Wry>,
+    preferences: UserPreferences,
+) -> Result<UserPreferences, String> {
+    let dir = pet_catalog::user_data_dir(&app)
+        .ok_or_else(|| "Could not resolve app data directory".to_string())?;
+    preferences::save_preferences(&dir, &preferences)
 }
 
 fn clean_version(value: &str) -> Option<Vec<u64>> {
@@ -287,6 +313,12 @@ fn get_window_state(state: tauri::State<AppState>) -> Result<WindowState, String
 }
 
 #[tauri::command]
+fn update_tray_state(app: AppHandle<Wry>, state: TrayState) -> Result<(), String> {
+    tray::update_tray_state(&app, state.auto_wander, state.always_on_top)
+        .map_err(|error| error.to_string())
+}
+
+#[tauri::command]
 fn quit(app: AppHandle<Wry>) {
     app.exit(0);
 }
@@ -297,6 +329,8 @@ pub(crate) fn handler() -> impl Fn(tauri::ipc::Invoke<Wry>) -> bool + Send + Syn
         get_app_info,
         open_downloads,
         open_data_dir,
+        get_preferences,
+        save_preferences,
         inspect_petpack,
         import_petpack,
         uninstall_pet,
@@ -307,6 +341,7 @@ pub(crate) fn handler() -> impl Fn(tauri::ipc::Invoke<Wry>) -> bool + Send + Syn
         center_position,
         set_always_on_top,
         get_window_state,
+        update_tray_state,
         quit
     ]
 }

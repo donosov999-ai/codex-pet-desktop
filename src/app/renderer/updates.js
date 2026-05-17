@@ -21,7 +21,16 @@ export function createUpdateController({ dom, petDesktop, setUpdateStatus, state
         throw new Error("最新版本号缺失");
       }
       if (compareVersions(latestTag, state.appInfo.version) > 0) {
-        setUpdateStatus(`发现主程序新版本 ${latestTag}，点击“打开下载页”下载。`);
+        const notes = String(latest.body || "")
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean)
+          .slice(0, 2)
+          .join("；");
+        const noteText = notes ? `更新内容：${notes}。` : "";
+        setUpdateStatus(
+          `发现主程序新版本：当前 v${cleanVersion(state.appInfo.version)}，最新 ${latestTag}。${noteText}点击“打开下载页”下载。`
+        );
         return;
       }
       setUpdateStatus(`主程序已是最新版本 v${cleanVersion(state.appInfo.version)}。`);

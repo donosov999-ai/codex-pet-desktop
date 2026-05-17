@@ -25,6 +25,7 @@ export function getDomRefs() {
     openStoreButton: document.querySelector("#openStoreButton"),
     updateStatusEl: document.querySelector("#updateStatus"),
     petStoreEl: document.querySelector("#petStore"),
+    storeFilter: document.querySelector("#storeFilter"),
     refreshStoreButton: document.querySelector("#refreshStoreButton"),
     petStoreStatusEl: document.querySelector("#petStoreStatus"),
     petStoreListEl: document.querySelector("#petStoreList"),

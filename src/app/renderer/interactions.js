@@ -6,6 +6,7 @@ export function createInteractions({ animation, dom, petDesktop, state }) {
   let wanderTimer = 0;
   let wanderDirection = 0;
   let wanderUntil = 0;
+  const idleStates = ["review", "waiting", "idle"];
 
   function hasActivePet() {
     return Boolean(state.activePet && state.pets.some((pet) => pet.id === state.activePet.id));
@@ -59,7 +60,7 @@ export function createInteractions({ animation, dom, petDesktop, state }) {
       } else if (wanderDirection > 0) {
         animation.setState("running-right");
       } else {
-        animation.setState("waiting");
+        animation.setState(idleStates[Math.floor(Math.random() * idleStates.length)]);
       }
     }, 3500 + Math.random() * 4500);
   }
