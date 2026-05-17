@@ -6,6 +6,7 @@ import { createInteractions } from "./interactions.js";
 import { createPetManager } from "./pet-manager.js";
 import { createStoreController } from "./store.js";
 import { createUpdateController } from "./updates.js";
+import { createWindowLayout } from "./window-layout.js";
 import { cleanVersion } from "./version.js";
 
 const dom = getDomRefs();
@@ -72,7 +73,14 @@ function applyPreferences(preferences) {
 }
 
 const animation = createAnimation(dom);
-const interactions = createInteractions({ animation, dom, petDesktop, state });
+const windowLayout = createWindowLayout({ dom, petDesktop, state });
+const interactions = createInteractions({
+  animation,
+  dom,
+  onLayoutChange: windowLayout.syncWindowLayout,
+  petDesktop,
+  state
+});
 const petManager = createPetManager({
   animation,
   dom,
@@ -81,6 +89,7 @@ const petManager = createPetManager({
   setPetStatus,
   state,
   stopWander: interactions.stopWander,
+  syncWindowLayout: windowLayout.syncWindowLayout,
   tauriConvertFileSrc
 });
 const importFlow = createImportFlow({
@@ -155,6 +164,7 @@ async function init() {
   animation.renderStateOptions();
   state.appInfo = { ...state.appInfo, ...((await petDesktop.getAppInfo?.()) || {}) };
   applyPreferences((await petDesktop.getPreferences?.()) || {});
+  await windowLayout.syncWindowLayout();
   setUpdateStatus(`当前版本 v${cleanVersion(state.appInfo.version)}`);
 
   const windowState = await petDesktop.getWindowState();
@@ -187,6 +197,7 @@ async function init() {
     openStorePanel();
   });
   dom.scaleRange.addEventListener("input", () => {
+    windowLayout.syncWindowLayout().catch(() => {});
     savePreferences({ scale: Number(dom.scaleRange.value) || 0.6 });
   });
   dom.wanderToggle.addEventListener("change", () => {

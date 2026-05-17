@@ -23,6 +23,7 @@ export function createPetManager({
   setPetStatus,
   state,
   stopWander,
+  syncWindowLayout = () => {},
   tauriConvertFileSrc
 }) {
   function pickPet(id) {
@@ -34,6 +35,7 @@ export function createPetManager({
       dom.petEl.textContent = "";
       dom.petEl.classList.add("empty");
       dom.emptyStateEl.classList.remove("hidden");
+      syncWindowLayout({ centerIfEmpty: true }).catch?.(() => {});
       return;
     }
     dom.petEl.classList.remove("empty");
@@ -44,6 +46,7 @@ export function createPetManager({
     dom.petEl.setAttribute("aria-label", state.activePet.displayName);
     dom.petSelect.value = state.activePet.id;
     animation.setState("idle");
+    syncWindowLayout().catch?.(() => {});
     scheduleWander();
   }
 

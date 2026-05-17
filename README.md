@@ -10,7 +10,7 @@
 - 透明空白区域默认鼠标穿透，不遮挡桌面点击。
 - Windows 下默认不进任务栏，使用系统托盘图标控制显示、隐藏、召回、暂停自动散步、打开资源库、打开数据目录、置顶和退出。
 - 支持拖动桌宠到屏幕边缘和角落，窗口只保留最小可见区域避免完全拖丢。
-- 支持单击招手、双击跳跃、自动游走、右键控制面板。
+- 支持单击互动、双击跳跃、自动游走、右键控制面板。
 - 主程序不内置宠物资源，宠物通过独立 `.petpack` 资源包导入。
 - 右键控制面板内置宠物资源库，可从 GitHub Pages 索引一键安装或更新宠物包。
 - 首次启动如果还没有宠物，会自动打开宠物资源库，直接安装即可使用。
@@ -22,7 +22,8 @@
 - 右键控制面板支持检查主程序更新、宠物资源包更新，并显示当前版本、最新版本和更新摘要。
 - 导入 `.petpack` 前会先预览名称和版本；同 id 资源确认后覆盖应用数据目录里的旧版本。
 - 系统托盘菜单会跟随自动散步和置顶状态更新，避免菜单动作和当前状态相反。
-- 每只宠物可配置点击动作、双击动作、空闲动作池和自动散步方向；自动散步撞到屏幕边缘会自动转向。
+- 每只宠物可配置点击动作、双击动作、空闲动作池、自动散步方向和自然行为节奏。
+- 桌宠窗口会按宠物大小、空状态和控制面板动态调整，减少透明窗口占用桌面点击区域。
 - GitHub Pages 下载页展示宠物首帧预览，并提供动作帧视觉 QA 页面。
 - 可加载外部宠物目录，兼容 Codex 自定义宠物包。
 
@@ -31,7 +32,7 @@
 | 操作 | 行为 |
 | --- | --- |
 | 拖动桌宠 | 移动桌宠位置，拖动时暂停自动游走 |
-| 单击桌宠 | 播放招手动画 |
+| 单击桌宠 | 播放当前宠物配置的互动动画 |
 | 双击桌宠 | 播放跳跃动画 |
 | 右键 | 打开或关闭控制面板 |
 | 系统托盘左键 | 显示或隐藏桌宠 |
@@ -46,9 +47,9 @@
 - `yongsheng-plan-windows-x64.exe`：Windows x64 主程序。
 - `yongsheng-plan-macos-arm64.dmg`：Apple Silicon Mac 主程序。
 - `yongsheng-plan-macos-x64.dmg`：Intel Mac 主程序。
-- `mi-fen-1.0.2.petpack`：米粉宠物包。
-- `mi-jiu-1.0.0.petpack`：米酒宠物包。
-- `tigris-whippet-1.0.1.petpack`：红糖宠物包。
+- `mi-fen-1.0.3.petpack`：米粉宠物包。
+- `mi-jiu-1.0.1.petpack`：米酒宠物包。
+- `tigris-whippet-1.0.2.petpack`：红糖宠物包。
 
 ## 安装与运行
 
@@ -111,17 +112,28 @@ my-pet/
   "id": "mi-fen",
   "displayName": "米粉",
   "description": "米粉，一只全白猫咪，常态趴着待机。",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": "Chen",
   "license": "CC-BY-4.0",
   "minAppVersion": "0.2.0",
   "tags": ["猫咪", "白色", "趴着"],
-  "changelog": ["修正单击互动动作的比例和画风。"],
+  "changelog": ["增加更自然的散步节奏和拖拽后反馈。", "修正单击互动动作的比例和画风。"],
   "behavior": {
     "clickState": "waiting",
     "doubleClickState": "jumping",
     "idleStates": ["idle", "waiting", "review"],
-    "wanderDirections": [-1, 1, 0]
+    "wanderDirections": [-1, 1, 0],
+    "natural": {
+      "nextWanderDelayMs": [5200, 11000],
+      "idleDurationMs": [1800, 4200],
+      "walkDurationMs": [2600, 5600],
+      "edgePauseMs": [900, 2200],
+      "edgePauseStates": ["waiting", "review"],
+      "postDragState": "waiting",
+      "postDragMs": 900,
+      "clickReturnState": "idle",
+      "doubleClickReturnState": "idle"
+    }
   },
   "spritesheetPath": "spritesheet.webp"
 }

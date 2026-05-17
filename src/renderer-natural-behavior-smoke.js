@@ -7,7 +7,17 @@ async function main() {
     version: "1.0.2",
     sourceKind: "managed",
     canUninstall: true,
-    spritesheetPath: "/pets/mi-fen/spritesheet.webp"
+    spritesheetPath: "/pets/mi-fen/spritesheet.webp",
+    behavior: {
+      idleStates: ["review"],
+      wanderDirections: [0],
+      natural: {
+        nextWanderDelayMs: [420, 420],
+        idleDurationMs: [900, 900],
+        postDragState: "review",
+        postDragMs: 180
+      }
+    }
   };
   const randomValues = [0, 0, 0, 0.9, 0.1];
   const { elements, timeouts } = await loadRenderer({
@@ -28,12 +38,24 @@ async function main() {
       openDownloads: async () => {},
       moveBy: async () => {},
       setIgnoreMouseEvents: async () => {},
+      resizeWindow: async () => {},
       resetPosition: async () => {},
       setAlwaysOnTop: async () => {},
       getWindowState: async () => ({ alwaysOnTop: true }),
       quit: () => {}
     }
   });
+
+  if (timeouts.at(-1)?.delay !== 420) {
+    console.error(
+      JSON.stringify({
+        ok: false,
+        reason: "natural nextWanderDelayMs was ignored",
+        delay: timeouts.at(-1)?.delay
+      })
+    );
+    process.exit(1);
+  }
 
   timeouts.at(-1)?.();
   if (elements.get("#stateSelect").value !== "review") {
@@ -47,7 +69,45 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(JSON.stringify({ ok: true, state: elements.get("#stateSelect").value }, null, 2));
+  elements.get("#pet").dispatch("pointerdown", {
+    button: 0,
+    pointerId: 1,
+    screenX: 100,
+    screenY: 100
+  });
+  elements.get("#pet").dispatch("pointermove", {
+    pointerId: 1,
+    screenX: 122,
+    screenY: 109
+  });
+  elements.get("#pet").dispatch("pointerup", {
+    pointerId: 1,
+    screenX: 122,
+    screenY: 109
+  });
+  if (elements.get("#stateSelect").value !== "review" || timeouts.at(-1)?.delay !== 180) {
+    console.error(
+      JSON.stringify({
+        ok: false,
+        reason: "post-drag natural feedback was not applied",
+        state: elements.get("#stateSelect").value,
+        delay: timeouts.at(-1)?.delay
+      })
+    );
+    process.exit(1);
+  }
+
+  console.log(
+    JSON.stringify(
+      {
+        ok: true,
+        state: elements.get("#stateSelect").value,
+        delays: timeouts.map((timeout) => timeout.delay)
+      },
+      null,
+      2
+    )
+  );
 }
 
 main().catch((error) => {

@@ -171,7 +171,8 @@ async function loadRenderer(options = {}) {
   const windowObject = {
     petDesktop: options.petDesktop,
     clearTimeout() {},
-    setTimeout(callback) {
+    setTimeout(callback, delay = 0) {
+      callback.delay = delay;
       timeouts.push(callback);
       return timeouts.length;
     },
@@ -190,11 +191,15 @@ async function loadRenderer(options = {}) {
     addEventListener() {}
   };
   const fetch = options.fetch;
+  const animationFrames = [];
 
   globalThis.console = console;
   globalThis.performance = { now: () => 0 };
   globalThis.btoa = (value) => Buffer.from(value, "binary").toString("base64");
-  globalThis.requestAnimationFrame = () => {};
+  globalThis.requestAnimationFrame = (callback) => {
+    animationFrames.push(callback);
+    return animationFrames.length;
+  };
   globalThis.document = documentObject;
   globalThis.window = windowObject;
   if (fetch) {
@@ -211,7 +216,7 @@ async function loadRenderer(options = {}) {
   await import(`${entry}?smoke=${process.pid}-${Date.now()}-${Math.random()}`);
   await flush();
 
-  return { elements, timeouts, flush };
+  return { animationFrames, elements, timeouts, flush };
 }
 
 module.exports = {

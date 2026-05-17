@@ -311,6 +311,12 @@ fn move_by(app: AppHandle<Wry>, x: f64, y: f64) -> Result<WindowBounds, String> 
 }
 
 #[tauri::command]
+fn resize_window(app: AppHandle<Wry>, width: u32, height: u32) -> Result<WindowBounds, String> {
+    let window = windowing::main_window(&app)?;
+    windowing::resize_window(&window, width, height)
+}
+
+#[tauri::command]
 fn set_ignore_mouse_events(app: AppHandle<Wry>, ignored: bool) -> Result<bool, String> {
     let window = windowing::main_window(&app)?;
     window
@@ -382,6 +388,7 @@ pub(crate) fn handler() -> impl Fn(tauri::ipc::Invoke<Wry>) -> bool + Send + Syn
         uninstall_pet,
         reveal_pet,
         move_by,
+        resize_window,
         set_ignore_mouse_events,
         reset_position,
         center_position,

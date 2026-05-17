@@ -4,6 +4,10 @@ use tauri::{
 };
 
 const EDGE_VISIBILITY_PX: i32 = 48;
+const MIN_DYNAMIC_WINDOW_WIDTH: u32 = 160;
+const MIN_DYNAMIC_WINDOW_HEIGHT: u32 = 180;
+const MAX_DYNAMIC_WINDOW_WIDTH: u32 = 640;
+const MAX_DYNAMIC_WINDOW_HEIGHT: u32 = 720;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -72,6 +76,29 @@ fn center_position(size: WindowSize, work_area: WorkArea) -> PhysicalPosition<i3
     PhysicalPosition::new(
         work_area.x + (work_area.width as i32 - size.width as i32) / 2,
         work_area.y + (work_area.height as i32 - size.height as i32) / 2,
+    )
+}
+
+fn normalize_window_size(width: u32, height: u32) -> WindowSize {
+    WindowSize {
+        width: width.clamp(MIN_DYNAMIC_WINDOW_WIDTH, MAX_DYNAMIC_WINDOW_WIDTH),
+        height: height.clamp(MIN_DYNAMIC_WINDOW_HEIGHT, MAX_DYNAMIC_WINDOW_HEIGHT),
+    }
+}
+
+fn resize_anchor_position(
+    current_position: PhysicalPosition<i32>,
+    current_size: WindowSize,
+    next_size: WindowSize,
+    work_area: WorkArea,
+) -> PhysicalPosition<i32> {
+    let anchor_x = current_position.x + current_size.width as i32 / 2;
+    let anchor_y = current_position.y + current_size.height as i32;
+    clamp_position(
+        next_size,
+        work_area,
+        anchor_x - next_size.width as i32 / 2,
+        anchor_y - next_size.height as i32,
     )
 }
 
@@ -226,6 +253,38 @@ pub(crate) fn move_window_by<R: Runtime>(
     })
 }
 
+pub(crate) fn resize_window<R: Runtime>(
+    window: &WebviewWindow<R>,
+    width: u32,
+    height: u32,
+) -> Result<WindowBounds, String> {
+    let position = window.outer_position().map_err(|error| error.to_string())?;
+    let current_size = outer_window_size(window)?;
+    let next_size = normalize_window_size(width, height);
+    let next_position = resize_anchor_position(
+        position,
+        current_size,
+        next_size,
+        current_work_area(window)?,
+    );
+    window
+        .set_size(Size::Logical(LogicalSize::new(
+            next_size.width as f64,
+            next_size.height as f64,
+        )))
+        .map_err(|error| error.to_string())?;
+    window
+        .set_position(next_position)
+        .map_err(|error| error.to_string())?;
+    Ok(WindowBounds {
+        x: next_position.x,
+        y: next_position.y,
+        width: next_size.width,
+        height: next_size.height,
+        hit_edge: String::new(),
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -295,6 +354,72 @@ mod tests {
                 },
             ),
             PhysicalPosition::new(900, 420)
+        );
+    }
+
+    #[test]
+    fn resize_anchor_position_preserves_bottom_center() {
+        assert_eq!(
+            resize_anchor_position(
+                PhysicalPosition::new(100, 200),
+                WindowSize {
+                    width: 320,
+                    height: 340,
+                },
+                WindowSize {
+                    width: 200,
+                    height: 220,
+                },
+                WorkArea {
+                    x: 0,
+                    y: 0,
+                    width: 1920,
+                    height: 1080,
+                },
+            ),
+            PhysicalPosition::new(160, 320)
+        );
+    }
+
+    #[test]
+    fn resize_anchor_position_keeps_loose_edge_visibility() {
+        assert_eq!(
+            resize_anchor_position(
+                PhysicalPosition::new(1860, 980),
+                WindowSize {
+                    width: 200,
+                    height: 220,
+                },
+                WindowSize {
+                    width: 460,
+                    height: 520,
+                },
+                WorkArea {
+                    x: 0,
+                    y: 0,
+                    width: 1920,
+                    height: 1080,
+                },
+            ),
+            PhysicalPosition::new(1730, 680)
+        );
+    }
+
+    #[test]
+    fn normalize_window_size_clamps_extreme_requests() {
+        assert_eq!(
+            normalize_window_size(80, 90),
+            WindowSize {
+                width: 160,
+                height: 180,
+            }
+        );
+        assert_eq!(
+            normalize_window_size(900, 1200),
+            WindowSize {
+                width: 640,
+                height: 720,
+            }
         );
     }
 }

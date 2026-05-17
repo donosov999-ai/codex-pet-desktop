@@ -2,17 +2,28 @@
   "id": "tigris-whippet",
   "displayName": "\u7ea2\u7cd6",
   "description": "\u7ea2\u7cd6\uff0c\u4e00\u53ea\u864e\u6591\u8272\u60e0\u6bd4\u7279\uff0c\u5e38\u6001\u8d34\u8fd1\u5730\u9762\u4f11\u606f\u3002",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "Chen",
   "license": "CC-BY-4.0",
   "minAppVersion": "0.2.0",
   "tags": ["\u72d7\u72d7", "\u60e0\u6bd4\u7279", "\u864e\u6591\u8272"],
-  "changelog": ["\u589e\u52a0\u7ea2\u7cd6\u8d34\u8fd1\u5730\u9762\u4f11\u606f\u7684\u5f85\u673a\u8d44\u6e90\u3002"],
+  "changelog": ["\u589e\u52a0\u66f4\u81ea\u7136\u7684\u6563\u6b65\u8282\u594f\u548c\u62d6\u62fd\u540e\u53cd\u9988\u3002", "\u589e\u52a0\u7ea2\u7cd6\u8d34\u8fd1\u5730\u9762\u4f11\u606f\u7684\u5f85\u673a\u8d44\u6e90\u3002"],
   "behavior": {
     "clickState": "review",
     "doubleClickState": "jumping",
-    "idleStates": ["idle", "waiting"],
-    "wanderDirections": [-1, 1, 0]
+    "idleStates": ["idle", "waiting", "review"],
+    "wanderDirections": [-1, 1, 0],
+    "natural": {
+      "nextWanderDelayMs": [6000, 13000],
+      "idleDurationMs": [2400, 5600],
+      "walkDurationMs": [2600, 6000],
+      "edgePauseMs": [900, 2200],
+      "edgePauseStates": ["waiting", "review"],
+      "postDragState": "review",
+      "postDragMs": 900,
+      "clickReturnState": "idle",
+      "doubleClickReturnState": "idle"
+    }
   },
   "spritesheetPath": "spritesheet.webp"
 }
