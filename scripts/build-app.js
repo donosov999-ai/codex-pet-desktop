@@ -36,54 +36,69 @@ function releaseBundleDirForTarget(tauriRoot, buildTarget) {
 
 const root = path.resolve(__dirname, "..");
 const tauriDir = path.join(root, "src-tauri");
+const packageJsonPath = path.join(root, "package.json");
+const tauriConfigPath = path.join(tauriDir, "tauri.conf.json");
+const cargoTomlPath = path.join(tauriDir, "Cargo.toml");
 const configPath = path.join(tauriDir, "tauri.generated.conf.json");
 const buildTarget = buildTargetForPlatform(platform);
 
-const config = {
-  $schema: "https://schema.tauri.app/config/2",
-  productName: "永生计划",
-  version: "0.2.7",
-  identifier: "io.github.jieyangxchen.yongshengplan",
-  build: {
-    frontendDist: "../src/app",
-    beforeDevCommand: "",
-    beforeBuildCommand: ""
-  },
-  app: {
-    withGlobalTauri: true,
-    macOSPrivateApi: true,
-    windows: [
-      {
-        label: "main",
-        title: "永生计划",
-        url: "renderer.html",
-        width: 320,
-        height: 340,
-        resizable: false,
-        fullscreen: false,
-        transparent: true,
-        decorations: false,
-        skipTaskbar: true,
-        alwaysOnTop: true,
-        shadow: false,
-        backgroundColor: "#00000000",
-        visible: false
-      }
-    ],
-    security: {
-      csp: "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' asset: https://asset.localhost http://asset.localhost https://jieyangxchen.github.io data:; connect-src 'self' https://api.github.com https://jieyangxchen.github.io; object-src 'none'; base-uri 'none'",
-      assetProtocol: {
-        enable: true,
-        scope: ["$APPDATA/**", "$RESOURCE/**", "$HOME/.codex/pets/**", "../resources/pets/**"]
+function readJson(filePath) {
+  return JSON.parse(fs.readFileSync(filePath, "utf8"));
+}
+
+function readCargoPackageVersion(filePath) {
+  const content = fs.readFileSync(filePath, "utf8");
+  let inPackageSection = false;
+  for (const line of content.split(/\r?\n/)) {
+    if (/^\s*\[package\]\s*$/.test(line)) {
+      inPackageSection = true;
+      continue;
+    }
+    if (inPackageSection && /^\s*\[/.test(line)) {
+      break;
+    }
+    if (inPackageSection) {
+      const version = line.match(/^\s*version\s*=\s*"([^"]+)"\s*$/)?.[1];
+      if (version) {
+        return version;
       }
     }
-  },
+  }
+  throw new Error(`Unable to read package.version from ${path.relative(root, filePath)}`);
+}
+
+const packageJson = readJson(packageJsonPath);
+const baseConfig = readJson(tauriConfigPath);
+const cargoVersion = readCargoPackageVersion(cargoTomlPath);
+const versionMismatches = [
+  ["src-tauri/tauri.conf.json", baseConfig.version],
+  ["src-tauri/Cargo.toml", cargoVersion]
+].filter(([, version]) => version !== packageJson.version);
+
+if (versionMismatches.length) {
+  console.error(
+    JSON.stringify(
+      {
+        ok: false,
+        reason: "app version mismatch",
+        expected: packageJson.version,
+        mismatches: versionMismatches
+      },
+      null,
+      2
+    )
+  );
+  process.exit(1);
+}
+
+const config = {
+  ...baseConfig,
+  version: packageJson.version,
   bundle: {
+    ...(baseConfig.bundle || {}),
     active: true,
     targets: bundleTargetsForPlatform(platform),
-    icon: ["icons/icon.png", "icons/icon.ico"],
-    resources: {},
-    windows: {}
+    resources: {}
   }
 };
 
