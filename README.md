@@ -18,7 +18,21 @@
   <a href="./LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue"></a>
 </p>
 
+<p align="center">
+  <img width="30%" alt="米粉宠物包动作预览" src="./release/petpacks/previews/mi-fen-1.0.3-atlas.webp">
+  <img width="30%" alt="米酒宠物包动作预览" src="./release/petpacks/previews/mi-jiu-1.0.1-atlas.webp">
+  <img width="30%" alt="红糖宠物包动作预览" src="./release/petpacks/previews/tigris-whippet-1.0.2-atlas.webp">
+</p>
+
 > 这是社区项目，不是 OpenAI 或 Codex 官方应用。项目复用了 Codex 风格的 `pet.json` + `spritesheet.webp` 宠物资源格式，但主程序不依赖 Codex 启动或运行。
+
+## 三步开始
+
+1. 打开 [下载页](https://jieyangxchen.github.io/codex-pet-desktop/) 或 [最新 Release](https://github.com/jieyangxchen/codex-pet-desktop/releases/latest)，下载适合你系统的安装包。
+2. 启动主程序，进入资源库安装米粉、米酒或红糖，也可以手动导入 `.petpack`。
+3. 把桌宠拖到顺手的位置，右键打开控制面板，调整大小、置顶、自动散步和资源更新。
+
+如果这个项目帮你留下了一只想长期保存的桌宠，欢迎点一个 Star；问题、宠物资源建议和适配反馈可以发到 [Discussions](https://github.com/jieyangxchen/codex-pet-desktop/discussions) 或 [Issues](https://github.com/jieyangxchen/codex-pet-desktop/issues)。
 
 ## 这是什么
 
