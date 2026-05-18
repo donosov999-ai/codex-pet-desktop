@@ -6,7 +6,7 @@ use tauri::{
 const EDGE_VISIBILITY_PX: i32 = 48;
 const MIN_DYNAMIC_WINDOW_WIDTH: u32 = 160;
 const MIN_DYNAMIC_WINDOW_HEIGHT: u32 = 180;
-const MAX_DYNAMIC_WINDOW_WIDTH: u32 = 640;
+const MAX_DYNAMIC_WINDOW_WIDTH: u32 = 760;
 const MAX_DYNAMIC_WINDOW_HEIGHT: u32 = 720;
 
 #[derive(Debug, Serialize)]
@@ -417,7 +417,7 @@ mod tests {
         assert_eq!(
             normalize_window_size(900, 1200),
             WindowSize {
-                width: 640,
+                width: 760,
                 height: 720,
             }
         );

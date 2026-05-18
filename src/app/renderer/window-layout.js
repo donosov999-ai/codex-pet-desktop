@@ -6,6 +6,10 @@ const MAX_PET_WINDOW_WIDTH = 460;
 const MAX_PET_WINDOW_HEIGHT = 520;
 const PET_PADDING_X = 72;
 const PET_PADDING_Y = 76;
+const PANEL_WIDTH = 300;
+const PANEL_GAP = 20;
+const PANEL_PADDING_X = 48;
+const MAX_PANEL_WITH_PET_WINDOW_WIDTH = 760;
 const EMPTY_WINDOW = { width: 320, height: 300 };
 const PANEL_WINDOW = { width: 350, height: 440 };
 
@@ -23,6 +27,21 @@ function normalizedScale(scale) {
 
 export function desiredWindowSize({ scale = 0.6, hasPet = false, panelVisible = false } = {}) {
   if (panelVisible) {
+    if (hasPet) {
+      const safeScale = normalizedScale(scale);
+      return {
+        width: clamp(
+          Math.ceil(PANEL_WIDTH + PANEL_GAP + CELL_WIDTH * safeScale + PANEL_PADDING_X),
+          520,
+          MAX_PANEL_WITH_PET_WINDOW_WIDTH
+        ),
+        height: clamp(
+          Math.ceil(Math.max(PANEL_WINDOW.height, CELL_HEIGHT * safeScale + PET_PADDING_Y)),
+          PANEL_WINDOW.height,
+          MAX_PET_WINDOW_HEIGHT
+        )
+      };
+    }
     return PANEL_WINDOW;
   }
   if (!hasPet) {

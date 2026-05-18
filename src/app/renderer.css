@@ -32,6 +32,15 @@ body {
   background: transparent;
 }
 
+html.panel-with-pet #stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
 #pet {
   width: var(--cell-width);
   height: var(--cell-height);
@@ -79,7 +88,8 @@ body {
   position: absolute;
   inset: 0;
   background: transparent;
-  pointer-events: none;
+  pointer-events: auto;
+  z-index: 1;
 }
 
 .panel {
@@ -88,6 +98,7 @@ body {
   top: 12px;
   transform: translateX(-50%);
   width: 300px;
+  box-sizing: border-box;
   max-height: calc(100vh - 24px);
   overflow: auto;
   padding: 12px;
@@ -98,6 +109,18 @@ body {
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
   pointer-events: auto;
   z-index: 2;
+}
+
+html.panel-with-pet .panel {
+  position: static;
+  flex: 0 0 300px;
+  order: 1;
+  transform: none;
+}
+
+html.panel-with-pet #pet {
+  flex: 0 0 var(--cell-width);
+  order: 2;
 }
 
 .hidden {
@@ -114,11 +137,18 @@ body {
   pointer-events: none;
 }
 
+.panel-topbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  align-items: start;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
 .panel-tabs {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 4px;
-  margin-bottom: 10px;
 }
 
 .panel-tabs button {
@@ -132,6 +162,15 @@ body {
   color: #10151b;
   background: var(--accent);
   border-color: var(--accent);
+}
+
+.panel-close {
+  width: 30px;
+  min-height: 30px;
+  margin-top: 0;
+  padding: 0;
+  font-size: 18px;
+  line-height: 1;
 }
 
 .panel-section {

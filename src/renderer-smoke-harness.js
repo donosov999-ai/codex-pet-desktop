@@ -126,6 +126,7 @@ async function loadRenderer(options = {}) {
     "#emptyState",
     "#panel",
     "#panelBackdrop",
+    "#closePanelButton",
     "#petSelect",
     "#stateSelect",
     "#scaleRange",

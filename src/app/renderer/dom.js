@@ -4,6 +4,7 @@ export function getDomRefs() {
     emptyStateEl: document.querySelector("#emptyState"),
     panelEl: document.querySelector("#panel"),
     panelBackdropEl: document.querySelector("#panelBackdrop"),
+    closePanelButton: document.querySelector("#closePanelButton"),
     petSelect: document.querySelector("#petSelect"),
     stateSelect: document.querySelector("#stateSelect"),
     scaleRange: document.querySelector("#scaleRange"),

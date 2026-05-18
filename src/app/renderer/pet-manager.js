@@ -36,11 +36,13 @@ export function createPetManager({
       dom.petEl.classList.add("empty");
       const panelVisible = !dom.panelEl.classList.contains("hidden");
       dom.emptyStateEl.classList.toggle("hidden", panelVisible);
+      document.documentElement.classList.toggle("panel-with-pet", false);
       syncWindowLayout({ centerIfEmpty: !panelVisible }).catch?.(() => {});
       return;
     }
     dom.petEl.classList.remove("empty");
     dom.emptyStateEl.classList.add("hidden");
+    document.documentElement.classList.toggle("panel-with-pet", !dom.panelEl.classList.contains("hidden"));
     const source = resolveSpritesheetSource(state.activePet, tauriConvertFileSrc);
     dom.petEl.style.backgroundImage = source ? `url("${source}")` : "";
     dom.petEl.textContent = "";

@@ -116,7 +116,7 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
   }
 
   function isInteractiveTarget(target) {
-    return Boolean(target?.closest?.("#pet, #emptyState, #panel, #panelBackdrop"));
+    return Boolean(target?.closest?.("#pet, #emptyState, #panel"));
   }
 
   function updateMousePassthrough(event) {
@@ -218,6 +218,8 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
     dom.panelEl.classList.toggle("hidden", !show);
     dom.panelBackdropEl.classList.toggle("hidden", !show);
     dom.emptyStateEl.classList.toggle("hidden", show || hasActivePet());
+    document.documentElement.classList.toggle("panel-open", show);
+    document.documentElement.classList.toggle("panel-with-pet", show && hasActivePet());
     setMousePassthrough(false);
     onLayoutChange({ centerIfEmpty: !show && !hasActivePet() }).catch?.(() => {});
   }
@@ -298,10 +300,13 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
 
     document.addEventListener("contextmenu", (event) => {
       event.preventDefault();
-      if (!state.pets.length) {
+      if (!dom.panelEl.classList.contains("hidden")) {
+        setPanelVisible(false);
+        pointerInsideInteractiveArea = false;
+        setMousePassthrough(hasActivePet());
         return;
       }
-      if (dom.panelEl.contains(event.target)) {
+      if (!state.pets.length) {
         return;
       }
       togglePanel();
@@ -339,6 +344,18 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
       if (!dragging) {
         pointerInsideInteractiveArea = false;
         setMousePassthrough(false);
+      }
+    });
+    dom.closePanelButton?.addEventListener("click", () => {
+      setPanelVisible(false);
+      pointerInsideInteractiveArea = false;
+      setMousePassthrough(hasActivePet());
+    });
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !dom.panelEl.classList.contains("hidden")) {
+        setPanelVisible(false);
+        pointerInsideInteractiveArea = false;
+        setMousePassthrough(hasActivePet());
       }
     });
 

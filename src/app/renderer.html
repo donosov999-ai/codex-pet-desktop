@@ -17,12 +17,15 @@
       </section>
       <div id="panelBackdrop" class="panel-backdrop hidden" aria-hidden="true"></div>
       <section id="panel" class="panel hidden" aria-label="宠物控制">
-        <nav class="panel-tabs" aria-label="控制面板分区">
-          <button id="tabControl" class="active" type="button" data-panel-tab="controlSection">控制</button>
-          <button id="tabStore" type="button" data-panel-tab="storeSection">资源库</button>
-          <button id="tabManager" type="button" data-panel-tab="managerSection">已安装</button>
-          <button id="tabUpdate" type="button" data-panel-tab="updateSection">更新</button>
-        </nav>
+        <div class="panel-topbar">
+          <nav class="panel-tabs" aria-label="控制面板分区">
+            <button id="tabControl" class="active" type="button" data-panel-tab="controlSection">控制</button>
+            <button id="tabStore" type="button" data-panel-tab="storeSection">资源库</button>
+            <button id="tabManager" type="button" data-panel-tab="managerSection">已安装</button>
+            <button id="tabUpdate" type="button" data-panel-tab="updateSection">更新</button>
+          </nav>
+          <button id="closePanelButton" class="panel-close" type="button" aria-label="关闭面板" title="关闭">×</button>
+        </div>
         <section id="controlSection" class="panel-section" aria-label="基础控制">
           <div class="panel-row">
             <label for="petSelect">宠物</label>
