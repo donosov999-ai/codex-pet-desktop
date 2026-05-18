@@ -1,4 +1,4 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri::{
     window::Color, AppHandle, LogicalSize, Manager, PhysicalPosition, Runtime, Size, WebviewWindow,
 };
@@ -23,6 +23,20 @@ pub(crate) struct WindowBounds {
 struct WindowSize {
     width: u32,
     height: u32,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct AnchorOffset {
+    x: f64,
+    y: f64,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct ResizeAnchor {
+    current: AnchorOffset,
+    next: AnchorOffset,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -99,6 +113,23 @@ fn resize_anchor_position(
         work_area,
         anchor_x - next_size.width as i32 / 2,
         anchor_y - next_size.height as i32,
+    )
+}
+
+fn resize_anchor_position_with_offsets(
+    current_position: PhysicalPosition<i32>,
+    _current_size: WindowSize,
+    next_size: WindowSize,
+    work_area: WorkArea,
+    anchor: ResizeAnchor,
+) -> PhysicalPosition<i32> {
+    let anchor_x = current_position.x as f64 + anchor.current.x;
+    let anchor_y = current_position.y as f64 + anchor.current.y;
+    clamp_position(
+        next_size,
+        work_area,
+        (anchor_x - anchor.next.x).round() as i32,
+        (anchor_y - anchor.next.y).round() as i32,
     )
 }
 
@@ -257,15 +288,23 @@ pub(crate) fn resize_window<R: Runtime>(
     window: &WebviewWindow<R>,
     width: u32,
     height: u32,
+    anchor: Option<ResizeAnchor>,
 ) -> Result<WindowBounds, String> {
     let position = window.outer_position().map_err(|error| error.to_string())?;
     let current_size = outer_window_size(window)?;
     let next_size = normalize_window_size(width, height);
-    let next_position = resize_anchor_position(
-        position,
-        current_size,
-        next_size,
-        current_work_area(window)?,
+    let work_area = current_work_area(window)?;
+    let next_position = anchor.map_or_else(
+        || resize_anchor_position(position, current_size, next_size, work_area),
+        |anchor| {
+            resize_anchor_position_with_offsets(
+                position,
+                current_size,
+                next_size,
+                work_area,
+                anchor,
+            )
+        },
     );
     window
         .set_size(Size::Logical(LogicalSize::new(
@@ -379,6 +418,60 @@ mod tests {
             ),
             PhysicalPosition::new(160, 320)
         );
+    }
+
+    #[test]
+    fn resize_anchor_position_can_preserve_pet_anchor() {
+        let work_area = WorkArea {
+            x: 0,
+            y: 0,
+            width: 1920,
+            height: 1080,
+        };
+        let current_position = PhysicalPosition::new(100, 200);
+        let current_size = WindowSize {
+            width: 188,
+            height: 201,
+        };
+        let next_size = WindowSize {
+            width: 520,
+            height: 440,
+        };
+        let current_anchor = AnchorOffset { x: 94.0, y: 204.0 };
+        let next_anchor = AnchorOffset { x: 420.0, y: 324.0 };
+
+        let opened = resize_anchor_position_with_offsets(
+            current_position,
+            current_size,
+            next_size,
+            work_area,
+            ResizeAnchor {
+                current: current_anchor,
+                next: next_anchor,
+            },
+        );
+        assert_eq!(
+            PhysicalPosition::new(
+                current_position.x + current_anchor.x as i32,
+                current_position.y + current_anchor.y as i32
+            ),
+            PhysicalPosition::new(
+                opened.x + next_anchor.x as i32,
+                opened.y + next_anchor.y as i32
+            )
+        );
+
+        let closed = resize_anchor_position_with_offsets(
+            opened,
+            next_size,
+            current_size,
+            work_area,
+            ResizeAnchor {
+                current: next_anchor,
+                next: current_anchor,
+            },
+        );
+        assert_eq!(closed, current_position);
     }
 
     #[test]

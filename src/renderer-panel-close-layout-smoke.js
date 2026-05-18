@@ -45,7 +45,7 @@ async function main() {
   const { documentObject, elements, flush, windowObject } = await loadRenderer({
     petDesktop: {
       listPets: async () => ({ pets: [pet], errors: [] }),
-      getAppInfo: async () => ({ version: "0.2.11", latestReleaseApi: "", petpackIndexUrl: "" }),
+      getAppInfo: async () => ({ version: "0.2.12", latestReleaseApi: "", petpackIndexUrl: "" }),
       getPreferences: async () => ({ scale: 0.6, autoWander: false }),
       savePreferences: async (value) => value,
       inspectPetpack: async () => {
@@ -59,8 +59,8 @@ async function main() {
       openDownloads: async () => {},
       moveBy: async () => {},
       setIgnoreMouseEvents: async () => {},
-      resizeWindow: async (width, height) => {
-        resizeCalls.push({ width, height });
+      resizeWindow: async (width, height, anchor) => {
+        resizeCalls.push({ width, height, anchor });
       },
       centerPosition: async () => {},
       resetPosition: async () => {},
@@ -79,7 +79,9 @@ async function main() {
     !panelVisible(elements) ||
     !documentObject.documentElement.classList.contains("panel-with-pet") ||
     !panelWindow ||
-    panelWindow.width < 520
+    panelWindow.width < 520 ||
+    !panelWindow.anchor ||
+    panelWindow.anchor.next.x <= panelWindow.anchor.current.x
   ) {
     console.error(
       JSON.stringify(
@@ -99,6 +101,11 @@ async function main() {
 
   elements.get("#closePanelButton").click();
   await flush();
+  const closedWindow = resizeCalls.at(-1);
+  if (!closedWindow?.anchor || closedWindow.anchor.next.x >= closedWindow.anchor.current.x) {
+    console.error(JSON.stringify({ ok: false, reason: "closing panel should preserve pet anchor", resizeCalls }, null, 2));
+    process.exit(1);
+  }
   assertPanelHidden(elements, "close button did not hide panel");
 
   openControlPanel(documentObject);

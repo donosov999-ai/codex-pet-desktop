@@ -313,9 +313,14 @@ fn move_by(app: AppHandle<Wry>, x: f64, y: f64) -> Result<WindowBounds, String> 
 }
 
 #[tauri::command]
-fn resize_window(app: AppHandle<Wry>, width: u32, height: u32) -> Result<WindowBounds, String> {
+fn resize_window(
+    app: AppHandle<Wry>,
+    width: u32,
+    height: u32,
+    anchor: Option<windowing::ResizeAnchor>,
+) -> Result<WindowBounds, String> {
     let window = windowing::main_window(&app)?;
-    windowing::resize_window(&window, width, height)
+    windowing::resize_window(&window, width, height, anchor)
 }
 
 #[tauri::command]

@@ -17,7 +17,8 @@ export function createDesktopBridge() {
           uninstallPet: (id) => tauriInvoke("uninstall_pet", { id }),
           revealPet: (id) => tauriInvoke("reveal_pet", { id }),
           moveBy: (x, y) => tauriInvoke("move_by", { x, y }),
-          resizeWindow: (width, height) => tauriInvoke("resize_window", { width, height }),
+          resizeWindow: (width, height, anchor) =>
+            tauriInvoke("resize_window", anchor ? { width, height, anchor } : { width, height }),
           setIgnoreMouseEvents: (ignored) => tauriInvoke("set_ignore_mouse_events", { ignored }),
           resetPosition: () => tauriInvoke("reset_position"),
           setAlwaysOnTop: (value) => tauriInvoke("set_always_on_top", { value }),

@@ -56,6 +56,7 @@ export function desiredWindowSize({ scale = 0.6, hasPet = false, panelVisible = 
 
 export function createWindowLayout({ dom, petDesktop, state }) {
   let lastSignature = "";
+  let lastPetAnchor = null;
 
   function hasPet() {
     return Boolean(state.activePet && state.pets.some((pet) => pet.id === state.activePet.id));
@@ -63,6 +64,16 @@ export function createWindowLayout({ dom, petDesktop, state }) {
 
   function panelVisible() {
     return !dom.panelEl.classList.contains("hidden");
+  }
+
+  function petAnchor(size, visiblePanel) {
+    if (!hasPet()) {
+      return null;
+    }
+    return {
+      x: size.width / 2 + (visiblePanel ? (PANEL_WIDTH + PANEL_GAP) / 2 : 0),
+      y: size.height / 2 + CELL_HEIGHT / 2
+    };
   }
 
   async function syncWindowLayout({ centerIfEmpty = false } = {}) {
@@ -74,7 +85,10 @@ export function createWindowLayout({ dom, petDesktop, state }) {
       hasPet: hasPet(),
       panelVisible: panelVisible()
     });
-    const signature = `${size.width}x${size.height}:${hasPet() ? "pet" : "empty"}:${panelVisible() ? "panel" : "plain"}`;
+    const hasActivePet = hasPet();
+    const visiblePanel = panelVisible();
+    const nextPetAnchor = petAnchor(size, visiblePanel);
+    const signature = `${size.width}x${size.height}:${hasActivePet ? "pet" : "empty"}:${visiblePanel ? "panel" : "plain"}`;
     if (signature === lastSignature) {
       if (centerIfEmpty && !hasPet()) {
         await petDesktop.centerPosition?.();
@@ -82,7 +96,9 @@ export function createWindowLayout({ dom, petDesktop, state }) {
       return;
     }
     lastSignature = signature;
-    await petDesktop.resizeWindow(size.width, size.height);
+    const anchor = lastPetAnchor && nextPetAnchor ? { current: lastPetAnchor, next: nextPetAnchor } : undefined;
+    await petDesktop.resizeWindow(size.width, size.height, anchor);
+    lastPetAnchor = nextPetAnchor;
     if (centerIfEmpty && !hasPet()) {
       await petDesktop.centerPosition?.();
     }
