@@ -19,9 +19,15 @@
 </p>
 
 <p align="center">
-  <img width="30%" alt="米粉宠物包动作预览" src="./release/petpacks/previews/mi-fen-1.0.3-atlas.webp">
-  <img width="30%" alt="米酒宠物包动作预览" src="./release/petpacks/previews/mi-jiu-1.0.1-atlas.webp">
-  <img width="30%" alt="红糖宠物包动作预览" src="./release/petpacks/previews/tigris-whippet-1.0.2-atlas.webp">
+  <a href="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/visual-qa.html">
+    <img width="30%" alt="米粉宠物包动作预览" src="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/previews/mi-fen-1.0.3-atlas.webp">
+  </a>
+  <a href="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/visual-qa.html">
+    <img width="30%" alt="米酒宠物包动作预览" src="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/previews/mi-jiu-1.0.1-atlas.webp">
+  </a>
+  <a href="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/visual-qa.html">
+    <img width="30%" alt="红糖宠物包动作预览" src="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/previews/tigris-whippet-1.0.2-atlas.webp">
+  </a>
 </p>
 
 > 这是社区项目，不是 OpenAI 或 Codex 官方应用。项目复用了 Codex 风格的 `pet.json` + `spritesheet.webp` 宠物资源格式，但主程序不依赖 Codex 启动或运行。
