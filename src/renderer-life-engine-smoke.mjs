@@ -114,6 +114,19 @@ assert(fallbackEngine.planAutonomous({ autoWander: true })?.state === "review", 
   reason: "missing behavior.life should still use existing manifest idle states"
 });
 
+const malformedLifeIdle = createLifeEngine({
+  behavior: { idleStates: ["waiting"], wanderDirections: [0], life: { phases: [null] } },
+  preferences: { naturalLife: true },
+  startedAtMs: 0,
+  startPetHour: 13,
+  now: () => 0,
+  random: () => 0
+}).planAutonomous({ autoWander: true });
+assert(malformedLifeIdle?.state === "waiting" && malformedLifeIdle.direction === 0, {
+  reason: "malformed behavior.life.phases should still use existing manifest idle states and directions",
+  malformedLifeIdle
+});
+
 const defaultBehavior = activeBehavior(null);
 assert(
   defaultBehavior.clickState === "waving" &&

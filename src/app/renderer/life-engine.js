@@ -234,7 +234,7 @@ function normalizedPhases(phases, behavior = DEFAULT_BEHAVIOR) {
   const normalized = source
     .map((phase, index) => normalizePhase(phase, DEFAULT_PHASES[index % DEFAULT_PHASES.length], behavior))
     .filter(Boolean);
-  return normalized.length ? normalized : DEFAULT_PHASES;
+  return normalized.length ? normalized : defaultPhasesForBehavior(behavior);
 }
 
 function defaultPhasesForBehavior(behavior) {
