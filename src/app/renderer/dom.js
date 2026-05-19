@@ -11,6 +11,7 @@ export function getDomRefs() {
     directionLeftButton: document.querySelector("#directionLeftButton"),
     directionRightButton: document.querySelector("#directionRightButton"),
     wanderToggle: document.querySelector("#wanderToggle"),
+    naturalLifeToggle: document.querySelector("#naturalLifeToggle"),
     topToggle: document.querySelector("#topToggle"),
     tabControl: document.querySelector("#tabControl"),
     tabStore: document.querySelector("#tabStore"),

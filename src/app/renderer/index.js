@@ -20,6 +20,7 @@ const state = {
     scale: 0.6,
     petDirection: "right",
     autoWander: true,
+    naturalLife: true,
     alwaysOnTop: true
   },
   appInfo: {
@@ -45,6 +46,7 @@ function currentPreferences(overrides = {}) {
     scale: Number(dom.scaleRange.value) || 0.6,
     petDirection: state.preferences.petDirection || "right",
     autoWander: Boolean(dom.wanderToggle.checked),
+    naturalLife: Boolean(dom.naturalLifeToggle.checked),
     alwaysOnTop: Boolean(dom.topToggle.checked),
     ...overrides
   };
@@ -73,6 +75,7 @@ function applyPreferences(preferences) {
   document.documentElement.style.setProperty("--scale", dom.scaleRange.value);
   applyPetDirection(state.preferences.petDirection);
   dom.wanderToggle.checked = state.preferences.autoWander !== false;
+  dom.naturalLifeToggle.checked = state.preferences.naturalLife !== false;
   dom.topToggle.checked = state.preferences.alwaysOnTop !== false;
 }
 
@@ -235,6 +238,9 @@ async function init() {
   dom.wanderToggle.addEventListener("change", () => {
     savePreferences({ autoWander: Boolean(dom.wanderToggle.checked) });
     syncTrayState();
+  });
+  dom.naturalLifeToggle.addEventListener("change", () => {
+    savePreferences({ naturalLife: Boolean(dom.naturalLifeToggle.checked) });
   });
   dom.topToggle.addEventListener("change", () => {
     savePreferences({ alwaysOnTop: Boolean(dom.topToggle.checked) });

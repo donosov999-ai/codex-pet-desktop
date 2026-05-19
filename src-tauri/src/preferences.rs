@@ -10,6 +10,7 @@ pub(crate) struct UserPreferences {
     pub(crate) scale: f64,
     pub(crate) pet_direction: String,
     pub(crate) auto_wander: bool,
+    pub(crate) natural_life: bool,
     pub(crate) always_on_top: bool,
 }
 
@@ -20,6 +21,7 @@ impl Default for UserPreferences {
             scale: 0.6,
             pet_direction: "right".to_string(),
             auto_wander: true,
+            natural_life: true,
             always_on_top: true,
         }
     }
@@ -74,6 +76,7 @@ mod tests {
             scale: 1.2,
             pet_direction: "left".to_string(),
             auto_wander: false,
+            natural_life: false,
             always_on_top: false,
         };
 
@@ -113,6 +116,7 @@ mod tests {
         assert_eq!(loaded.scale, 1.1);
         assert_eq!(loaded.pet_direction, "right");
         assert!(!loaded.auto_wander);
+        assert!(loaded.natural_life);
         assert!(loaded.always_on_top);
         let _ = std::fs::remove_dir_all(root);
     }

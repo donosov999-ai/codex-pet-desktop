@@ -30,6 +30,7 @@ async function main() {
         selectedPetId: "mi-jiu",
         scale: 1.1,
         autoWander: false,
+        naturalLife: false,
         alwaysOnTop: false
       }),
       savePreferences: async (preferences) => {
@@ -60,6 +61,7 @@ async function main() {
     elements.get("#petSelect").value !== "mi-jiu" ||
     elements.get("#scaleRange").value !== "1.1" ||
     elements.get("#wanderToggle").checked ||
+    elements.get("#naturalLifeToggle").checked ||
     elements.get("#topToggle").checked
   ) {
     console.error(
@@ -69,6 +71,7 @@ async function main() {
         pet: elements.get("#petSelect").value,
         scale: elements.get("#scaleRange").value,
         autoWander: elements.get("#wanderToggle").checked,
+        naturalLife: elements.get("#naturalLifeToggle").checked,
         top: elements.get("#topToggle").checked
       })
     );
@@ -79,6 +82,8 @@ async function main() {
   elements.get("#scaleRange").dispatch("input");
   elements.get("#wanderToggle").checked = true;
   elements.get("#wanderToggle").dispatch("change");
+  elements.get("#naturalLifeToggle").checked = true;
+  elements.get("#naturalLifeToggle").dispatch("change");
   elements.get("#topToggle").checked = true;
   elements.get("#topToggle").dispatch("change");
   elements.get("#petSelect").value = "mi-fen";
@@ -90,6 +95,7 @@ async function main() {
     saveCalls.length < 4 ||
     merged.scale !== 1.3 ||
     merged.autoWander !== true ||
+    merged.naturalLife !== true ||
     merged.alwaysOnTop !== true ||
     merged.selectedPetId !== "mi-fen" ||
     alwaysOnTopCalls.at(-1) !== true
