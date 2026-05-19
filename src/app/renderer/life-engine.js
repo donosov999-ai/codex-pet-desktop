@@ -85,12 +85,13 @@ export function phaseForPetHour(hour, phases = DEFAULT_PHASES) {
 }
 
 export function activeBehavior(behavior = {}) {
-  const natural = isPlainObject(behavior.natural) ? behavior.natural : {};
+  const source = isPlainObject(behavior) ? behavior : {};
+  const natural = isPlainObject(source.natural) ? source.natural : {};
   const base = {
-    clickState: validState(behavior.clickState, DEFAULT_BEHAVIOR.clickState),
-    doubleClickState: validState(behavior.doubleClickState, DEFAULT_BEHAVIOR.doubleClickState),
-    idleStates: validStates(behavior.idleStates, DEFAULT_BEHAVIOR.idleStates),
-    wanderDirections: validDirections(behavior.wanderDirections, DEFAULT_BEHAVIOR.wanderDirections),
+    clickState: validState(source.clickState, DEFAULT_BEHAVIOR.clickState),
+    doubleClickState: validState(source.doubleClickState, DEFAULT_BEHAVIOR.doubleClickState),
+    idleStates: validStates(source.idleStates, DEFAULT_BEHAVIOR.idleStates),
+    wanderDirections: validDirections(source.wanderDirections, DEFAULT_BEHAVIOR.wanderDirections),
     natural: {
       nextWanderDelayMs: readDurationRange(natural.nextWanderDelayMs, DEFAULT_NATURAL_BEHAVIOR.nextWanderDelayMs),
       idleDurationMs: readDurationRange(natural.idleDurationMs, DEFAULT_NATURAL_BEHAVIOR.idleDurationMs),
@@ -106,7 +107,7 @@ export function activeBehavior(behavior = {}) {
       doubleClickReturnState: validState(natural.doubleClickReturnState, DEFAULT_NATURAL_BEHAVIOR.doubleClickReturnState)
     }
   };
-  const life = isPlainObject(behavior.life) ? behavior.life : {};
+  const life = isPlainObject(source.life) ? source.life : {};
   const hasLifePhases = Array.isArray(life.phases) && life.phases.length > 0;
   return {
     ...base,
@@ -117,18 +118,20 @@ export function activeBehavior(behavior = {}) {
   };
 }
 
-export function createLifeEngine({
-  behavior = {},
-  preferences = {},
-  now = () => Date.now(),
-  random = () => Math.random(),
-  startedAtMs,
-  startPetHour = 8
-} = {}) {
-  const normalized = activeBehavior(behavior);
-  const engineStartedAtMs = finiteNumber(startedAtMs, finiteNumber(now(), 0));
-  const engineStartPetHour = wrapHour(startPetHour);
-  const naturalLife = preferences.naturalLife !== false;
+export function createLifeEngine(options = {}) {
+  const source = isPlainObject(options) ? options : {};
+  const {
+    behavior = {},
+    preferences = {},
+    now = () => Date.now(),
+    random = () => Math.random(),
+    startedAtMs,
+    startPetHour = 8
+  } = source;
+  let normalized = activeBehavior(behavior);
+  let engineStartedAtMs = finiteNumber(startedAtMs, finiteNumber(now(), 0));
+  let engineStartPetHour = wrapHour(startPetHour);
+  let naturalLife = naturalLifeEnabled(preferences);
 
   function currentPhase() {
     return phaseForPetHour(
@@ -156,7 +159,25 @@ export function createLifeEngine({
   }
 
   return {
-    behavior: normalized,
+    get behavior() {
+      return normalized;
+    },
+    update(next = {}) {
+      const source = isPlainObject(next) ? next : {};
+      if ("behavior" in source) {
+        normalized = activeBehavior(source.behavior);
+      }
+      if ("preferences" in source) {
+        naturalLife = naturalLifeEnabled(source.preferences);
+      }
+      if ("startedAtMs" in source) {
+        engineStartedAtMs = finiteNumber(source.startedAtMs, engineStartedAtMs);
+      }
+      if ("startPetHour" in source) {
+        engineStartPetHour = wrapHour(source.startPetHour);
+      }
+      return this;
+    },
     planInteraction(type) {
       if (type === "click") {
         return {
@@ -307,6 +328,11 @@ function safeRandom(random) {
     return 0;
   }
   return Math.min(Math.max(value, 0), 0.999999999);
+}
+
+function naturalLifeEnabled(preferences) {
+  const source = isPlainObject(preferences) ? preferences : {};
+  return source.naturalLife !== false;
 }
 
 function isPlainObject(value) {

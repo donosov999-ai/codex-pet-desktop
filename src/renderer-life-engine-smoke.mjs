@@ -1,5 +1,6 @@
 import {
   PET_TIME_SCALE,
+  activeBehavior,
   createLifeEngine,
   petHourAt,
   phaseForPetHour
@@ -111,6 +112,49 @@ const fallbackEngine = createLifeEngine({
 });
 assert(fallbackEngine.planAutonomous({ autoWander: true })?.state === "review", {
   reason: "missing behavior.life should still use existing manifest idle states"
+});
+
+const defaultBehavior = activeBehavior(null);
+assert(
+  defaultBehavior.clickState === "waving" &&
+    defaultBehavior.doubleClickState === "jumping" &&
+    defaultBehavior.idleStates.join(",") === "review,waiting,idle",
+  {
+    reason: "activeBehavior should fall back to old defaults for invalid manifest data",
+    defaultBehavior
+  }
+);
+
+const nullBehaviorClick = createLifeEngine({
+  behavior: null,
+  preferences: { naturalLife: true },
+  startedAtMs: 0,
+  startPetHour: 8,
+  now: () => 0,
+  random: () => 0
+}).planInteraction("click");
+assert(nullBehaviorClick?.state === "waving", {
+  reason: "null behavior should not block click planning",
+  nullBehaviorClick
+});
+
+const nullPreferencesIdle = createLifeEngine({
+  behavior: { idleStates: ["review"], wanderDirections: [0] },
+  preferences: null,
+  startedAtMs: 0,
+  startPetHour: 13,
+  now: () => 0,
+  random: () => 0
+}).planAutonomous({ autoWander: true });
+assert(nullPreferencesIdle?.state === "review", {
+  reason: "null preferences should default naturalLife to enabled",
+  nullPreferencesIdle
+});
+
+const updateEngine = createLifeEngine(null);
+updateEngine.update(null).update({ behavior: null, preferences: null });
+assert(updateEngine.planInteraction("click")?.state === "waving", {
+  reason: "update should tolerate null data and keep defaults"
 });
 
 console.log(JSON.stringify({ ok: true }, null, 2));
