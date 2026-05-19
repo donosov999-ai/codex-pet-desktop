@@ -10,7 +10,7 @@ async function main() {
     spritesheetPath: "/pets/mi-fen/spritesheet.webp"
   };
   const openCalls = [];
-  const installCalls = [];
+  const downloadCalls = [];
   const fetchCalls = [];
   const { elements, flush } = await loadRenderer({
     fetch: async (url) => {
@@ -33,11 +33,7 @@ async function main() {
         };
       }
       if (String(url).includes("yongsheng-plan-windows-x64.exe")) {
-        return {
-          ok: true,
-          headers: { get: (name) => (name.toLowerCase() === "content-length" ? "4" : "") },
-          arrayBuffer: async () => new Uint8Array([1, 2, 3, 4]).buffer
-        };
+        throw new Error("renderer must not fetch installer assets");
       }
       return {
         ok: true,
@@ -70,8 +66,8 @@ async function main() {
         downloadsUrl: "https://jieyangxchen.github.io/codex-pet-desktop/",
         petpackIndexUrl: "https://jieyangxchen.github.io/codex-pet-desktop/petpacks/petpacks.json"
       }),
-      installAppUpdate: async (data, fileName) => {
-        installCalls.push({ data, fileName });
+      downloadAndInstallAppUpdate: async (url, fileName) => {
+        downloadCalls.push({ url, fileName });
       },
       openDownloads: async () => {
         openCalls.push("downloads");
@@ -91,12 +87,13 @@ async function main() {
   const updateText = elements.get("#updateStatus").textContent;
   if (
     !fetchCalls[0]?.includes("/releases/latest") ||
-    !fetchCalls[1]?.includes("yongsheng-plan-windows-x64.exe") ||
     !updateText.includes("已启动安装器") ||
-    installCalls[0]?.fileName !== "yongsheng-plan-windows-x64.exe"
+    fetchCalls.some((url) => String(url).includes("yongsheng-plan-windows-x64.exe")) ||
+    downloadCalls[0]?.fileName !== "yongsheng-plan-windows-x64.exe" ||
+    !downloadCalls[0]?.url.includes("yongsheng-plan-windows-x64.exe")
   ) {
     console.error(
-      JSON.stringify({ ok: false, reason: "update check did not download and launch installer", fetchCalls, updateText, installCalls })
+      JSON.stringify({ ok: false, reason: "update check did not delegate installer download", fetchCalls, updateText, downloadCalls })
     );
     process.exit(1);
   }
@@ -126,7 +123,7 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(JSON.stringify({ ok: true, updateText, petpackUpdateText, openCalls, installCalls }, null, 2));
+  console.log(JSON.stringify({ ok: true, updateText, petpackUpdateText, openCalls, downloadCalls }, null, 2));
 }
 
 main().catch((error) => {

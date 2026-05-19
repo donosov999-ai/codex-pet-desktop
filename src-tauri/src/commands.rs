@@ -1,6 +1,6 @@
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use serde::Serialize;
-use std::{fs, path::Path};
+use std::{fs, path::Path, time::Duration};
 use tauri::{AppHandle, Wry};
 use tauri_plugin_opener::OpenerExt;
 
@@ -18,6 +18,12 @@ const PETPACK_INDEX_URL: &str =
     "https://jieyangxchen.github.io/codex-pet-desktop/petpacks/petpacks.json";
 const LATEST_RELEASE_API: &str =
     "https://api.github.com/repos/jieyangxchen/codex-pet-desktop/releases/latest";
+const UPDATE_REPO_DOWNLOAD_PREFIX: &str = "/jieyangxchen/codex-pet-desktop/releases/download/";
+const MAX_UPDATE_INSTALLER_BYTES: u64 = 250 * 1024 * 1024;
+const ALLOWED_UPDATE_INSTALLERS: &[&str] = &[
+    "yongsheng-plan-windows-x64.exe",
+    "yongsheng-plan-macos-arm64.dmg",
+];
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -117,31 +123,89 @@ fn safe_update_file_name(file_name: &str) -> Result<String, String> {
     {
         return Err("安装包文件名包含不支持的字符".to_string());
     }
-    let lower = name.to_ascii_lowercase();
-    if !(lower.ends_with(".exe") || lower.ends_with(".dmg")) {
-        return Err("只支持启动 .exe 或 .dmg 安装包".to_string());
+    if !ALLOWED_UPDATE_INSTALLERS.contains(&name) {
+        return Err("安装包文件名不在允许列表中".to_string());
     }
     Ok(name.to_string())
 }
 
-#[tauri::command]
-fn install_app_update(app: AppHandle<Wry>, data: String, file_name: String) -> Result<(), String> {
-    let bytes = BASE64.decode(data).map_err(|error| error.to_string())?;
+fn validate_update_download_url(download_url: &str, safe_name: &str) -> Result<url::Url, String> {
+    let parsed = url::Url::parse(download_url).map_err(|_| "安装包下载地址无效".to_string())?;
+    if parsed.scheme() != "https" {
+        return Err("安装包下载地址必须使用 HTTPS".to_string());
+    }
+    if parsed.host_str() != Some("github.com") {
+        return Err("只允许下载本项目 GitHub Release 安装包".to_string());
+    }
+    let release_path = parsed
+        .path()
+        .strip_prefix(UPDATE_REPO_DOWNLOAD_PREFIX)
+        .ok_or_else(|| "安装包下载地址不属于本项目 Release".to_string())?;
+    let mut parts = release_path.split('/');
+    let tag = parts.next().unwrap_or_default();
+    let file_name = parts.next().unwrap_or_default();
+    if tag.is_empty() || file_name.is_empty() || parts.next().is_some() {
+        return Err("安装包下载地址不属于本项目 Release".to_string());
+    }
+    if !tag.starts_with('v') {
+        return Err("安装包下载地址缺少版本标签".to_string());
+    }
+    if file_name != safe_name {
+        return Err("安装包下载地址与文件名不匹配".to_string());
+    }
+    Ok(parsed)
+}
+
+fn write_and_open_update(app: AppHandle<Wry>, bytes: &[u8], file_name: &str) -> Result<(), String> {
     if bytes.is_empty() {
         return Err("安装包为空".to_string());
     }
-    let safe_name = safe_update_file_name(&file_name)?;
     let dir = pet_catalog::user_data_dir(&app)
         .ok_or_else(|| "Could not resolve app data directory".to_string())?
         .join("updates");
     fs::create_dir_all(&dir).map_err(|error| error.to_string())?;
-    let path = dir.join(safe_name);
+    let path = dir.join(file_name);
     fs::write(&path, bytes).map_err(|error| error.to_string())?;
     app.opener()
         .open_path(path.to_string_lossy().to_string(), None::<&str>)
         .map_err(|error| error.to_string())?;
     app.exit(0);
     Ok(())
+}
+
+#[tauri::command]
+async fn download_and_install_app_update(
+    app: AppHandle<Wry>,
+    url: String,
+    file_name: String,
+) -> Result<(), String> {
+    let safe_name = safe_update_file_name(&file_name)?;
+    let download_url = validate_update_download_url(&url, &safe_name)?;
+    let client = reqwest::Client::builder()
+        .connect_timeout(Duration::from_secs(15))
+        .timeout(Duration::from_secs(180))
+        .redirect(reqwest::redirect::Policy::limited(5))
+        .user_agent("yongsheng-plan-updater")
+        .build()
+        .map_err(|error| error.to_string())?;
+    let response = client
+        .get(download_url.as_str())
+        .header(reqwest::header::ACCEPT, "application/octet-stream")
+        .send()
+        .await
+        .map_err(|error| error.to_string())?;
+    let status = response.status();
+    if !status.is_success() {
+        return Err(format!("HTTP {}", status.as_u16()));
+    }
+    if response.content_length().unwrap_or(0) > MAX_UPDATE_INSTALLER_BYTES {
+        return Err("安装包过大".to_string());
+    }
+    let bytes = response.bytes().await.map_err(|error| error.to_string())?;
+    if bytes.len() as u64 > MAX_UPDATE_INSTALLER_BYTES {
+        return Err("安装包过大".to_string());
+    }
+    write_and_open_update(app, &bytes, &safe_name)
 }
 
 pub(crate) fn open_app_data_dir(app: &AppHandle<Wry>) -> Result<(), String> {
@@ -432,7 +496,7 @@ pub(crate) fn handler() -> impl Fn(tauri::ipc::Invoke<Wry>) -> bool + Send + Syn
     tauri::generate_handler![
         list_pets,
         get_app_info,
-        install_app_update,
+        download_and_install_app_update,
         open_downloads,
         open_data_dir,
         get_preferences,
@@ -455,7 +519,10 @@ pub(crate) fn handler() -> impl Fn(tauri::ipc::Invoke<Wry>) -> bool + Send + Syn
 
 #[cfg(test)]
 mod tests {
-    use super::{compare_versions, petpack_is_compatible, safe_update_file_name, version_relation};
+    use super::{
+        compare_versions, petpack_is_compatible, safe_update_file_name,
+        validate_update_download_url, version_relation,
+    };
     use crate::petpack::PetpackSummary;
 
     #[test]
@@ -508,5 +575,55 @@ mod tests {
         assert!(safe_update_file_name("../bad.exe").is_err());
         assert!(safe_update_file_name("bad.zip").is_err());
         assert!(safe_update_file_name("bad name.exe").is_err());
+        assert!(safe_update_file_name("bad.exe").is_err());
+    }
+
+    #[test]
+    fn validates_update_download_urls() {
+        assert!(validate_update_download_url(
+            "https://github.com/jieyangxchen/codex-pet-desktop/releases/download/v0.2.15/yongsheng-plan-windows-x64.exe",
+            "yongsheng-plan-windows-x64.exe"
+        )
+        .is_ok());
+        assert!(validate_update_download_url(
+            "https://github.com/jieyangxchen/codex-pet-desktop/releases/download/v0.2.15/yongsheng-plan-macos-arm64.dmg",
+            "yongsheng-plan-macos-arm64.dmg"
+        )
+        .is_ok());
+        assert!(validate_update_download_url(
+            "http://github.com/jieyangxchen/codex-pet-desktop/releases/download/v0.2.15/yongsheng-plan-windows-x64.exe",
+            "yongsheng-plan-windows-x64.exe"
+        )
+        .is_err());
+        assert!(validate_update_download_url(
+            "https://github.com/other/repo/releases/download/v0.2.15/yongsheng-plan-windows-x64.exe",
+            "yongsheng-plan-windows-x64.exe"
+        )
+        .is_err());
+        assert!(validate_update_download_url(
+            "https://github.com/jieyangxchen/codex-pet-desktop/releases/download/v0.2.15/other.exe",
+            "yongsheng-plan-windows-x64.exe"
+        )
+        .is_err());
+        assert!(validate_update_download_url(
+            "https://api.github.com/repos/jieyangxchen/codex-pet-desktop/releases/latest",
+            "yongsheng-plan-windows-x64.exe"
+        )
+        .is_err());
+        assert!(validate_update_download_url(
+            "https://jieyangxchen.github.io/codex-pet-desktop/",
+            "yongsheng-plan-windows-x64.exe"
+        )
+        .is_err());
+        assert!(validate_update_download_url(
+            "https://release-assets.githubusercontent.com/github-production-release-asset/123/file.exe",
+            "yongsheng-plan-windows-x64.exe"
+        )
+        .is_err());
+        assert!(validate_update_download_url(
+            "https://github.com/jieyangxchen/codex-pet-desktop/releases/download/v0.2.15/nested/yongsheng-plan-windows-x64.exe",
+            "yongsheng-plan-windows-x64.exe"
+        )
+        .is_err());
     }
 }

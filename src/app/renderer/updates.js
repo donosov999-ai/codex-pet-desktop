@@ -1,4 +1,3 @@
-import { arrayBufferToBase64 } from "./petpack.js";
 import { cleanVersion, compareVersions, summarizePetpackUpdates } from "./version.js";
 
 function formatBytes(bytes) {
@@ -38,48 +37,6 @@ function setProgress(progressEl, { visible = false, received = 0, total = 0 } = 
   progressEl.setAttribute?.("aria-valuetext", received > 0 ? `已下载 ${formatBytes(received)}` : "正在下载");
 }
 
-function progressText(received, total) {
-  if (total > 0) {
-    const percent = Math.max(0, Math.min(100, Math.floor((received / total) * 100)));
-    return `正在下载主程序安装包... ${percent}%`;
-  }
-  const downloaded = formatBytes(received);
-  return downloaded ? `正在下载主程序安装包... ${downloaded}` : "正在下载主程序安装包...";
-}
-
-async function readResponseBuffer(response, onProgress) {
-  const total = Number(response.headers?.get?.("content-length")) || 0;
-  if (response.body?.getReader) {
-    const reader = response.body.getReader();
-    const chunks = [];
-    let received = 0;
-    onProgress(received, total);
-    for (;;) {
-      const { done, value } = await reader.read();
-      if (done) {
-        break;
-      }
-      if (!value) {
-        continue;
-      }
-      const chunk = value instanceof Uint8Array ? value : new Uint8Array(value);
-      chunks.push(chunk);
-      received += chunk.byteLength;
-      onProgress(received, total);
-    }
-    const bytes = new Uint8Array(received);
-    let offset = 0;
-    for (const chunk of chunks) {
-      bytes.set(chunk, offset);
-      offset += chunk.byteLength;
-    }
-    return bytes.buffer;
-  }
-  const buffer = await response.arrayBuffer();
-  onProgress(buffer.byteLength, buffer.byteLength || total);
-  return buffer;
-}
-
 function assetScore(asset, platform = "") {
   const name = String(asset?.name || "").toLowerCase();
   if (!asset?.browser_download_url || !name) {
@@ -104,6 +61,21 @@ function findInstallerAsset(release, platform) {
 }
 
 export function createUpdateController({ dom, petDesktop, setUpdateStatus, state }) {
+  async function fetchLatestRelease() {
+    const response = await fetch(state.appInfo.latestReleaseApi, {
+      headers: { Accept: "application/vnd.github+json" }
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+    const latest = await response.json();
+    const latestTag = latest.tag_name || latest.name || "";
+    if (!latestTag) {
+      throw new Error("最新版本号缺失");
+    }
+    return { latest, latestTag };
+  }
+
   async function checkForUpdates() {
     if (!state.appInfo.latestReleaseApi || typeof fetch !== "function") {
       setUpdateStatus("检查更新不可用。");
@@ -112,17 +84,14 @@ export function createUpdateController({ dom, petDesktop, setUpdateStatus, state
     dom.checkUpdateButton.disabled = true;
     setUpdateStatus("正在检查主程序更新...");
     try {
-      const response = await fetch(state.appInfo.latestReleaseApi, {
-        headers: { Accept: "application/vnd.github+json" }
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+      let release;
+      try {
+        release = await fetchLatestRelease();
+      } catch (error) {
+        setUpdateStatus(`检查主程序版本失败：${error.message}`);
+        return;
       }
-      const latest = await response.json();
-      const latestTag = latest.tag_name || latest.name || "";
-      if (!latestTag) {
-        throw new Error("最新版本号缺失");
-      }
+      const { latest, latestTag } = release;
       if (compareVersions(latestTag, state.appInfo.version) > 0) {
         const notes = String(latest.body || "")
           .split(/\r?\n/)
@@ -132,35 +101,27 @@ export function createUpdateController({ dom, petDesktop, setUpdateStatus, state
           .join("；");
         const noteText = notes ? `更新内容：${notes}。` : "";
         const asset = findInstallerAsset(latest, state.appInfo.platform);
-        if (!asset || !petDesktop?.installAppUpdate) {
+        if (!asset || !petDesktop?.downloadAndInstallAppUpdate) {
           setUpdateStatus(
             `发现主程序新版本：当前 v${cleanVersion(state.appInfo.version)}，最新 ${latestTag}。${noteText}没有找到可自动安装的安装包，请点击“打开下载页”下载。`
           );
           return;
         }
-        setProgress(dom.appUpdateProgressEl, { visible: true, received: 0, total: Number(asset.size) || 0 });
         setUpdateStatus(
-          `发现主程序新版本：当前 v${cleanVersion(state.appInfo.version)}，最新 ${latestTag}。${noteText}正在准备自动更新...`
+          `发现主程序新版本：当前 v${cleanVersion(state.appInfo.version)}，最新 ${latestTag}。${noteText}正在下载并启动安装包...`
         );
-        const installerResponse = await fetch(asset.browser_download_url, {
-          headers: { Accept: "application/octet-stream" }
-        });
-        if (!installerResponse.ok) {
-          throw new Error(`安装包下载失败 HTTP ${installerResponse.status}`);
+        try {
+          await petDesktop.downloadAndInstallAppUpdate(asset.browser_download_url, asset.name);
+        } catch (error) {
+          setUpdateStatus(`下载或启动主程序安装包失败：${error.message}`);
+          return;
         }
-        const buffer = await readResponseBuffer(installerResponse, (received, responseTotal) => {
-          const total = responseTotal || Number(asset.size) || 0;
-          setProgress(dom.appUpdateProgressEl, { visible: true, received, total });
-          setUpdateStatus(progressText(received, total));
-        });
-        setUpdateStatus("正在启动安装器...");
-        await petDesktop.installAppUpdate(arrayBufferToBase64(buffer), asset.name);
         setUpdateStatus("已启动安装器，请按提示完成安装。");
         return;
       }
       setUpdateStatus(`主程序已是最新版本 v${cleanVersion(state.appInfo.version)}。`);
     } catch (error) {
-      setUpdateStatus(`检查主程序更新失败：${error.message}`);
+      setUpdateStatus(`检查主程序版本失败：${error.message}`);
     } finally {
       setProgress(dom.appUpdateProgressEl, { visible: false });
       dom.checkUpdateButton.disabled = false;
