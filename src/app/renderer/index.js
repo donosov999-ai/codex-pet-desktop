@@ -194,6 +194,7 @@ async function init() {
   animation.renderStateOptions();
   state.appInfo = { ...state.appInfo, ...((await petDesktop.getAppInfo?.()) || {}) };
   applyPreferences((await petDesktop.getPreferences?.()) || {});
+  interactions.refreshLifeEngine();
   await windowLayout.syncWindowLayout();
   setUpdateStatus(`当前版本 v${cleanVersion(state.appInfo.version)}`);
 
@@ -240,6 +241,8 @@ async function init() {
     syncTrayState();
   });
   dom.naturalLifeToggle.addEventListener("change", () => {
+    state.preferences = currentPreferences({ naturalLife: Boolean(dom.naturalLifeToggle.checked) });
+    interactions.refreshLifeEngine();
     savePreferences({ naturalLife: Boolean(dom.naturalLifeToggle.checked) });
   });
   dom.topToggle.addEventListener("change", () => {

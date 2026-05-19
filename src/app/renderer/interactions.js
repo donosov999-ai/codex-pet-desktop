@@ -1,4 +1,4 @@
-import { STATES } from "./constants.js";
+import { activeBehavior, createLifeEngine } from "./life-engine.js";
 
 export function createInteractions({ animation, dom, onLayoutChange = () => {}, petDesktop, state }) {
   let dragging = false;
@@ -14,72 +14,26 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
   let edgePaused = false;
   let preferredNextDirection = 0;
   let mousePassthrough = null;
-  const defaultNaturalBehavior = {
-    nextWanderDelayMs: [3500, 8000],
-    idleDurationMs: [1600, 3200],
-    walkDurationMs: [2400, 5200],
-    edgePauseMs: [700, 1600],
-    edgePauseStates: ["waiting", "review"],
-    postDragState: "waiting",
-    postDragMs: 700,
-    clickReturnState: "idle",
-    doubleClickReturnState: "idle"
-  };
-  const defaultBehavior = {
-    clickState: "waving",
-    doubleClickState: "jumping",
-    idleStates: ["review", "waiting", "idle"],
-    wanderDirections: [-1, 1, 0],
-    natural: defaultNaturalBehavior
-  };
+  const lifeEngine = createLifeEngine({
+    behavior: state.activePet?.behavior,
+    preferences: state.preferences
+  });
 
   function hasActivePet() {
     return Boolean(state.activePet && state.pets.some((pet) => pet.id === state.activePet.id));
   }
 
-  function activeBehavior() {
+  function refreshLifeEngine() {
     const behavior = state.activePet?.behavior || {};
-    const natural = behavior.natural || {};
-    const validStates = (states) => states.filter((name) => STATES[name]);
-    const idleStates = Array.isArray(behavior.idleStates) ? validStates(behavior.idleStates) : [];
-    const edgePauseStates = Array.isArray(natural.edgePauseStates) ? validStates(natural.edgePauseStates) : [];
-    const wanderDirections = Array.isArray(behavior.wanderDirections)
-      ? behavior.wanderDirections.filter((direction) => [-1, 0, 1].includes(direction))
-      : [];
-    return {
-      clickState: STATES[behavior.clickState] ? behavior.clickState : defaultBehavior.clickState,
-      doubleClickState: STATES[behavior.doubleClickState] ? behavior.doubleClickState : defaultBehavior.doubleClickState,
-      idleStates: idleStates.length ? idleStates : defaultBehavior.idleStates,
-      wanderDirections: wanderDirections.length ? wanderDirections : defaultBehavior.wanderDirections,
-      natural: {
-        nextWanderDelayMs: readDurationRange(natural.nextWanderDelayMs, defaultNaturalBehavior.nextWanderDelayMs),
-        idleDurationMs: readDurationRange(natural.idleDurationMs, defaultNaturalBehavior.idleDurationMs),
-        walkDurationMs: readDurationRange(natural.walkDurationMs, defaultNaturalBehavior.walkDurationMs),
-        edgePauseMs: readDurationRange(natural.edgePauseMs, defaultNaturalBehavior.edgePauseMs),
-        edgePauseStates: edgePauseStates.length ? edgePauseStates : defaultNaturalBehavior.edgePauseStates,
-        postDragState: STATES[natural.postDragState] ? natural.postDragState : defaultNaturalBehavior.postDragState,
-        postDragMs: readDurationRange(natural.postDragMs, [defaultNaturalBehavior.postDragMs, defaultNaturalBehavior.postDragMs])[0],
-        clickReturnState: STATES[natural.clickReturnState] ? natural.clickReturnState : defaultNaturalBehavior.clickReturnState,
-        doubleClickReturnState: STATES[natural.doubleClickReturnState]
-          ? natural.doubleClickReturnState
-          : defaultNaturalBehavior.doubleClickReturnState
-      }
-    };
+    lifeEngine.update({
+      behavior,
+      preferences: state.preferences || {}
+    });
+    return activeBehavior(behavior);
   }
 
-  function readDurationRange(value, fallback) {
-    if (Array.isArray(value) && value.length >= 2) {
-      const first = Number(value[0]);
-      const second = Number(value[1]);
-      if (Number.isFinite(first) && Number.isFinite(second) && first >= 0 && second >= 0) {
-        return [Math.min(first, second), Math.max(first, second)];
-      }
-    }
-    const single = Number(value);
-    if (Number.isFinite(single) && single >= 0) {
-      return [single, single];
-    }
-    return fallback;
+  function naturalLifeEnabled() {
+    return state.preferences?.naturalLife !== false;
   }
 
   function randomDuration(range) {
@@ -99,6 +53,52 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
     const nextState = pick(candidates.length ? candidates : behavior.idleStates);
     lastQuietState = nextState;
     return nextState;
+  }
+
+  function legacyWanderPlan(behavior) {
+    const directions = behavior.wanderDirections;
+    const direction = directions.includes(preferredNextDirection)
+      ? preferredNextDirection
+      : pick(directions);
+    const stateName = direction < 0 ? "running-left" : direction > 0 ? "running-right" : pickQuietState(behavior);
+    return {
+      direction,
+      durationMs: randomDuration(direction === 0 ? behavior.natural.idleDurationMs : behavior.natural.walkDurationMs),
+      state: stateName
+    };
+  }
+
+  function applyWanderPlan(plan) {
+    if (!plan) {
+      return false;
+    }
+    wanderDirection = plan.direction || 0;
+    preferredNextDirection = 0;
+    edgePaused = false;
+    wanderUntil = performance.now() + plan.durationMs;
+    animation.setState(plan.state, plan.onceReturn ? { onceReturn: plan.onceReturn } : undefined);
+    return true;
+  }
+
+  function preferEdgeRecoveryDirection(plan, behavior) {
+    if (!plan || !preferredNextDirection) {
+      return plan;
+    }
+    const phase = lifeEngine.phase();
+    const directions = phase?.wanderDirections || behavior.wanderDirections;
+    if (!directions.includes(preferredNextDirection)) {
+      return plan;
+    }
+    return {
+      ...plan,
+      direction: preferredNextDirection,
+      durationMs: randomDuration(phase?.walkDurationMs || behavior.natural.walkDurationMs),
+      state: preferredNextDirection < 0 ? "running-left" : "running-right"
+    };
+  }
+
+  function panelOpen() {
+    return dom.panelEl.classList.contains("hidden") === false;
   }
 
   function isWindowsRuntime() {
@@ -145,35 +145,37 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
       preferredNextDirection = 0;
       return;
     }
-    const behavior = activeBehavior();
+    const behavior = refreshLifeEngine();
+    const autonomousPlan = naturalLifeEnabled()
+      ? lifeEngine.planAutonomous({
+          autoWander: Boolean(dom.wanderToggle.checked),
+          dragging,
+          panelOpen: panelOpen()
+        })
+      : null;
     const delay = Number.isFinite(delayOverride)
       ? delayOverride
-      : randomDuration(behavior.natural.nextWanderDelayMs);
+      : autonomousPlan?.nextDelayMs ?? randomDuration(behavior.natural.nextWanderDelayMs);
     wanderTimer = window.setTimeout(() => {
       if (
         !hasActivePet() ||
         !dom.wanderToggle.checked ||
         dragging ||
-        dom.panelEl.classList.contains("hidden") === false
+        panelOpen()
       ) {
         scheduleWander();
         return;
       }
-      const directions = behavior.wanderDirections;
-      wanderDirection = directions.includes(preferredNextDirection)
-        ? preferredNextDirection
-        : pick(directions);
-      preferredNextDirection = 0;
-      edgePaused = false;
-      wanderUntil =
-        performance.now() +
-        randomDuration(wanderDirection === 0 ? behavior.natural.idleDurationMs : behavior.natural.walkDurationMs);
-      if (wanderDirection < 0) {
-        animation.setState("running-left");
-      } else if (wanderDirection > 0) {
-        animation.setState("running-right");
-      } else {
-        animation.setState(pickQuietState(behavior));
+      const currentBehavior = refreshLifeEngine();
+      const plan = naturalLifeEnabled()
+        ? lifeEngine.planAutonomous({
+            autoWander: Boolean(dom.wanderToggle.checked),
+            dragging,
+            panelOpen: panelOpen()
+          })
+        : null;
+      if (!applyWanderPlan(preferEdgeRecoveryDirection(plan, currentBehavior) || legacyWanderPlan(currentBehavior))) {
+        scheduleWander();
       }
     }, delay);
   }
@@ -188,14 +190,14 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
     ) {
       petDesktop?.moveBy(wanderDirection * 2, 0)?.then((bounds) => {
         if (bounds?.hitEdge === "left") {
-          const behavior = activeBehavior();
+          const behavior = refreshLifeEngine();
           wanderDirection = 0;
           preferredNextDirection = 1;
           edgePaused = true;
           wanderUntil = performance.now() + randomDuration(behavior.natural.edgePauseMs);
           animation.setState(pick(behavior.natural.edgePauseStates));
         } else if (bounds?.hitEdge === "right") {
-          const behavior = activeBehavior();
+          const behavior = refreshLifeEngine();
           wanderDirection = 0;
           preferredNextDirection = -1;
           edgePaused = true;
@@ -207,7 +209,7 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
     if (wanderUntil && now >= wanderUntil) {
       wanderDirection = 0;
       wanderUntil = 0;
-      animation.setState(edgePaused ? "idle" : pickQuietState(activeBehavior()));
+      animation.setState(edgePaused ? "idle" : pickQuietState(refreshLifeEngine()));
       edgePaused = false;
       scheduleWander();
     }
@@ -264,10 +266,13 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
       dragging = false;
       dom.petEl.releasePointerCapture?.(event.pointerId);
       if (movedDuringDrag && hasActivePet()) {
-        const behavior = activeBehavior();
+        const behavior = refreshLifeEngine();
+        const plan = lifeEngine.planInteraction("dragEnd");
         suppressNextClick = true;
-        animation.setState(behavior.natural.postDragState);
-        scheduleWander(behavior.natural.postDragMs);
+        animation.setState(plan?.state || behavior.natural.postDragState, {
+          onceReturn: plan?.onceReturn || behavior.natural.postDragState
+        });
+        scheduleWander(plan?.durationMs ?? behavior.natural.postDragMs);
       } else {
         scheduleWander();
       }
@@ -289,13 +294,19 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
         return;
       }
       if (!dragging && dom.panelEl.classList.contains("hidden")) {
-        const behavior = activeBehavior();
-        animation.setState(behavior.clickState, { onceReturn: behavior.natural.clickReturnState });
+        const behavior = refreshLifeEngine();
+        const plan = lifeEngine.planInteraction("click");
+        animation.setState(plan?.state || behavior.clickState, {
+          onceReturn: plan?.onceReturn || behavior.natural.clickReturnState
+        });
       }
     });
     dom.petEl.addEventListener("dblclick", () => {
-      const behavior = activeBehavior();
-      animation.setState(behavior.doubleClickState, { onceReturn: behavior.natural.doubleClickReturnState });
+      const behavior = refreshLifeEngine();
+      const plan = lifeEngine.planInteraction("doubleClick");
+      animation.setState(plan?.state || behavior.doubleClickState, {
+        onceReturn: plan?.onceReturn || behavior.natural.doubleClickReturnState
+      });
     });
 
     document.addEventListener("contextmenu", (event) => {
@@ -374,6 +385,7 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
     bind,
     hasActivePet,
     scheduleWander,
+    refreshLifeEngine,
     setMousePassthrough,
     setPanelVisible,
     stopWander,
