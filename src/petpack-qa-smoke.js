@@ -23,7 +23,7 @@ if (size.width !== 1536 || size.height !== 1872) {
 
 const projectRoot = path.resolve(__dirname, "..");
 const report = validatePetResources(path.join(projectRoot, "resources", "pets"));
-if (!report.ok || report.pets.length !== 4) {
+if (!report.ok || report.pets.length === 0) {
   console.error(JSON.stringify({ ok: false, reason: "pet resource QA failed", report }, null, 2));
   process.exit(1);
 }

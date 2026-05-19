@@ -1,0 +1,29 @@
+{
+  "id": "tiantian",
+  "displayName": "\u6dfb\u6dfb",
+  "description": "\u6dfb\u6dfb\uff0c\u4e00\u53ea\u7b11\u5f97\u5f88\u5f00\u5fc3\u7684\u91d1\u6bdb\u72ac\u3002",
+  "version": "1.0.0",
+  "author": "Chen",
+  "license": "CC-BY-4.0",
+  "minAppVersion": "0.2.0",
+  "tags": ["\u72d7\u72d7", "\u91d1\u6bdb", "\u5f00\u5fc3"],
+  "changelog": ["\u9996\u7248\u6dfb\u6dfb\u684c\u5ba0\u8d44\u6e90\u3002"],
+  "behavior": {
+    "clickState": "waving",
+    "doubleClickState": "jumping",
+    "idleStates": ["idle", "waiting", "review"],
+    "wanderDirections": [-1, 1, 0],
+    "natural": {
+      "nextWanderDelayMs": [5200, 11000],
+      "idleDurationMs": [1800, 4200],
+      "walkDurationMs": [2600, 5600],
+      "edgePauseMs": [900, 2200],
+      "edgePauseStates": ["waiting", "review"],
+      "postDragState": "waiting",
+      "postDragMs": 900,
+      "clickReturnState": "idle",
+      "doubleClickReturnState": "idle"
+    }
+  },
+  "spritesheetPath": "spritesheet.webp"
+}
