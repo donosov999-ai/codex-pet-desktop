@@ -224,6 +224,23 @@ assert(updateHourIdle?.phaseId === "active" && updateHourIdle?.state === "review
   updateHourIdle
 });
 
+const updateUndefinedEngine = createLifeEngine({
+  behavior: { clickState: "waiting", idleStates: ["review"], wanderDirections: [0] },
+  preferences: { naturalLife: false },
+  startedAtMs: 0,
+  startPetHour: 13,
+  now: () => 0,
+  random: () => 0
+});
+updateUndefinedEngine.update({ behavior: undefined, preferences: undefined });
+assert(
+  updateUndefinedEngine.planInteraction("click")?.state === "waiting" &&
+    updateUndefinedEngine.planAutonomous({ autoWander: true }) === null,
+  {
+    reason: "undefined behavior/preferences update fields should preserve current values"
+  }
+);
+
 const malformedFunctionsEngine = createLifeEngine({
   behavior: { idleStates: ["review"], wanderDirections: [0] },
   preferences: { naturalLife: true },
@@ -238,6 +255,20 @@ assert(malformedFunctionsClick?.state === "waving" && malformedFunctionsIdle?.st
   reason: "malformed now/random should not break planning",
   malformedFunctionsClick,
   malformedFunctionsIdle
+});
+
+const nullAutonomousEngine = createLifeEngine({
+  behavior: { idleStates: ["review"], wanderDirections: [0] },
+  preferences: { naturalLife: true },
+  startedAtMs: 0,
+  startPetHour: 13,
+  now: () => 0,
+  random: () => 0
+});
+const nullAutonomousPlan = nullAutonomousEngine.planAutonomous(null);
+assert(nullAutonomousPlan === null || nullAutonomousPlan?.kind === "autonomous", {
+  reason: "planAutonomous(null) should tolerate invalid options",
+  nullAutonomousPlan
 });
 
 console.log(JSON.stringify({ ok: true }, null, 2));

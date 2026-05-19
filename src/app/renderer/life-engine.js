@@ -166,10 +166,10 @@ export function createLifeEngine(options = {}) {
     },
     update(next = {}) {
       const source = isPlainObject(next) ? next : {};
-      if ("behavior" in source) {
+      if ("behavior" in source && source.behavior !== undefined) {
         normalized = activeBehavior(source.behavior);
       }
-      if ("preferences" in source) {
+      if ("preferences" in source && source.preferences !== undefined) {
         naturalLife = naturalLifeEnabled(source.preferences);
       }
       if ("startedAtMs" in source) {
@@ -217,7 +217,9 @@ export function createLifeEngine(options = {}) {
       }
       return null;
     },
-    planAutonomous({ autoWander = true, panelOpen = false, dragging = false } = {}) {
+    planAutonomous(options = {}) {
+      const source = isPlainObject(options) ? options : {};
+      const { autoWander = true, panelOpen = false, dragging = false } = source;
       if (!naturalLife || !autoWander || panelOpen || dragging) {
         return null;
       }
