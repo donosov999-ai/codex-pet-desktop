@@ -5,8 +5,9 @@ const projectRoot = path.resolve(__dirname, "..");
 const roots = [path.join(projectRoot, "resources", "pets")];
 const report = validatePetResources(roots[0]);
 const bundledPets = new Map(report.pets.map((pet) => [pet.id, pet]));
-const requiredPets = ["mi-fen", "mi-jiu", "tigris-whippet"];
+const requiredPets = ["lingling", "mi-fen", "mi-jiu", "tigris-whippet"];
 const requiredDisplayNames = {
+  "lingling": "玲玲",
   "mi-fen": "米粉",
   "mi-jiu": "米酒",
   "tigris-whippet": "红糖"
