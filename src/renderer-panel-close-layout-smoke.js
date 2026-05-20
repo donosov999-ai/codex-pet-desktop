@@ -129,6 +129,12 @@ async function main() {
   await flush();
   assertPanelHidden(elements, "Escape did not hide panel");
 
+  openControlPanel(documentObject);
+  await flush();
+  windowObject.dispatch("blur");
+  await flush();
+  assertPanelHidden(elements, "clicking desktop outside the active pet panel did not hide panel");
+
   console.log(JSON.stringify({ ok: true, resizeCalls }, null, 2));
 }
 

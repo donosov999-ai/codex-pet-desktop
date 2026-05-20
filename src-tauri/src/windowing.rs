@@ -100,6 +100,29 @@ fn normalize_window_size(width: u32, height: u32) -> WindowSize {
     }
 }
 
+fn logical_window_size_to_physical(size: WindowSize, scale_factor: f64) -> WindowSize {
+    let physical =
+        LogicalSize::new(size.width as f64, size.height as f64).to_physical::<u32>(scale_factor);
+    WindowSize {
+        width: physical.width,
+        height: physical.height,
+    }
+}
+
+fn scale_anchor_offset(offset: AnchorOffset, scale_factor: f64) -> AnchorOffset {
+    AnchorOffset {
+        x: offset.x * scale_factor,
+        y: offset.y * scale_factor,
+    }
+}
+
+fn scale_resize_anchor(anchor: ResizeAnchor, scale_factor: f64) -> ResizeAnchor {
+    ResizeAnchor {
+        current: scale_anchor_offset(anchor.current, scale_factor),
+        next: scale_anchor_offset(anchor.next, scale_factor),
+    }
+}
+
 fn resize_anchor_position(
     current_position: PhysicalPosition<i32>,
     current_size: WindowSize,
@@ -292,7 +315,9 @@ pub(crate) fn resize_window<R: Runtime>(
 ) -> Result<WindowBounds, String> {
     let position = window.outer_position().map_err(|error| error.to_string())?;
     let current_size = outer_window_size(window)?;
-    let next_size = normalize_window_size(width, height);
+    let next_logical_size = normalize_window_size(width, height);
+    let scale_factor = window.scale_factor().map_err(|error| error.to_string())?;
+    let next_size = logical_window_size_to_physical(next_logical_size, scale_factor);
     let work_area = current_work_area(window)?;
     let next_position = anchor.map_or_else(
         || resize_anchor_position(position, current_size, next_size, work_area),
@@ -302,14 +327,14 @@ pub(crate) fn resize_window<R: Runtime>(
                 current_size,
                 next_size,
                 work_area,
-                anchor,
+                scale_resize_anchor(anchor, scale_factor),
             )
         },
     );
     window
         .set_size(Size::Logical(LogicalSize::new(
-            next_size.width as f64,
-            next_size.height as f64,
+            next_logical_size.width as f64,
+            next_logical_size.height as f64,
         )))
         .map_err(|error| error.to_string())?;
     window
@@ -470,6 +495,68 @@ mod tests {
                 current: next_anchor,
                 next: current_anchor,
             },
+        );
+        assert_eq!(closed, current_position);
+    }
+
+    #[test]
+    fn resize_anchor_position_preserves_logical_pet_anchor_on_scaled_display() {
+        let work_area = WorkArea {
+            x: 0,
+            y: 0,
+            width: 3840,
+            height: 2160,
+        };
+        let current_position = PhysicalPosition::new(100, 200);
+        let current_size = WindowSize {
+            width: 376,
+            height: 402,
+        };
+        let next_size = WindowSize {
+            width: 1040,
+            height: 880,
+        };
+        let current_anchor = AnchorOffset { x: 94.0, y: 204.0 };
+        let next_anchor = AnchorOffset { x: 420.0, y: 324.0 };
+        let scale_factor = 2.0;
+
+        let opened = resize_anchor_position_with_offsets(
+            current_position,
+            current_size,
+            next_size,
+            work_area,
+            scale_resize_anchor(
+                ResizeAnchor {
+                    current: current_anchor,
+                    next: next_anchor,
+                },
+                scale_factor,
+            ),
+        );
+
+        assert_eq!(
+            PhysicalPosition::new(
+                current_position.x + (current_anchor.x * scale_factor).round() as i32,
+                current_position.y + (current_anchor.y * scale_factor).round() as i32
+            ),
+            PhysicalPosition::new(
+                opened.x + (next_anchor.x * scale_factor).round() as i32,
+                opened.y + (next_anchor.y * scale_factor).round() as i32
+            )
+        );
+
+        let closed = resize_anchor_position_with_offsets(
+            opened,
+            next_size,
+            current_size,
+            work_area,
+            scale_resize_anchor(
+                ResizeAnchor {
+                    current: next_anchor,
+                    next: current_anchor,
+                },
+                scale_factor,
+            ),
         );
         assert_eq!(closed, current_position);
     }

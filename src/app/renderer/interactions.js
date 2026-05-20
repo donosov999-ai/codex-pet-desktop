@@ -335,6 +335,12 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
     });
     window.addEventListener("blur", () => {
       if (!dragging) {
+        if (panelOpen() && hasActivePet()) {
+          setPanelVisible(false);
+          pointerInsideInteractiveArea = false;
+          setMousePassthrough(hasActivePet());
+          return;
+        }
         pointerInsideInteractiveArea = false;
         setMousePassthrough(false);
       }
