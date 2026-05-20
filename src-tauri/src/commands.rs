@@ -1,7 +1,7 @@
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use serde::Serialize;
 use std::{fs, path::Path, time::Duration};
-use tauri::{AppHandle, Wry};
+use tauri::{AppHandle, Emitter, Wry};
 use tauri_plugin_opener::OpenerExt;
 
 use crate::{
@@ -20,6 +20,7 @@ const LATEST_RELEASE_API: &str =
     "https://api.github.com/repos/jieyangxchen/codex-pet-desktop/releases/latest";
 const UPDATE_REPO_DOWNLOAD_PREFIX: &str = "/jieyangxchen/codex-pet-desktop/releases/download/";
 const MAX_UPDATE_INSTALLER_BYTES: u64 = 250 * 1024 * 1024;
+const APP_UPDATE_DOWNLOAD_PROGRESS_EVENT: &str = "pet-desktop-app-update-download-progress";
 const ALLOWED_UPDATE_INSTALLERS: &[&str] = &[
     "yongsheng-plan-windows-x64.exe",
     "yongsheng-plan-macos-arm64.dmg",
@@ -40,6 +41,14 @@ struct AppInfo {
 struct WindowState {
     #[serde(rename = "alwaysOnTop")]
     always_on_top: bool,
+}
+
+#[derive(Debug, Serialize, Clone)]
+#[serde(rename_all = "camelCase")]
+struct AppUpdateDownloadProgress {
+    file_name: String,
+    received: u64,
+    total: u64,
 }
 
 #[derive(Debug, serde::Deserialize)]
@@ -173,6 +182,22 @@ fn write_and_open_update(app: AppHandle<Wry>, bytes: &[u8], file_name: &str) -> 
     Ok(())
 }
 
+fn emit_app_update_download_progress(
+    app: &AppHandle<Wry>,
+    file_name: &str,
+    received: u64,
+    total: u64,
+) {
+    let _ = app.emit(
+        APP_UPDATE_DOWNLOAD_PROGRESS_EVENT,
+        AppUpdateDownloadProgress {
+            file_name: file_name.to_string(),
+            received,
+            total,
+        },
+    );
+}
+
 #[tauri::command]
 async fn download_and_install_app_update(
     app: AppHandle<Wry>,
@@ -188,7 +213,7 @@ async fn download_and_install_app_update(
         .user_agent("yongsheng-plan-updater")
         .build()
         .map_err(|error| error.to_string())?;
-    let response = client
+    let mut response = client
         .get(download_url.as_str())
         .header(reqwest::header::ACCEPT, "application/octet-stream")
         .send()
@@ -201,7 +226,18 @@ async fn download_and_install_app_update(
     if response.content_length().unwrap_or(0) > MAX_UPDATE_INSTALLER_BYTES {
         return Err("安装包过大".to_string());
     }
-    let bytes = response.bytes().await.map_err(|error| error.to_string())?;
+    let total = response.content_length().unwrap_or(0);
+    let mut received = 0_u64;
+    let mut bytes = Vec::new();
+    emit_app_update_download_progress(&app, &safe_name, received, total);
+    while let Some(chunk) = response.chunk().await.map_err(|error| error.to_string())? {
+        received += chunk.len() as u64;
+        if received > MAX_UPDATE_INSTALLER_BYTES {
+            return Err("安装包过大".to_string());
+        }
+        bytes.extend_from_slice(&chunk);
+        emit_app_update_download_progress(&app, &safe_name, received, total);
+    }
     if bytes.len() as u64 > MAX_UPDATE_INSTALLER_BYTES {
         return Err("安装包过大".to_string());
     }

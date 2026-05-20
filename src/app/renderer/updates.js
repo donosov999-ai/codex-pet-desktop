@@ -77,7 +77,26 @@ function findInstallerAsset(release, platform) {
     .sort((left, right) => assetScore(right, platform) - assetScore(left, platform))[0];
 }
 
-export function createUpdateController({ dom, petDesktop, setUpdateStatus, state }) {
+export function createUpdateController({ dom, listenAppUpdateDownloadProgress = () => Promise.resolve(() => {}), petDesktop, setUpdateStatus, state }) {
+  let activeAppUpdateFileName = "";
+
+  function setDownloadStatus({ received = 0, total = 0 } = {}) {
+    const current = formatBytes(received);
+    const maximum = formatBytes(total);
+    const progressText = current && maximum ? `：${current} / ${maximum}` : current ? `：已下载 ${current}` : "";
+    setUpdateStatus(`正在下载主程序安装包${progressText}。下载完成后会自动打开安装器。`);
+  }
+
+  function applyAppUpdateDownloadProgress(progress = {}) {
+    if (!activeAppUpdateFileName || progress.fileName !== activeAppUpdateFileName) {
+      return;
+    }
+    const received = Number(progress.received) || 0;
+    const total = Number(progress.total) || 0;
+    setProgress(dom.appUpdateProgressEl, { visible: true, received, total });
+    setDownloadStatus({ received, total });
+  }
+
   async function fetchLatestRelease() {
     const response = await fetch(state.appInfo.latestReleaseApi, {
       headers: { Accept: "application/vnd.github+json" }
@@ -124,15 +143,17 @@ export function createUpdateController({ dom, petDesktop, setUpdateStatus, state
           );
           return;
         }
-        setUpdateStatus(
-          `发现主程序新版本：当前 v${cleanVersion(state.appInfo.version)}，最新 ${latestTag}。${noteText}正在下载并启动安装包...`
-        );
+        activeAppUpdateFileName = asset.name;
+        setProgress(dom.appUpdateProgressEl, { visible: true, received: 0, total: Number(asset.size) || 0 });
+        setUpdateStatus(`发现主程序新版本：当前 v${cleanVersion(state.appInfo.version)}，最新 ${latestTag}。${noteText}`);
+        setDownloadStatus({ received: 0, total: Number(asset.size) || 0 });
         try {
           await petDesktop.downloadAndInstallAppUpdate(asset.browser_download_url, asset.name);
         } catch (error) {
           setUpdateStatus(`下载或启动主程序安装包失败：${errorMessage(error)}。可以点击“打开下载页”手动下载。`);
           return;
         }
+        activeAppUpdateFileName = "";
         setUpdateStatus("已启动安装器，请按提示完成安装。");
         return;
       }
@@ -141,6 +162,7 @@ export function createUpdateController({ dom, petDesktop, setUpdateStatus, state
       setUpdateStatus(`检查主程序版本失败：${errorMessage(error)}`);
     } finally {
       setProgress(dom.appUpdateProgressEl, { visible: false });
+      activeAppUpdateFileName = "";
       dom.checkUpdateButton.disabled = false;
     }
   }
@@ -169,6 +191,7 @@ export function createUpdateController({ dom, petDesktop, setUpdateStatus, state
   }
 
   function bind() {
+    listenAppUpdateDownloadProgress(applyAppUpdateDownloadProgress).catch(() => {});
     dom.checkUpdateButton?.addEventListener("click", () => {
       checkForUpdates();
     });

@@ -10,7 +10,7 @@ import { createWindowLayout } from "./window-layout.js";
 import { cleanVersion } from "./version.js";
 
 const dom = getDomRefs();
-const { petDesktop, tauriConvertFileSrc, listenTrayCommand } = createDesktopBridge();
+const { petDesktop, tauriConvertFileSrc, listenTrayCommand, listenAppUpdateDownloadProgress } = createDesktopBridge();
 const state = {
   pets: [],
   activePet: null,
@@ -136,7 +136,7 @@ const store = createStoreController({
   refreshPetList: petManager.refreshPetList,
   state
 });
-const updates = createUpdateController({ dom, petDesktop, setUpdateStatus, state });
+const updates = createUpdateController({ dom, listenAppUpdateDownloadProgress, petDesktop, setUpdateStatus, state });
 
 function setPanelTab(tabId) {
   const tabs = [
