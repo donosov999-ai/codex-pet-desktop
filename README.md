@@ -29,6 +29,9 @@
     <img width="24%" alt="红糖宠物包动作预览" src="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/previews/tigris-whippet-1.0.3-atlas.webp">
   </a>
   <a href="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/visual-qa.html">
+    <img width="24%" alt="红糖真实版宠物包动作预览" src="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/previews/tigris-whippet-real-1.0.0-atlas.webp">
+  </a>
+  <a href="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/visual-qa.html">
     <img width="24%" alt="玲玲宠物包动作预览" src="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/previews/lingling-1.0.0-atlas.webp">
   </a>
 </p>
@@ -38,7 +41,7 @@
 ## 三步开始
 
 1. 打开 [下载页](https://jieyangxchen.github.io/codex-pet-desktop/) 或 [最新 Release](https://github.com/jieyangxchen/codex-pet-desktop/releases/latest)，下载适合你系统的安装包。
-2. 启动主程序，进入资源库安装米粉、米酒、红糖或玲玲，也可以手动导入 `.petpack`。
+2. 启动主程序，进入资源库安装米粉、米酒、红糖、红糖真实版或玲玲，也可以手动导入 `.petpack`。
 3. 把桌宠拖到顺手的位置，右键打开控制面板，调整大小、置顶、自动散步和资源更新。
 
 如果这个项目帮你留下了一只想长期保存的桌宠，欢迎点一个 Star；问题、宠物资源建议和适配反馈可以发到 [Discussions](https://github.com/jieyangxchen/codex-pet-desktop/discussions) 或 [Issues](https://github.com/jieyangxchen/codex-pet-desktop/issues)。
@@ -74,6 +77,7 @@
 | 米粉 | [mi-fen-1.0.4.petpack](https://jieyangxchen.github.io/codex-pet-desktop/petpacks/mi-fen-1.0.4.petpack) | 木老师的工友 |
 | 米酒 | [mi-jiu-1.0.2.petpack](https://jieyangxchen.github.io/codex-pet-desktop/petpacks/mi-jiu-1.0.2.petpack) | 木老师的工友 |
 | 红糖 | [tigris-whippet-1.0.3.petpack](https://jieyangxchen.github.io/codex-pet-desktop/petpacks/tigris-whippet-1.0.3.petpack) | 我家的傻狗子 |
+| 红糖真实版 | [tigris-whippet-real-1.0.0.petpack](https://jieyangxchen.github.io/codex-pet-desktop/petpacks/tigris-whippet-real-1.0.0.petpack) | 我家的虎斑惠比特 |
 | 玲玲 | [lingling-1.0.0.petpack](https://jieyangxchen.github.io/codex-pet-desktop/petpacks/lingling-1.0.0.petpack) | 木老师室友的小斗 |
 
 同一个宠物 id 再次导入时会覆盖应用数据目录里的旧版本。应用内资源库会按索引里的版本、大小、SHA-256 和更新说明判断是否可更新。
