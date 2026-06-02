@@ -44,9 +44,8 @@ pub fn run() {
         .setup(|app| {
             let handle = app.handle();
             tray::setup_tray(handle)?;
-            windowing::position_initial_window(handle).map_err(|error| {
-                tauri::Error::Io(std::io::Error::new(std::io::ErrorKind::Other, error))
-            })?;
+            windowing::position_initial_window(handle)
+                .map_err(|error| tauri::Error::Io(std::io::Error::other(error)))?;
             emit_e2e(handle);
             let _ = handle.emit("pet-desktop-ready", ());
             Ok(())

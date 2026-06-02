@@ -52,14 +52,14 @@ jobs:
       - name: Run renderer, resource, page, and workflow smoke tests
         run: npm run smoke
 
+      - name: Run Rust format check
+        run: cd src-tauri && cargo fmt --check
+
+      - name: Run Rust Clippy
+        run: cd src-tauri && cargo clippy --all-targets -- -D warnings
+
       - name: Run Rust tests
         run: cd src-tauri && cargo test
-
-      - name: Rebuild petpacks for release validation
-        run: node scripts/build-petpacks.js
-
-      - name: Verify generated download page smoke
-        run: node src/download-page-smoke.js
 
   build-windows:
     needs: quality-gate

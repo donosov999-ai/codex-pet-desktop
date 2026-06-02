@@ -52,9 +52,9 @@ for (const required of [
   "libwebkit2gtk-4.1-dev",
   "libappindicator3-dev",
   "npm run smoke",
-  "cargo test",
-  "node scripts/build-petpacks.js",
-  "node src/download-page-smoke.js"
+  "cargo fmt --check",
+  "cargo clippy --all-targets -- -D warnings",
+  "cargo test"
 ]) {
   if (!releaseSource.includes(required)) {
     failures.push(`release workflow missing quality gate step: ${required}`);
@@ -62,6 +62,18 @@ for (const required of [
 }
 if (releaseSource.indexOf("Install Linux Tauri dependencies") > releaseSource.indexOf("Run Rust tests")) {
   failures.push("release workflow must install Linux Tauri dependencies before running Rust tests");
+}
+if (releaseSource.indexOf("Run Rust format check") > releaseSource.indexOf("Run Rust tests")) {
+  failures.push("release workflow must run Rust format check before Rust tests");
+}
+if (releaseSource.indexOf("Run Rust Clippy") > releaseSource.indexOf("Run Rust tests")) {
+  failures.push("release workflow must run Clippy before Rust tests");
+}
+const afterSmoke = releaseSource.slice(releaseSource.indexOf("npm run smoke"));
+for (const duplicate of ["node scripts/build-petpacks.js", "node src/download-page-smoke.js"]) {
+  if (afterSmoke.includes(duplicate)) {
+    failures.push(`release workflow repeats smoke-covered command after npm run smoke: ${duplicate}`);
+  }
 }
 if (!/build-windows:[\s\S]*needs:\s+quality-gate/.test(releaseSource)) {
   failures.push("build-windows must depend on quality-gate");

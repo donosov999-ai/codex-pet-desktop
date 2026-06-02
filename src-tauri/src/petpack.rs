@@ -8,6 +8,9 @@ use zip::ZipArchive;
 
 const PETPACK_FORMAT: &str = "codex-petpack";
 const PETPACK_FORMAT_VERSION: u16 = 1;
+const MAX_PETPACK_BYTES: usize = 32 * 1024 * 1024;
+const MAX_PETPACK_FILES: usize = 16;
+const MAX_PETPACK_ENTRY_BYTES: u64 = MAX_PETPACK_BYTES as u64;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -59,7 +62,9 @@ fn safe_pet_id(id: &str) -> Result<&str, String> {
 }
 
 pub(crate) fn install_petpack_bytes(bytes: &[u8], pets_dir: &Path) -> Result<PathBuf, String> {
+    validate_petpack_size(bytes)?;
     let mut archive = ZipArchive::new(Cursor::new(bytes)).map_err(|error| error.to_string())?;
+    validate_archive_limits(&mut archive)?;
     let (petpack, spritesheet_path) = validate_petpack_archive(&mut archive)?;
     validate_required_files(&mut archive, &spritesheet_path)?;
 
@@ -91,7 +96,9 @@ pub(crate) fn install_petpack_bytes(bytes: &[u8], pets_dir: &Path) -> Result<Pat
 }
 
 pub(crate) fn inspect_petpack_bytes(bytes: &[u8]) -> Result<PetpackSummary, String> {
+    validate_petpack_size(bytes)?;
     let mut archive = ZipArchive::new(Cursor::new(bytes)).map_err(|error| error.to_string())?;
+    validate_archive_limits(&mut archive)?;
     let (petpack, spritesheet_path) = validate_petpack_archive(&mut archive)?;
     validate_required_files(&mut archive, &spritesheet_path)?;
     Ok(PetpackSummary {
@@ -104,6 +111,44 @@ pub(crate) fn inspect_petpack_bytes(bytes: &[u8]) -> Result<PetpackSummary, Stri
         tags: petpack.tags,
         changelog: petpack.changelog,
     })
+}
+
+fn validate_petpack_size(bytes: &[u8]) -> Result<(), String> {
+    if bytes.len() > MAX_PETPACK_BYTES {
+        return Err(format!(
+            "Petpack is too large: maximum {} bytes",
+            MAX_PETPACK_BYTES
+        ));
+    }
+    Ok(())
+}
+
+fn validate_archive_limits(archive: &mut ZipArchive<Cursor<&[u8]>>) -> Result<(), String> {
+    if archive.len() > MAX_PETPACK_FILES {
+        return Err(format!(
+            "Petpack has too many files: maximum {}",
+            MAX_PETPACK_FILES
+        ));
+    }
+
+    let mut total_uncompressed = 0_u64;
+    for index in 0..archive.len() {
+        let file = archive.by_index(index).map_err(|error| error.to_string())?;
+        if file.is_dir() {
+            continue;
+        }
+        let size = file.size();
+        if size > MAX_PETPACK_ENTRY_BYTES {
+            return Err(format!("Petpack entry is too large: {}", file.name()));
+        }
+        total_uncompressed = total_uncompressed
+            .checked_add(size)
+            .ok_or_else(|| "Petpack is too large".to_string())?;
+        if total_uncompressed > MAX_PETPACK_ENTRY_BYTES {
+            return Err("Petpack is too large".to_string());
+        }
+    }
+    Ok(())
 }
 
 fn validate_petpack_archive(
@@ -347,6 +392,44 @@ mod tests {
         let error = install_petpack_bytes(b"not a zip", &root).expect_err("reject invalid zip");
 
         assert!(!error.is_empty());
+    }
+
+    #[test]
+    fn rejects_petpack_with_too_many_files() {
+        let root = temp_root();
+        let mut owned_entries = vec![
+            (
+                "petpack.json".to_string(),
+                br#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0","author":"Chen","license":"CC-BY-4.0","minAppVersion":"0.2.0","tags":["cat"],"changelog":["Initial package"]}"#.to_vec(),
+            ),
+            (
+                "pet.json".to_string(),
+                br#"{"id":"mi-fen","displayName":"Mi Fen","spritesheetPath":"spritesheet.webp"}"#.to_vec(),
+            ),
+            ("spritesheet.webp".to_string(), b"webp".to_vec()),
+        ];
+        for index in 0..40 {
+            owned_entries.push((format!("extra-{index}.txt"), b"extra".to_vec()));
+        }
+        let borrowed_entries: Vec<(&str, &[u8])> = owned_entries
+            .iter()
+            .map(|(name, bytes)| (name.as_str(), bytes.as_slice()))
+            .collect();
+        let pack = petpack(&borrowed_entries);
+
+        let error = install_petpack_bytes(&pack, &root).expect_err("reject too many files");
+
+        assert!(error.contains("too many files"));
+    }
+
+    #[test]
+    fn rejects_petpack_larger_than_import_limit() {
+        let root = temp_root();
+        let pack = vec![0_u8; 33 * 1024 * 1024];
+
+        let error = install_petpack_bytes(&pack, &root).expect_err("reject oversized petpack");
+
+        assert!(error.contains("too large"));
     }
 
     #[test]
