@@ -1,6 +1,6 @@
 {
   "name": "yongsheng-plan",
-  "version": "0.2.21",
+  "version": "0.2.22",
   "description": "Standalone desktop pet app for the Internet Immortality Project.",
   "license": "MIT",
   "author": "jieyangxchen",
@@ -28,5 +28,8 @@
     "build:app": "node scripts/build-app.js build",
     "build:petpacks": "node scripts/build-petpacks.js",
     "format:pets": "node scripts/format-pet-json.js"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.11.2"
   }
 }

@@ -46,6 +46,13 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
+function localTauriCliEntrypoint() {
+  const packageJsonPath = require.resolve("@tauri-apps/cli/package.json", { paths: [root] });
+  const cliPackageJson = readJson(packageJsonPath);
+  const binPath = cliPackageJson.bin?.tauri || "tauri.js";
+  return path.join(path.dirname(packageJsonPath), binPath);
+}
+
 function readCargoPackageVersion(filePath) {
   const content = fs.readFileSync(filePath, "utf8");
   let inPackageSection = false;
@@ -112,13 +119,27 @@ if (target === "build") {
   fs.rmSync(releaseBundleDirForTarget(tauriDir, buildTarget), { recursive: true, force: true });
 }
 
-const cargoArgs =
+const command =
   target === "dev"
-    ? ["run"]
-    : ["tauri", "build", "--config", configPath, ...(buildTarget ? ["--target", buildTarget] : [])];
+    ? {
+        executable: "cargo",
+        args: ["run"],
+        cwd: tauriDir
+      }
+    : {
+        executable: process.execPath,
+        args: [
+          localTauriCliEntrypoint(),
+          "build",
+          "--config",
+          configPath,
+          ...(buildTarget ? ["--target", buildTarget] : [])
+        ],
+        cwd: root
+      };
 
-const result = spawnSync("cargo", cargoArgs, {
-  cwd: tauriDir,
+const result = spawnSync(command.executable, command.args, {
+  cwd: command.cwd,
   stdio: "inherit"
 });
 

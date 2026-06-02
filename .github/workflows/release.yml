@@ -83,21 +83,14 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ~/.cargo/bin/cargo-tauri.exe
             src-tauri/target
           key: cargo-windows-app-${{ hashFiles('src-tauri/Cargo.lock') }}
           restore-keys: |
             cargo-windows-app-
             cargo-windows-
 
-      - name: Install Tauri CLI
-        shell: pwsh
-        run: |
-          if (Get-Command cargo-tauri -ErrorAction SilentlyContinue) {
-            cargo tauri --version
-          } else {
-            cargo install tauri-cli --version "^2"
-          }
+      - name: Install JavaScript dependencies
+        run: npm ci
 
       - name: Build app
         run: node scripts/build-app.js build windows
@@ -140,20 +133,14 @@ jobs:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
-            ~/.cargo/bin/cargo-tauri
             src-tauri/target/${{ env.MACOS_TARGET }}
           key: cargo-macos-app-${{ env.MACOS_ARCH }}-${{ hashFiles('src-tauri/Cargo.lock') }}
           restore-keys: |
             cargo-macos-app-${{ env.MACOS_ARCH }}-
             cargo-macos-
 
-      - name: Install Tauri CLI
-        run: |
-          if command -v cargo-tauri >/dev/null 2>&1; then
-            cargo tauri --version
-          else
-            cargo install tauri-cli --version "^2"
-          fi
+      - name: Install JavaScript dependencies
+        run: npm ci
 
       - name: Build app
         run: node scripts/build-app.js build macos-${{ env.MACOS_ARCH }}

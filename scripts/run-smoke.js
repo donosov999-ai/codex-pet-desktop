@@ -11,6 +11,7 @@ const SMOKE_COMMANDS = [
   ["Pet JSON format smoke", "node", ["src/pet-json-format-smoke.js"]],
   ["Smoke runner smoke", "node", ["src/smoke-runner-smoke.js"]],
   ["Check runner smoke", "node", ["src/check-runner-smoke.js"]],
+  ["Tauri CLI smoke", "node", ["src/tauri-cli-smoke.js"]],
   ["Release tag smoke", "node", ["src/release-tag-smoke.js"]],
   ["Release scope smoke", "node", ["src/release-scope-smoke.js"]],
   ["Renderer petpack helpers smoke", "node", ["src/renderer-petpack-helpers-smoke.mjs"]],
