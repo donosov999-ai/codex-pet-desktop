@@ -38,6 +38,14 @@
 
 > 这是社区项目，不是 OpenAI 或 Codex 官方应用。项目复用了 Codex 风格的 `pet.json` + `spritesheet.webp` 宠物资源格式，但主程序不依赖 Codex 启动或运行。
 
+## Why this exists / 项目初衷
+
+很多人和宠物之间的关系，不只是“养过一只猫/狗”这么简单。它们在某个阶段陪我们生活、等我们回家、把很普通的一天变得有回应；当它们离开后，照片和视频当然还在，但偶尔还是会希望它们能以一种轻一点、日常一点的方式重新出现在屏幕上。
+
+宠物·永生计划就是为了这种陪伴和纪念需求存在的。它不试图替代真实的生命，也不把思念包装成宏大的东西，只是把一只只具体的宠物做成可以长期保存、随时导入、安静待在桌面的资源包。
+
+做这个项目的过程中，我也在帮朋友、以及社媒上认识的朋友生成他们想再看一眼的宠物。为了这些需求，我自费从 Plus 会员升级到了 Pro 会员，因为希望更多朋友能再看到他们的宠物，也希望这些小小的陪伴不只停留在聊天窗口里。
+
 ## 三步开始
 
 1. 打开 [下载页](https://jieyangxchen.github.io/codex-pet-desktop/) 或 [最新 Release](https://github.com/jieyangxchen/codex-pet-desktop/releases/latest)，下载适合你系统的安装包。
@@ -207,8 +215,8 @@ docs/index.html                 GitHub Pages 静态下载页
 主程序发布：
 
 ```bash
-git tag v0.2.20
-git push origin v0.2.20
+git tag v0.2.21
+git push origin v0.2.21
 ```
 
 GitHub Actions 会构建并发布：
