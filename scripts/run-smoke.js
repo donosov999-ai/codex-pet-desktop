@@ -46,6 +46,7 @@ const SMOKE_COMMANDS = [
   ["Petpack QA smoke", "node", ["src/petpack-qa-smoke.js"]],
   ["Petpack builder smoke", "node", ["src/petpack-builder-smoke.js"]],
   ["Build petpacks", "node", ["scripts/build-petpacks.js"]],
+  ["Petpack size budget smoke", "node", ["src/petpack-size-budget-smoke.js"]],
   ["Visual QA page smoke", "node", ["src/visual-qa-page-smoke.js"]],
   ["Download page smoke", "node", ["src/download-page-smoke.js"]],
   ["Workflow runtime smoke", "node", ["src/workflow-runtime-smoke.js"]]

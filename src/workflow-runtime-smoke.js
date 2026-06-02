@@ -50,6 +50,11 @@ const pagesSource = fs.readFileSync(path.join(root, ".github/workflows/pages.yml
 if (!/push:[\s\S]*branches:[\s\S]*-\s+main/.test(releaseSource)) {
   failures.push("release workflow must run quality/cache warmup on main pushes.");
 }
+for (const ignoredPath of ["README.md", "docs/**", "resources/pets/**"]) {
+  if (!new RegExp(`paths-ignore:[\\s\\S]*-\\s+"?${ignoredPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"?`).test(releaseSource)) {
+    failures.push(`release workflow must ignore non-app main pushes for ${ignoredPath}.`);
+  }
+}
 for (const required of [
   "quality-gate:",
   "Install Linux Tauri dependencies",

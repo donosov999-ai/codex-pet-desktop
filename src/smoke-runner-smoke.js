@@ -34,11 +34,12 @@ if (commands.some((command) => !Array.isArray(command.args) || !command.args.len
 }
 
 const buildIndex = names.indexOf("Build petpacks");
+const sizeBudgetIndex = names.indexOf("Petpack size budget smoke");
 const visualQaIndex = names.indexOf("Visual QA page smoke");
 const downloadPageIndex = names.indexOf("Download page smoke");
 const releaseTagIndex = names.indexOf("Release tag smoke");
 const releaseScopeIndex = names.indexOf("Release scope smoke");
-if (buildIndex < 0 || visualQaIndex < 0 || downloadPageIndex < 0) {
+if (buildIndex < 0 || sizeBudgetIndex < 0 || visualQaIndex < 0 || downloadPageIndex < 0) {
   fail("runner is missing generated asset smoke stages", { names });
 }
 if (releaseTagIndex < 0 || releaseScopeIndex < 0) {
@@ -47,6 +48,9 @@ if (releaseTagIndex < 0 || releaseScopeIndex < 0) {
 
 if (buildIndex > visualQaIndex || buildIndex > downloadPageIndex) {
   fail("petpacks must be built before generated page smoke tests", { names });
+}
+if (buildIndex > sizeBudgetIndex || sizeBudgetIndex > visualQaIndex || sizeBudgetIndex > downloadPageIndex) {
+  fail("petpack size budget must run after petpacks are built and before generated page smoke tests", { names });
 }
 
 console.log(JSON.stringify({ ok: true, count: commands.length }, null, 2));
