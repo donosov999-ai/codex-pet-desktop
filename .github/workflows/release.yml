@@ -35,6 +35,10 @@ jobs:
             librsvg2-dev \
             patchelf
 
+      - name: Compute Cargo dependency cache key
+        id: cargo-cache-key
+        run: node scripts/cargo-cache-fingerprint.js
+
       - name: Cache Cargo registry and git
         uses: actions/cache@v5
         with:
@@ -42,7 +46,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             src-tauri/target
-          key: cargo-quality-${{ hashFiles('src-tauri/Cargo.lock') }}
+          key: cargo-quality-${{ steps.cargo-cache-key.outputs.fingerprint }}
           restore-keys: |
             cargo-quality-
 
@@ -77,6 +81,10 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
+      - name: Compute Cargo dependency cache key
+        id: cargo-cache-key
+        run: node scripts/cargo-cache-fingerprint.js
+
       - name: Cache Cargo registry and git
         uses: actions/cache@v5
         with:
@@ -84,7 +92,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             src-tauri/target
-          key: cargo-windows-app-${{ hashFiles('src-tauri/Cargo.lock') }}
+          key: cargo-windows-app-${{ steps.cargo-cache-key.outputs.fingerprint }}
           restore-keys: |
             cargo-windows-app-
             cargo-windows-
@@ -127,6 +135,10 @@ jobs:
         with:
           targets: ${{ env.MACOS_TARGET }}
 
+      - name: Compute Cargo dependency cache key
+        id: cargo-cache-key
+        run: node scripts/cargo-cache-fingerprint.js
+
       - name: Cache Cargo registry and git
         uses: actions/cache@v5
         with:
@@ -134,7 +146,7 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             src-tauri/target/${{ env.MACOS_TARGET }}
-          key: cargo-macos-app-${{ env.MACOS_ARCH }}-${{ hashFiles('src-tauri/Cargo.lock') }}
+          key: cargo-macos-app-${{ env.MACOS_ARCH }}-${{ steps.cargo-cache-key.outputs.fingerprint }}
           restore-keys: |
             cargo-macos-app-${{ env.MACOS_ARCH }}-
             cargo-macos-

@@ -64,6 +64,7 @@ function isAppReleasePath(filePath) {
       "package.json",
       "package-lock.json",
       "scripts/build-app.js",
+      "scripts/cargo-cache-fingerprint.js",
       "scripts/check-release-tag.js",
       "scripts/release-scope.js",
       "scripts/run-smoke.js",

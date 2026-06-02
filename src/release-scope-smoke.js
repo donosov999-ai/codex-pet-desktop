@@ -47,6 +47,11 @@ if (releaseWorkflowChange.scope !== "app-release-required" || !releaseWorkflowCh
   fail("release workflow changes must require desktop release", releaseWorkflowChange);
 }
 
+const releaseScriptChange = scopeFor(["scripts/cargo-cache-fingerprint.js"]);
+if (releaseScriptChange.scope !== "app-release-required" || !releaseScriptChange.appReleaseRequired || !releaseScriptChange.tagRequired) {
+  fail("release helper script changes must require desktop release", releaseScriptChange);
+}
+
 const mixedChange = scopeFor(["README.md", "src-tauri/src/commands.rs"]);
 if (mixedChange.scope !== "app-release-required" || !mixedChange.appReleaseRequired || !mixedChange.tagRequired) {
   fail("mixed README and app changes must require desktop release", mixedChange);
