@@ -1,24 +1,53 @@
 {
   "id": "lingling",
-  "displayName": "\u73b2\u73b2",
-  "description": "\u73b2\u73b2\uff0c\u6728\u8001\u5e08\u5ba4\u53cb\u7684\u5c0f\u6597\u3002",
+  "displayName": "玲玲",
+  "description": "玲玲，木老师室友的小斗。",
   "version": "1.0.0",
   "author": "Chen",
   "license": "CC-BY-4.0",
   "minAppVersion": "0.2.0",
-  "tags": ["\u72d7\u72d7", "\u5c0f\u6597", "\u4e09\u8272"],
-  "changelog": ["\u9996\u7248\u73b2\u73b2\u684c\u5ba0\u8d44\u6e90\u3002"],
+  "tags": [
+    "狗狗",
+    "小斗",
+    "三色"
+  ],
+  "changelog": [
+    "首版玲玲桌宠资源。"
+  ],
   "behavior": {
     "clickState": "waving",
     "doubleClickState": "jumping",
-    "idleStates": ["idle", "waiting", "review"],
-    "wanderDirections": [-1, 1, 0],
+    "idleStates": [
+      "idle",
+      "waiting",
+      "review"
+    ],
+    "wanderDirections": [
+      -1,
+      1,
+      0
+    ],
     "natural": {
-      "nextWanderDelayMs": [5200, 11500],
-      "idleDurationMs": [2000, 5000],
-      "walkDurationMs": [2400, 5400],
-      "edgePauseMs": [900, 2200],
-      "edgePauseStates": ["waiting", "review"],
+      "nextWanderDelayMs": [
+        5200,
+        11500
+      ],
+      "idleDurationMs": [
+        2000,
+        5000
+      ],
+      "walkDurationMs": [
+        2400,
+        5400
+      ],
+      "edgePauseMs": [
+        900,
+        2200
+      ],
+      "edgePauseStates": [
+        "waiting",
+        "review"
+      ],
       "postDragState": "waiting",
       "postDragMs": 900,
       "clickReturnState": "idle",

@@ -1,24 +1,53 @@
 {
   "id": "shubiao",
-  "displayName": "\u9f20\u6807",
-  "description": "\u9f20\u6807\uff0c\u9ed8\u9ed8\u5bb6\u7684\u9f20\u6807\u3002",
+  "displayName": "鼠标",
+  "description": "鼠标，默默家的鼠标。",
   "version": "1.0.0",
   "author": "Chen",
   "license": "CC-BY-4.0",
   "minAppVersion": "0.2.0",
-  "tags": ["\u4ed3\u9f20", "\u7070\u767d", "\u9f20\u6807"],
-  "changelog": ["\u9996\u7248\u9f20\u6807\u684c\u5ba0\u8d44\u6e90\u3002"],
+  "tags": [
+    "仓鼠",
+    "灰白",
+    "鼠标"
+  ],
+  "changelog": [
+    "首版鼠标桌宠资源。"
+  ],
   "behavior": {
     "clickState": "waving",
     "doubleClickState": "jumping",
-    "idleStates": ["idle", "waiting", "review"],
-    "wanderDirections": [-1, 1, 0],
+    "idleStates": [
+      "idle",
+      "waiting",
+      "review"
+    ],
+    "wanderDirections": [
+      -1,
+      1,
+      0
+    ],
     "natural": {
-      "nextWanderDelayMs": [5200, 11000],
-      "idleDurationMs": [1800, 4200],
-      "walkDurationMs": [2600, 5600],
-      "edgePauseMs": [900, 2200],
-      "edgePauseStates": ["waiting", "review"],
+      "nextWanderDelayMs": [
+        5200,
+        11000
+      ],
+      "idleDurationMs": [
+        1800,
+        4200
+      ],
+      "walkDurationMs": [
+        2600,
+        5600
+      ],
+      "edgePauseMs": [
+        900,
+        2200
+      ],
+      "edgePauseStates": [
+        "waiting",
+        "review"
+      ],
       "postDragState": "waiting",
       "postDragMs": 900,
       "clickReturnState": "idle",

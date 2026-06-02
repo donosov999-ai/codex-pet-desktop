@@ -1,24 +1,54 @@
 {
   "id": "tiantian",
-  "displayName": "\u6dfb\u6dfb",
-  "description": "\u6dfb\u6dfb\uff0c\u65f8\u8001\u5e08\u5bb6\u7684\u5c0f\u6597\u3002",
+  "displayName": "添添",
+  "description": "添添，旸老师家的小斗。",
   "version": "1.0.1",
   "author": "Chen",
   "license": "CC-BY-4.0",
   "minAppVersion": "0.2.0",
-  "tags": ["\u72d7\u72d7", "\u91d1\u6bdb", "\u5f00\u5fc3"],
-  "changelog": ["\u4ea4\u6362\u6dfb\u6dfb\u5355\u51fb\u548c\u53cc\u51fb\u52a8\u4f5c\u3002", "\u9996\u7248\u6dfb\u6dfb\u684c\u5ba0\u8d44\u6e90\u3002"],
+  "tags": [
+    "狗狗",
+    "金毛",
+    "开心"
+  ],
+  "changelog": [
+    "交换添添单击和双击动作。",
+    "首版添添桌宠资源。"
+  ],
   "behavior": {
     "clickState": "jumping",
     "doubleClickState": "waving",
-    "idleStates": ["idle", "waiting", "review"],
-    "wanderDirections": [-1, 1, 0],
+    "idleStates": [
+      "idle",
+      "waiting",
+      "review"
+    ],
+    "wanderDirections": [
+      -1,
+      1,
+      0
+    ],
     "natural": {
-      "nextWanderDelayMs": [5200, 11000],
-      "idleDurationMs": [1800, 4200],
-      "walkDurationMs": [2600, 5600],
-      "edgePauseMs": [900, 2200],
-      "edgePauseStates": ["waiting", "review"],
+      "nextWanderDelayMs": [
+        5200,
+        11000
+      ],
+      "idleDurationMs": [
+        1800,
+        4200
+      ],
+      "walkDurationMs": [
+        2600,
+        5600
+      ],
+      "edgePauseMs": [
+        900,
+        2200
+      ],
+      "edgePauseStates": [
+        "waiting",
+        "review"
+      ],
       "postDragState": "waiting",
       "postDragMs": 900,
       "clickReturnState": "idle",

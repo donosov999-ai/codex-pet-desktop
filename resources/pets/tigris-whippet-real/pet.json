@@ -6,19 +6,52 @@
   "author": "Chen",
   "license": "CC-BY-4.0",
   "minAppVersion": "0.2.0",
-  "tags": ["狗狗", "惠比特", "虎斑色", "真实版"],
-  "changelog": ["新增红糖真实版桌宠资源，保留原红糖像素版不变。"],
+  "tags": [
+    "狗狗",
+    "惠比特",
+    "虎斑色",
+    "真实版"
+  ],
+  "changelog": [
+    "新增红糖真实版桌宠资源，保留原红糖像素版不变。"
+  ],
   "behavior": {
     "clickState": "waving",
     "doubleClickState": "jumping",
-    "idleStates": ["idle", "waiting", "running", "review"],
-    "wanderDirections": [-1, 1, 0, 0],
+    "idleStates": [
+      "idle",
+      "waiting",
+      "running",
+      "review"
+    ],
+    "wanderDirections": [
+      -1,
+      1,
+      0,
+      0
+    ],
     "natural": {
-      "nextWanderDelayMs": [6800, 15000],
-      "idleDurationMs": [2600, 6800],
-      "walkDurationMs": [2400, 5200],
-      "edgePauseMs": [1000, 2600],
-      "edgePauseStates": ["waiting", "review", "running"],
+      "nextWanderDelayMs": [
+        6800,
+        15000
+      ],
+      "idleDurationMs": [
+        2600,
+        6800
+      ],
+      "walkDurationMs": [
+        2400,
+        5200
+      ],
+      "edgePauseMs": [
+        1000,
+        2600
+      ],
+      "edgePauseStates": [
+        "waiting",
+        "review",
+        "running"
+      ],
       "postDragState": "review",
       "postDragMs": 1000,
       "clickReturnState": "idle",
@@ -30,44 +63,120 @@
           "id": "wake",
           "from": 6,
           "to": 10,
-          "idleStates": ["idle", "running", "review"],
-          "wanderDirections": [0, 0, 1, -1],
-          "nextWanderDelayMs": [6200, 13000],
-          "idleDurationMs": [2400, 5600],
-          "walkDurationMs": [2200, 4600]
+          "idleStates": [
+            "idle",
+            "running",
+            "review"
+          ],
+          "wanderDirections": [
+            0,
+            0,
+            1,
+            -1
+          ],
+          "nextWanderDelayMs": [
+            6200,
+            13000
+          ],
+          "idleDurationMs": [
+            2400,
+            5600
+          ],
+          "walkDurationMs": [
+            2200,
+            4600
+          ]
         },
         {
           "id": "active",
           "from": 10,
           "to": 18,
-          "idleStates": ["review", "running", "idle", "waiting"],
-          "wanderDirections": [0, 1, -1, 0],
-          "nextWanderDelayMs": [5200, 12000],
-          "idleDurationMs": [2200, 5200],
-          "walkDurationMs": [2400, 5200]
+          "idleStates": [
+            "review",
+            "running",
+            "idle",
+            "waiting"
+          ],
+          "wanderDirections": [
+            0,
+            1,
+            -1,
+            0
+          ],
+          "nextWanderDelayMs": [
+            5200,
+            12000
+          ],
+          "idleDurationMs": [
+            2200,
+            5200
+          ],
+          "walkDurationMs": [
+            2400,
+            5200
+          ]
         },
         {
           "id": "quiet",
           "from": 18,
           "to": 22,
-          "idleStates": ["waiting", "idle", "review"],
-          "wanderDirections": [0, 0, 1, -1],
-          "nextWanderDelayMs": [7200, 15000],
-          "idleDurationMs": [3200, 7400],
-          "walkDurationMs": [1800, 3800]
+          "idleStates": [
+            "waiting",
+            "idle",
+            "review"
+          ],
+          "wanderDirections": [
+            0,
+            0,
+            1,
+            -1
+          ],
+          "nextWanderDelayMs": [
+            7200,
+            15000
+          ],
+          "idleDurationMs": [
+            3200,
+            7400
+          ],
+          "walkDurationMs": [
+            1800,
+            3800
+          ]
         },
         {
           "id": "sleepy",
           "from": 22,
           "to": 6,
-          "idleStates": ["waiting", "idle"],
-          "wanderDirections": [0, 0, 0, 1, -1],
-          "nextWanderDelayMs": [9000, 18000],
-          "idleDurationMs": [4200, 9000],
-          "walkDurationMs": [1200, 2600]
+          "idleStates": [
+            "waiting",
+            "idle"
+          ],
+          "wanderDirections": [
+            0,
+            0,
+            0,
+            1,
+            -1
+          ],
+          "nextWanderDelayMs": [
+            9000,
+            18000
+          ],
+          "idleDurationMs": [
+            4200,
+            9000
+          ],
+          "walkDurationMs": [
+            1200,
+            2600
+          ]
         }
       ],
-      "idleReactionDelayMs": [18000, 42000]
+      "idleReactionDelayMs": [
+        18000,
+        42000
+      ]
     }
   },
   "spritesheetPath": "spritesheet.webp"

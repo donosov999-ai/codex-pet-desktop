@@ -45,6 +45,12 @@ jobs:
       - name: Render download page
         run: node scripts/render-download-page.js
 
+      - name: Verify visual QA page
+        run: node src/visual-qa-page-smoke.js
+
+      - name: Verify download page
+        run: node src/download-page-smoke.js
+
       - name: Assemble site
         run: |
           mkdir -p site/petpacks

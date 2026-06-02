@@ -49,6 +49,9 @@ jobs:
       - name: Install JavaScript dependencies
         run: npm ci
 
+      - name: Check release tag version
+        run: node scripts/check-release-tag.js
+
       - name: Run renderer, resource, page, and workflow smoke tests
         run: npm run smoke
 

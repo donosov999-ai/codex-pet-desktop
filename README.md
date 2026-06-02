@@ -173,6 +173,7 @@ spritesheet.webp
 
 ```bash
 npm install
+npm run check
 npm run smoke
 
 cd src-tauri
@@ -212,11 +213,21 @@ docs/index.html                 GitHub Pages 静态下载页
 
 ## 发布
 
+提交范围判断：
+
+```bash
+node scripts/release-scope.js README.md
+node scripts/release-scope.js resources/pets/mi-fen/pet.json
+node scripts/release-scope.js src/app/renderer/index.js
+```
+
+README-only 变更只推 `main`，不升级主程序版本、不推 `v*` tag。宠物资源变更走 Pages 发布，也不升级主程序版本。只有主程序代码、配置或构建链路变更，或明确需要发版时，才升级版本并推送新的 `v*` tag。
+
 主程序发布：
 
 ```bash
-git tag v0.2.20
-git push origin v0.2.20
+git tag v0.2.21
+git push origin v0.2.21
 ```
 
 GitHub Actions 会构建并发布：

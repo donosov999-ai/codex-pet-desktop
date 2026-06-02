@@ -1,24 +1,55 @@
 {
   "id": "mi-jiu",
-  "displayName": "\u7c73\u9152",
-  "description": "\u7c73\u9152\uff0c\u6728\u8001\u5e08\u7684\u5de5\u53cb\u3002",
+  "displayName": "米酒",
+  "description": "米酒，木老师的工友。",
   "version": "1.0.2",
   "author": "Chen",
   "license": "CC-BY-4.0",
   "minAppVersion": "0.2.0",
-  "tags": ["\u732b\u54aa", "\u6df1\u8272", "\u8db4\u7740"],
-  "changelog": ["\u66f4\u65b0\u8d44\u6e90\u4ecb\u7ecd\u6587\u6848\u3002", "\u589e\u52a0\u66f4\u81ea\u7136\u7684\u6563\u6b65\u8282\u594f\u548c\u62d6\u62fd\u540e\u53cd\u9988\u3002", "\u9996\u7248\u7c73\u9152\u684c\u5ba0\u8d44\u6e90\u3002"],
+  "tags": [
+    "猫咪",
+    "深色",
+    "趴着"
+  ],
+  "changelog": [
+    "更新资源介绍文案。",
+    "增加更自然的散步节奏和拖拽后反馈。",
+    "首版米酒桌宠资源。"
+  ],
   "behavior": {
     "clickState": "review",
     "doubleClickState": "jumping",
-    "idleStates": ["idle", "waiting", "review"],
-    "wanderDirections": [-1, 1, 0],
+    "idleStates": [
+      "idle",
+      "waiting",
+      "review"
+    ],
+    "wanderDirections": [
+      -1,
+      1,
+      0
+    ],
     "natural": {
-      "nextWanderDelayMs": [5600, 12000],
-      "idleDurationMs": [2200, 5200],
-      "walkDurationMs": [2400, 5200],
-      "edgePauseMs": [1000, 2400],
-      "edgePauseStates": ["review", "waiting"],
+      "nextWanderDelayMs": [
+        5600,
+        12000
+      ],
+      "idleDurationMs": [
+        2200,
+        5200
+      ],
+      "walkDurationMs": [
+        2400,
+        5200
+      ],
+      "edgePauseMs": [
+        1000,
+        2400
+      ],
+      "edgePauseStates": [
+        "review",
+        "waiting"
+      ],
       "postDragState": "review",
       "postDragMs": 950,
       "clickReturnState": "idle",

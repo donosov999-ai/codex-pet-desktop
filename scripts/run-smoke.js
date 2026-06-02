@@ -8,7 +8,11 @@ const root = path.resolve(__dirname, "..");
 const SMOKE_COMMANDS = [
   ["Build app config smoke", "node", ["src/build-app-config-smoke.js"]],
   ["Pet resource smoke", "node", ["src/smoke.js"]],
+  ["Pet JSON format smoke", "node", ["src/pet-json-format-smoke.js"]],
   ["Smoke runner smoke", "node", ["src/smoke-runner-smoke.js"]],
+  ["Check runner smoke", "node", ["src/check-runner-smoke.js"]],
+  ["Release tag smoke", "node", ["src/release-tag-smoke.js"]],
+  ["Release scope smoke", "node", ["src/release-scope-smoke.js"]],
   ["Renderer petpack helpers smoke", "node", ["src/renderer-petpack-helpers-smoke.mjs"]],
   ["Renderer empty smoke", "node", ["src/renderer-empty-smoke.js"]],
   ["Renderer empty window layout smoke", "node", ["src/renderer-empty-window-layout-smoke.js"]],

@@ -46,11 +46,13 @@ const failures = workflowPaths.flatMap((workflowPath) => {
 });
 
 const releaseSource = fs.readFileSync(path.join(root, ".github/workflows/release.yml"), "utf8");
+const pagesSource = fs.readFileSync(path.join(root, ".github/workflows/pages.yml"), "utf8");
 for (const required of [
   "quality-gate:",
   "Install Linux Tauri dependencies",
   "libwebkit2gtk-4.1-dev",
   "libappindicator3-dev",
+  "node scripts/check-release-tag.js",
   "npm run smoke",
   "cargo fmt --check",
   "cargo clippy --all-targets -- -D warnings",
@@ -62,6 +64,9 @@ for (const required of [
 }
 if (releaseSource.indexOf("Install Linux Tauri dependencies") > releaseSource.indexOf("Run Rust tests")) {
   failures.push("release workflow must install Linux Tauri dependencies before running Rust tests");
+}
+if (releaseSource.indexOf("node scripts/check-release-tag.js") > releaseSource.indexOf("npm run smoke")) {
+  failures.push("release workflow must check release tag before running smoke tests");
 }
 if (releaseSource.indexOf("Run Rust format check") > releaseSource.indexOf("Run Rust tests")) {
   failures.push("release workflow must run Rust format check before Rust tests");
@@ -80,6 +85,18 @@ if (!/build-windows:[\s\S]*needs:\s+quality-gate/.test(releaseSource)) {
 }
 if (!/build-macos:[\s\S]*needs:\s+quality-gate/.test(releaseSource)) {
   failures.push("build-macos must depend on quality-gate");
+}
+
+for (const required of ["node src/visual-qa-page-smoke.js", "node src/download-page-smoke.js"]) {
+  if (!pagesSource.includes(required)) {
+    failures.push(`pages workflow must verify generated pages before deploy: ${required}`);
+  }
+}
+if (pagesSource.indexOf("Render download page") > pagesSource.indexOf("node src/download-page-smoke.js")) {
+  failures.push("pages workflow must render the download page before running its smoke test");
+}
+if (pagesSource.indexOf("Build petpacks") > pagesSource.indexOf("node src/visual-qa-page-smoke.js")) {
+  failures.push("pages workflow must build petpacks before running visual QA smoke");
 }
 
 if (failures.length) {
