@@ -32,6 +32,11 @@ if (expectedOrder.some((name, index) => names.indexOf(name) !== index)) {
   fail("check runner stages must stay in release quality-gate order", { names });
 }
 
+const smokeCommand = commands[0] || {};
+if (smokeCommand.command !== "node" || smokeCommand.args.join(" ") !== "scripts/run-smoke.js") {
+  fail("check runner smoke stage must call scripts/run-smoke.js directly through node", { smokeCommand });
+}
+
 if (commands.some((command) => !Array.isArray(command.args) || !command.args.length || !command.cwd)) {
   fail("every check command must have argv-style args and cwd", { commands });
 }

@@ -104,10 +104,31 @@ if (!/build-macos:[\s\S]*if:\s+startsWith\(github\.ref, 'refs\/tags\/v'\)/.test(
   failures.push("build-macos must only run for release tag pushes.");
 }
 
-for (const required of ["node src/visual-qa-page-smoke.js", "node src/download-page-smoke.js"]) {
+for (const required of [
+  "node src/petpack-size-budget-smoke.js",
+  "node src/visual-qa-page-smoke.js",
+  "node src/download-page-smoke.js"
+]) {
   if (!pagesSource.includes(required)) {
     failures.push(`pages workflow must verify generated pages before deploy: ${required}`);
   }
+}
+for (const requiredPath of [
+  "scripts/petpack-zip.js",
+  "scripts/render-visual-qa-page.js",
+  "src/petpack-size-budget-smoke.js",
+  "src/visual-qa-page-smoke.js",
+  "src/download-page-smoke.js"
+]) {
+  if (!pagesSource.includes(`"${requiredPath}"`)) {
+    failures.push(`pages workflow must rerun when ${requiredPath} changes.`);
+  }
+}
+if (pagesSource.indexOf("Build petpacks") > pagesSource.indexOf("node src/petpack-size-budget-smoke.js")) {
+  failures.push("pages workflow must build petpacks before running size budget smoke");
+}
+if (pagesSource.indexOf("node src/petpack-size-budget-smoke.js") > pagesSource.indexOf("node src/visual-qa-page-smoke.js")) {
+  failures.push("pages workflow must run size budget smoke before visual QA smoke");
 }
 if (pagesSource.indexOf("Render download page") > pagesSource.indexOf("node src/download-page-smoke.js")) {
   failures.push("pages workflow must render the download page before running its smoke test");

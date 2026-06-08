@@ -8,8 +8,13 @@ on:
       - "docs/**"
       - "resources/pets/**"
       - "scripts/build-petpacks.js"
+      - "scripts/petpack-zip.js"
       - "scripts/qa-petpack-assets.js"
       - "scripts/render-download-page.js"
+      - "scripts/render-visual-qa-page.js"
+      - "src/petpack-size-budget-smoke.js"
+      - "src/visual-qa-page-smoke.js"
+      - "src/download-page-smoke.js"
       - ".github/workflows/pages.yml"
   workflow_dispatch:
 
@@ -41,6 +46,9 @@ jobs:
 
       - name: Build petpacks
         run: node scripts/build-petpacks.js
+
+      - name: Verify petpack size budget
+        run: node src/petpack-size-budget-smoke.js
 
       - name: Render download page
         run: node scripts/render-download-page.js

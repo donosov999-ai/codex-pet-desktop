@@ -7,13 +7,16 @@ const root = path.resolve(__dirname, "..");
 const tauriRoot = path.join(root, "src-tauri");
 
 const CHECK_COMMANDS = [
-  ["Smoke", "npm", ["run", "smoke"], root],
+  ["Smoke", "node", ["scripts/run-smoke.js"], root],
   ["Rust format check", "cargo", ["fmt", "--check"], tauriRoot],
   ["Rust Clippy", "cargo", ["clippy", "--all-targets", "--", "-D", "warnings"], tauriRoot],
   ["Rust tests", "cargo", ["test"], tauriRoot]
 ].map(([name, command, args, cwd]) => ({ name, command, args, cwd }));
 
 function commandFor(command) {
+  if (command === "node") {
+    return process.execPath;
+  }
   return process.platform === "win32" && command === "npm" ? "npm.cmd" : command;
 }
 
