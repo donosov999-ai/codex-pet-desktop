@@ -34,7 +34,8 @@ function readCargoPackageVersion(filePath) {
 }
 
 const expectedVersion = readJson(packageJsonPath).version;
-const tauriVersion = readJson(tauriConfigPath).version;
+const tauriConfig = readJson(tauriConfigPath);
+const tauriVersion = tauriConfig.version;
 const cargoVersion = readCargoPackageVersion(cargoTomlPath);
 
 const mismatches = [
@@ -50,6 +51,20 @@ if (mismatches.length) {
         reason: "source versions differ",
         expected: expectedVersion,
         mismatches
+      },
+      null,
+      2
+    )
+  );
+  process.exit(1);
+}
+
+if (tauriConfig.bundle?.useLocalToolsDir !== true) {
+  console.error(
+    JSON.stringify(
+      {
+        ok: false,
+        reason: "bundle.useLocalToolsDir must cache Tauri bundler tools in src-tauri/target"
       },
       null,
       2
