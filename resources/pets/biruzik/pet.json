@@ -1,0 +1,60 @@
+{
+  "id": "biruzik",
+  "displayName": "Бирюзик",
+  "description": "Белый пушистый стратег с огромными бирюзовыми глазами, спокойным характером и инженерной хваткой.",
+  "version": "1.0.0",
+  "author": "Denis Onosov (ODV999)",
+  "license": "CC-BY-4.0",
+  "minAppVersion": "0.2.0",
+  "spriteVersionNumber": 2,
+  "tags": [
+    "кот",
+    "белый",
+    "бирюзовые глаза",
+    "стратег"
+  ],
+  "changelog": [
+    "Первая публикация Бирюзика в каталоге питомцев."
+  ],
+  "behavior": {
+    "clickState": "waving",
+    "doubleClickState": "jumping",
+    "idleStates": [
+      "idle",
+      "waiting",
+      "review"
+    ],
+    "wanderDirections": [
+      -1,
+      1,
+      0
+    ],
+    "natural": {
+      "nextWanderDelayMs": [
+        5200,
+        11500
+      ],
+      "idleDurationMs": [
+        2000,
+        5000
+      ],
+      "walkDurationMs": [
+        2400,
+        5400
+      ],
+      "edgePauseMs": [
+        900,
+        2200
+      ],
+      "edgePauseStates": [
+        "waiting",
+        "review"
+      ],
+      "postDragState": "waiting",
+      "postDragMs": 900,
+      "clickReturnState": "idle",
+      "doubleClickReturnState": "idle"
+    }
+  },
+  "spritesheetPath": "spritesheet.webp"
+}
