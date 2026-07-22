@@ -120,6 +120,9 @@ function validatePetResources(petsRoot, options = {}) {
       petReport.id = manifest.id || entry.name;
       petReport.displayName = manifest.displayName || manifest.name || "";
       petReport.version = manifest.version || "1.0.0";
+      petReport.spriteVersionNumber = Number.isInteger(Number(manifest.spriteVersionNumber))
+        ? Number(manifest.spriteVersionNumber)
+        : 1;
       if (!petReport.id) {
         petReport.errors.push("pet.json id is required");
       } else if (petReport.id !== entry.name) {
@@ -175,6 +178,12 @@ function validatePetResources(petsRoot, options = {}) {
         if (size.width !== expectedWidth || !heightOk) {
           petReport.errors.push(
             `Expected spritesheet ${expectedWidth}x${expectedHeight} (or 1536 x 208*rows, 9-12 rows), got ${size.width}x${size.height}`
+          );
+        }
+        const requiredRows = petReport.spriteVersionNumber >= 2 ? 11 : 9;
+        if (rowsFromHeight !== requiredRows) {
+          petReport.errors.push(
+            `spriteVersionNumber ${petReport.spriteVersionNumber} requires ${requiredRows} rows, got ${rowsFromHeight}`
           );
         }
       }
@@ -248,6 +257,53 @@ function validatePetResources(petsRoot, options = {}) {
             }
             if (durationMs !== null && (!Number.isFinite(durationMs) || durationMs < 1000)) {
               petReport.errors.push(`Invalid care duration for ${stateId}: ${state?.durationMs}`);
+            }
+            if (state?.timeline !== undefined) {
+              const timeline = state.timeline;
+              let timelineDurationMs = 0;
+              let timelineSteps = 0;
+              if (!Array.isArray(timeline) || !timeline.length) {
+                petReport.errors.push(`Invalid care timeline for ${stateId}: expected at least one segment`);
+              } else {
+                for (const segment of timeline) {
+                  const segmentFrames = segment?.frames;
+                  const frameDurationMs = Number(segment?.frameDurationMs);
+                  const repeat = segment?.repeat === undefined ? 1 : Number(segment.repeat);
+                  if (
+                    !Array.isArray(segmentFrames) ||
+                    !segmentFrames.length ||
+                    segmentFrames.some((frame) => !Number.isInteger(Number(frame)) || Number(frame) < 0 || Number(frame) >= frames)
+                  ) {
+                    petReport.errors.push(`Invalid care timeline frames for ${stateId}`);
+                  }
+                  if (!Number.isFinite(frameDurationMs) || frameDurationMs < 50) {
+                    petReport.errors.push(`Invalid care timeline frame duration for ${stateId}`);
+                  }
+                  if (!Number.isInteger(repeat) || repeat < 1 || repeat > 100) {
+                    petReport.errors.push(`Invalid care timeline repeat for ${stateId}`);
+                  }
+                  if (
+                    Array.isArray(segmentFrames) &&
+                    segmentFrames.length &&
+                    Number.isFinite(frameDurationMs) &&
+                    frameDurationMs >= 50 &&
+                    Number.isInteger(repeat) &&
+                    repeat >= 1 &&
+                    repeat <= 100
+                  ) {
+                    timelineSteps += segmentFrames.length * repeat;
+                    timelineDurationMs += segmentFrames.length * repeat * frameDurationMs;
+                  }
+                }
+                if (timelineSteps > 512) {
+                  petReport.errors.push(`Care timeline is too long for ${stateId}: ${timelineSteps} steps`);
+                }
+                if (durationMs !== null && timelineDurationMs !== durationMs) {
+                  petReport.errors.push(
+                    `Care timeline duration mismatch for ${stateId}: expected ${durationMs}, got ${timelineDurationMs}`
+                  );
+                }
+              }
             }
           }
           if (

@@ -10,6 +10,36 @@ function positiveInteger(value, fallback) {
   return number > 0 ? number : fallback;
 }
 
+function normalizeCareTimeline(rawTimeline, frameCount) {
+  if (!Array.isArray(rawTimeline) || !rawTimeline.length) {
+    return null;
+  }
+
+  const timeline = [];
+  for (const segment of rawTimeline) {
+    if (!segment || typeof segment !== "object" || !Array.isArray(segment.frames) || !segment.frames.length) {
+      return null;
+    }
+    const frames = segment.frames.map((value) => Math.floor(finiteNumber(value, -1)));
+    const frameDurationMs = Math.round(finiteNumber(segment.frameDurationMs, 0));
+    const repeat = positiveInteger(segment.repeat, 1);
+    if (
+      frames.some((value) => value < 0 || value >= frameCount) ||
+      frameDurationMs < 50 ||
+      repeat > 100 ||
+      timeline.length + frames.length * repeat > 512
+    ) {
+      return null;
+    }
+    for (let iteration = 0; iteration < repeat; iteration += 1) {
+      for (const frame of frames) {
+        timeline.push({ frame, durationMs: frameDurationMs });
+      }
+    }
+  }
+  return timeline.length ? timeline : null;
+}
+
 export function normalizeCareConfig(care = {}) {
   const source = care && typeof care === "object" ? care : {};
   const atlasSource = source.atlas && typeof source.atlas === "object" ? source.atlas : {};
@@ -38,20 +68,25 @@ export function normalizeCareConfig(care = {}) {
     if (row < 0 || row >= rows || frames < 1 || frames > columns || fps <= 0) {
       continue;
     }
+    const timeline = normalizeCareTimeline(raw.timeline, frames);
     const cycleDurationMs = (frames / fps) * 1000;
     const requestedDurationMs = Math.max(1000, finiteNumber(raw.durationMs, 6000));
     const requestedLoops = positiveInteger(raw.loops, 0);
-    const loops = Math.max(1, requestedLoops, Math.ceil(requestedDurationMs / cycleDurationMs));
+    const loops = timeline ? 1 : Math.max(1, requestedLoops, Math.ceil(requestedDurationMs / cycleDurationMs));
+    const durationMs = timeline
+      ? timeline.reduce((sum, step) => sum + step.durationMs, 0)
+      : Math.round(loops * cycleDurationMs);
     states[id] = {
       atlas: "care",
       row,
       frames,
       fps,
       loops,
-      cycleDurationMs: Math.round(cycleDurationMs),
+      cycleDurationMs: timeline ? durationMs : Math.round(cycleDurationMs),
       once: raw.once === true,
       mirror: raw.mirror !== false,
-      durationMs: Math.round(loops * cycleDurationMs),
+      durationMs,
+      ...(timeline ? { timeline } : {}),
       label: typeof raw.label === "string" && raw.label.trim() ? raw.label.trim() : id
     };
   }
@@ -75,6 +110,8 @@ export function createAnimation(dom) {
   let stateName = "idle";
   let manualDirection = "right";
   let frame = 0;
+  let timelineIndex = 0;
+  let timelineStarted = false;
   let lastFrameAt = 0;
   let onceReturnState = "idle";
 
@@ -109,7 +146,9 @@ export function createAnimation(dom) {
       return false;
     }
     stateName = nextState;
-    frame = 0;
+    timelineIndex = 0;
+    timelineStarted = false;
+    frame = states[nextState].timeline?.[0]?.frame ?? 0;
     lastFrameAt = 0;
     onceReturnState = states[onceReturn] ? onceReturn : "idle";
     dom.stateSelect.value = nextState;
@@ -136,13 +175,15 @@ export function createAnimation(dom) {
 
   function configurePet(pet, { standardSource = "", careSource = "" } = {}) {
     careConfig = normalizeCareConfig(careSource ? pet?.care : {});
+    const spriteVersionNumber = positiveInteger(pet?.spriteVersionNumber, 1);
+    const standardAtlasHeight = (spriteVersionNumber >= 2 ? 11 : 9) * CELL_HEIGHT;
     states = { ...STATES, ...careConfig.states };
     stateLabels = {
       ...STATE_LABELS,
       ...Object.fromEntries(Object.entries(careConfig.states).map(([id, state]) => [id, state.label]))
     };
     sources = {
-      standard: { url: standardSource, width: ATLAS_WIDTH, height: ATLAS_HEIGHT },
+      standard: { url: standardSource, width: ATLAS_WIDTH, height: standardAtlasHeight || ATLAS_HEIGHT },
       care: { url: careSource, width: careConfig.atlas.width, height: careConfig.atlas.height }
     };
     renderStateOptions();
@@ -171,6 +212,35 @@ export function createAnimation(dom) {
 
   function animationLoop(now) {
     const state = states[stateName] || states.idle;
+    if (state.timeline?.length) {
+      if (!timelineStarted) {
+        timelineStarted = true;
+        lastFrameAt = now;
+      } else {
+        let changed = false;
+        while (now - lastFrameAt >= state.timeline[timelineIndex].durationMs) {
+          lastFrameAt += state.timeline[timelineIndex].durationMs;
+          if (timelineIndex + 1 >= state.timeline.length) {
+            if (state.once) {
+              setState(onceReturnState);
+              requestAnimationFrame(animationLoop);
+              return;
+            }
+            timelineIndex = 0;
+          } else {
+            timelineIndex += 1;
+          }
+          frame = state.timeline[timelineIndex].frame;
+          changed = true;
+        }
+        if (changed) {
+          setFrame();
+        }
+      }
+      requestAnimationFrame(animationLoop);
+      return;
+    }
+
     const delay = 1000 / state.fps;
     if (!lastFrameAt || now - lastFrameAt >= delay) {
       frame += 1;

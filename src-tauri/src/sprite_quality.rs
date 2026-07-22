@@ -15,6 +15,8 @@ mod tests {
         ("running", 7, 6),
         ("review", 8, 6),
     ];
+    const V2_LOOK_STATES: &[(&str, u32, u32)] =
+        &[("look-000-157.5", 9, 8), ("look-180-337.5", 10, 8)];
 
     #[derive(Clone, Copy, Debug)]
     struct Bounds {
@@ -136,16 +138,32 @@ mod tests {
                 .to_string_lossy()
                 .to_string();
             let path = pet_dir.join("spritesheet.webp");
+            let manifest_path = pet_dir.join("pet.json");
+            let manifest: serde_json::Value = serde_json::from_str(
+                &std::fs::read_to_string(&manifest_path)
+                    .unwrap_or_else(|error| panic!("read {}: {error}", manifest_path.display())),
+            )
+            .unwrap_or_else(|error| panic!("parse {}: {error}", manifest_path.display()));
+            let sprite_version_number = manifest
+                .get("spriteVersionNumber")
+                .and_then(serde_json::Value::as_u64)
+                .unwrap_or(1);
+            let expected_rows = if sprite_version_number >= 2 { 11 } else { 9 };
             let image = image::open(&path)
                 .unwrap_or_else(|error| panic!("open {}: {error}", path.display()))
                 .to_rgba8();
             assert_eq!(
                 image.dimensions(),
-                (CELL_WIDTH * 8, CELL_HEIGHT * 9),
+                (CELL_WIDTH * 8, CELL_HEIGHT * expected_rows),
                 "{pet_id} atlas dimensions"
             );
 
-            for (state, row, frames) in STATES {
+            let extra_states = if sprite_version_number >= 2 {
+                V2_LOOK_STATES
+            } else {
+                &[]
+            };
+            for (state, row, frames) in STATES.iter().chain(extra_states) {
                 for col in 0..*frames {
                     let bounds = visible_ink_bounds(&image, *row, col).unwrap_or_else(|| {
                         panic!("{pet_id} {state} frame {col} is visually blank")

@@ -2,10 +2,10 @@
   "id": "biruzik",
   "displayName": "Biruzik",
   "description": "A fluffy white strategist with huge turquoise eyes who wanders, plays, and enjoys being cared for.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": "Denis Onosov (ODV999)",
   "license": "CC-BY-4.0",
-  "minAppVersion": "0.2.30",
+  "minAppVersion": "0.2.32",
   "spriteVersionNumber": 2,
   "tags": [
     "cat",
@@ -15,6 +15,8 @@
     "strategist"
   ],
   "changelog": [
+    "Restored the validated 11-row v2 Codex atlas so native Codex task states and look directions load correctly.",
+    "Reworked sleep into a single enter-breathe-wake timeline and made play slower with smooth ping-pong frame order.",
     "Translated all pet metadata and care actions to English.",
     "Care actions are slower and now complete a guaranteed number of full animation loops.",
     "Published Biruzik in the pet catalog.",
@@ -79,8 +81,36 @@
         "row": 0,
         "frames": 6,
         "fps": 2,
-        "loops": 20,
+        "loops": 1,
         "durationMs": 60000,
+        "once": true,
+        "timeline": [
+          {
+            "frames": [
+              0,
+              1,
+              2
+            ],
+            "frameDurationMs": 500,
+            "repeat": 1
+          },
+          {
+            "frames": [
+              2,
+              3
+            ],
+            "frameDurationMs": 1250,
+            "repeat": 23
+          },
+          {
+            "frames": [
+              4,
+              5
+            ],
+            "frameDurationMs": 500,
+            "repeat": 1
+          }
+        ],
         "mirror": false
       },
       "eat": {
@@ -105,9 +135,28 @@
         "label": "🎾 Play",
         "row": 3,
         "frames": 6,
-        "fps": 5,
-        "loops": 15,
-        "durationMs": 18000,
+        "fps": 2.5,
+        "loops": 1,
+        "durationMs": 24000,
+        "once": true,
+        "timeline": [
+          {
+            "frames": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              4,
+              3,
+              2,
+              1
+            ],
+            "frameDurationMs": 400,
+            "repeat": 6
+          }
+        ],
         "mirror": false
       },
       "toilet": {

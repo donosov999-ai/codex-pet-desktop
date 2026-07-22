@@ -89,6 +89,24 @@ try {
   );
   fs.writeFileSync(path.join(badMetadataDir, "spritesheet.webp"), makeVp8xWebp(1536, 1872));
 
+  const badV2Dir = path.join(tempRoot, "bad-v2");
+  fs.mkdirSync(badV2Dir);
+  fs.writeFileSync(
+    path.join(badV2Dir, "pet.json"),
+    JSON.stringify({
+      id: "bad-v2",
+      displayName: "Bad V2",
+      spritesheetPath: "spritesheet.webp",
+      spriteVersionNumber: 2,
+      author: "Test",
+      license: "MIT",
+      minAppVersion: "0.2.32",
+      tags: ["test"],
+      changelog: ["test"]
+    })
+  );
+  fs.writeFileSync(path.join(badV2Dir, "spritesheet.webp"), makeVp8xWebp(1536, 1872));
+
   const badCareDir = path.join(tempRoot, "bad-care");
   fs.mkdirSync(badCareDir);
   fs.writeFileSync(
@@ -105,7 +123,16 @@ try {
       care: {
         spritesheetPath: "care-spritesheet.webp",
         atlas: { width: 1536, height: 208, columns: 8, rows: 1, cellWidth: 192, cellHeight: 208 },
-        states: { play: { row: 0, frames: 6, fps: 5, loops: 0, durationMs: 500 } }
+        states: {
+          play: {
+            row: 0,
+            frames: 6,
+            fps: 5,
+            loops: 0,
+            durationMs: 500,
+            timeline: [{ frames: [0, 6], frameDurationMs: 10, repeat: 0 }]
+          }
+        }
       }
     })
   );
@@ -122,8 +149,12 @@ try {
     "minAppVersion must be x.y.z",
     "tags must be an array",
     "changelog must be an array",
+    "spriteVersionNumber 2 requires 11 rows",
     "Invalid care loop count",
-    "Invalid care duration"
+    "Invalid care duration",
+    "Invalid care timeline frames",
+    "Invalid care timeline frame duration",
+    "Invalid care timeline repeat"
   ];
   const missingErrors = requiredErrors.filter((text) => !negativeErrors.some((error) => error.includes(text)));
   if (negativeReport.ok || missingErrors.length > 0) {
