@@ -127,7 +127,11 @@ for (const id of listPets()) {
     previewAtlas,
     spritesheet,
     care: manifest.care || null,
-    sprite: SPRITE,
+    sprite: {
+      ...SPRITE,
+      height: qa.height || SPRITE.height,
+      rows: Math.round((qa.height || SPRITE.height) / SPRITE.cellHeight)
+    },
     qa: {
       ok: qa.ok === true,
       width: qa.width || 0,

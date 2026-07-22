@@ -168,9 +168,13 @@ function validatePetResources(petsRoot, options = {}) {
         const size = parseWebpSize(fs.readFileSync(spritesheetPath));
         petReport.width = size.width;
         petReport.height = size.height;
-        if (size.width !== expectedWidth || size.height !== expectedHeight) {
+        const rowsFromHeight = size.height / 208;
+        const heightOk =
+          size.height === expectedHeight ||
+          (size.height % 208 === 0 && rowsFromHeight >= 9 && rowsFromHeight <= 12);
+        if (size.width !== expectedWidth || !heightOk) {
           petReport.errors.push(
-            `Expected spritesheet ${expectedWidth}x${expectedHeight}, got ${size.width}x${size.height}`
+            `Expected spritesheet ${expectedWidth}x${expectedHeight} (or 1536 x 208*rows, 9-12 rows), got ${size.width}x${size.height}`
           );
         }
       }
