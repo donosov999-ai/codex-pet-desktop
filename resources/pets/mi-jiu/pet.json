@@ -1,20 +1,21 @@
 {
   "id": "mi-jiu",
-  "displayName": "米酒",
-  "description": "米酒，木老师的工友。",
-  "version": "1.0.2",
+  "displayName": "Mi Jiu",
+  "description": "Mi Jiu, Teacher Mu's work companion.",
+  "version": "1.0.3",
   "author": "Chen",
   "license": "CC-BY-4.0",
   "minAppVersion": "0.2.0",
   "tags": [
-    "猫咪",
-    "深色",
-    "趴着"
+    "cat",
+    "dark coat",
+    "resting"
   ],
   "changelog": [
-    "更新资源介绍文案。",
-    "增加更自然的散步节奏和拖拽后反馈。",
-    "首版米酒桌宠资源。"
+    "Translated pet metadata to English.",
+    "Updated the pet description.",
+    "Added more natural wandering timing and post-drag feedback.",
+    "Initial Mi Jiu desktop pet release."
   ],
   "behavior": {
     "clickState": "review",

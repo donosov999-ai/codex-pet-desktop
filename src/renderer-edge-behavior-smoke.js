@@ -3,7 +3,7 @@ const { loadRenderer } = require("./renderer-smoke-harness");
 async function main() {
   const pet = {
     id: "mi-jiu",
-    displayName: "米酒",
+    displayName: "Mi Jiu",
     version: "1.0.1",
     sourceKind: "managed",
     canUninstall: true,

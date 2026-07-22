@@ -22,8 +22,8 @@ const UPDATE_REPO_DOWNLOAD_PREFIX: &str = "/donosov999-ai/codex-pet-desktop/rele
 const MAX_UPDATE_INSTALLER_BYTES: u64 = 250 * 1024 * 1024;
 const APP_UPDATE_DOWNLOAD_PROGRESS_EVENT: &str = "pet-desktop-app-update-download-progress";
 const ALLOWED_UPDATE_INSTALLERS: &[&str] = &[
-    "yongsheng-plan-windows-x64.exe",
-    "yongsheng-plan-macos-arm64.dmg",
+    "biruzik-desktop-windows-x64.exe",
+    "biruzik-desktop-macos-arm64.dmg",
 ];
 
 #[derive(Debug, Serialize)]
@@ -102,7 +102,7 @@ fn list_pets(app: AppHandle<Wry>) -> PetList {
 #[tauri::command]
 fn get_app_info() -> AppInfo {
     AppInfo {
-        display_name: "Бирюзик",
+        display_name: "Biruzik",
         version: env!("CARGO_PKG_VERSION"),
         platform: std::env::consts::OS,
         downloads_url: DOWNLOADS_URL,
@@ -122,52 +122,53 @@ fn safe_update_file_name(file_name: &str) -> Result<String, String> {
     let name = Path::new(file_name)
         .file_name()
         .and_then(|value| value.to_str())
-        .ok_or_else(|| "安装包文件名无效".to_string())?;
+        .ok_or_else(|| "Invalid installer file name".to_string())?;
     if name != file_name {
-        return Err("安装包文件名不能包含路径".to_string());
+        return Err("Installer file name cannot contain a path".to_string());
     }
     if !name
         .chars()
         .all(|character| character.is_ascii_alphanumeric() || matches!(character, '.' | '-' | '_'))
     {
-        return Err("安装包文件名包含不支持的字符".to_string());
+        return Err("Installer file name contains unsupported characters".to_string());
     }
     if !ALLOWED_UPDATE_INSTALLERS.contains(&name) {
-        return Err("安装包文件名不在允许列表中".to_string());
+        return Err("Installer file name is not allowlisted".to_string());
     }
     Ok(name.to_string())
 }
 
 fn validate_update_download_url(download_url: &str, safe_name: &str) -> Result<url::Url, String> {
-    let parsed = url::Url::parse(download_url).map_err(|_| "安装包下载地址无效".to_string())?;
+    let parsed =
+        url::Url::parse(download_url).map_err(|_| "Invalid installer download URL".to_string())?;
     if parsed.scheme() != "https" {
-        return Err("安装包下载地址必须使用 HTTPS".to_string());
+        return Err("Installer download URL must use HTTPS".to_string());
     }
     if parsed.host_str() != Some("github.com") {
-        return Err("只允许下载本项目 GitHub Release 安装包".to_string());
+        return Err("Only installers from this project's GitHub Releases are allowed".to_string());
     }
     let release_path = parsed
         .path()
         .strip_prefix(UPDATE_REPO_DOWNLOAD_PREFIX)
-        .ok_or_else(|| "安装包下载地址不属于本项目 Release".to_string())?;
+        .ok_or_else(|| "Installer URL does not belong to this project's releases".to_string())?;
     let mut parts = release_path.split('/');
     let tag = parts.next().unwrap_or_default();
     let file_name = parts.next().unwrap_or_default();
     if tag.is_empty() || file_name.is_empty() || parts.next().is_some() {
-        return Err("安装包下载地址不属于本项目 Release".to_string());
+        return Err("Installer URL does not belong to this project's releases".to_string());
     }
     if !tag.starts_with('v') {
-        return Err("安装包下载地址缺少版本标签".to_string());
+        return Err("Installer URL is missing a version tag".to_string());
     }
     if file_name != safe_name {
-        return Err("安装包下载地址与文件名不匹配".to_string());
+        return Err("Installer URL does not match the file name".to_string());
     }
     Ok(parsed)
 }
 
 fn write_and_open_update(app: AppHandle<Wry>, bytes: &[u8], file_name: &str) -> Result<(), String> {
     if bytes.is_empty() {
-        return Err("安装包为空".to_string());
+        return Err("Installer is empty".to_string());
     }
     let dir = pet_catalog::user_data_dir(&app)
         .ok_or_else(|| "Could not resolve app data directory".to_string())?
@@ -210,7 +211,7 @@ async fn download_and_install_app_update(
         .connect_timeout(Duration::from_secs(15))
         .timeout(Duration::from_secs(180))
         .redirect(reqwest::redirect::Policy::limited(5))
-        .user_agent("yongsheng-plan-updater")
+        .user_agent("biruzik-desktop-updater")
         .build()
         .map_err(|error| error.to_string())?;
     let mut response = client
@@ -224,7 +225,7 @@ async fn download_and_install_app_update(
         return Err(format!("HTTP {}", status.as_u16()));
     }
     if response.content_length().unwrap_or(0) > MAX_UPDATE_INSTALLER_BYTES {
-        return Err("安装包过大".to_string());
+        return Err("Installer is too large".to_string());
     }
     let total = response.content_length().unwrap_or(0);
     let mut received = 0_u64;
@@ -233,13 +234,13 @@ async fn download_and_install_app_update(
     while let Some(chunk) = response.chunk().await.map_err(|error| error.to_string())? {
         received += chunk.len() as u64;
         if received > MAX_UPDATE_INSTALLER_BYTES {
-            return Err("安装包过大".to_string());
+            return Err("Installer is too large".to_string());
         }
         bytes.extend_from_slice(&chunk);
         emit_app_update_download_progress(&app, &safe_name, received, total);
     }
     if bytes.len() as u64 > MAX_UPDATE_INSTALLER_BYTES {
-        return Err("安装包过大".to_string());
+        return Err("Installer is too large".to_string());
     }
     write_and_open_update(app, &bytes, &safe_name)
 }
@@ -367,7 +368,7 @@ fn inspect_petpack_summary(
     let compatibility_message = if compatible {
         String::new()
     } else {
-        format!("需要主程序 v{} 或更高版本", summary.min_app_version)
+        format!("Requires app v{} or newer", summary.min_app_version)
     };
 
     Ok(InspectPetpackResult {
@@ -601,12 +602,12 @@ mod tests {
     #[test]
     fn validates_update_installer_file_names() {
         assert_eq!(
-            safe_update_file_name("yongsheng-plan-windows-x64.exe").expect("valid exe"),
-            "yongsheng-plan-windows-x64.exe"
+            safe_update_file_name("biruzik-desktop-windows-x64.exe").expect("valid exe"),
+            "biruzik-desktop-windows-x64.exe"
         );
         assert_eq!(
-            safe_update_file_name("yongsheng-plan-macos-arm64.dmg").expect("valid dmg"),
-            "yongsheng-plan-macos-arm64.dmg"
+            safe_update_file_name("biruzik-desktop-macos-arm64.dmg").expect("valid dmg"),
+            "biruzik-desktop-macos-arm64.dmg"
         );
         assert!(safe_update_file_name("../bad.exe").is_err());
         assert!(safe_update_file_name("bad.zip").is_err());
@@ -617,48 +618,48 @@ mod tests {
     #[test]
     fn validates_update_download_urls() {
         assert!(validate_update_download_url(
-            "https://github.com/donosov999-ai/codex-pet-desktop/releases/download/v0.2.15/yongsheng-plan-windows-x64.exe",
-            "yongsheng-plan-windows-x64.exe"
+            "https://github.com/donosov999-ai/codex-pet-desktop/releases/download/v0.2.15/biruzik-desktop-windows-x64.exe",
+            "biruzik-desktop-windows-x64.exe"
         )
         .is_ok());
         assert!(validate_update_download_url(
-            "https://github.com/donosov999-ai/codex-pet-desktop/releases/download/v0.2.15/yongsheng-plan-macos-arm64.dmg",
-            "yongsheng-plan-macos-arm64.dmg"
+            "https://github.com/donosov999-ai/codex-pet-desktop/releases/download/v0.2.15/biruzik-desktop-macos-arm64.dmg",
+            "biruzik-desktop-macos-arm64.dmg"
         )
         .is_ok());
         assert!(validate_update_download_url(
-            "http://github.com/jieyangxchen/codex-pet-desktop/releases/download/v0.2.15/yongsheng-plan-windows-x64.exe",
-            "yongsheng-plan-windows-x64.exe"
+            "http://github.com/donosov999-ai/codex-pet-desktop/releases/download/v0.2.15/biruzik-desktop-windows-x64.exe",
+            "biruzik-desktop-windows-x64.exe"
         )
         .is_err());
         assert!(validate_update_download_url(
-            "https://github.com/other/repo/releases/download/v0.2.15/yongsheng-plan-windows-x64.exe",
-            "yongsheng-plan-windows-x64.exe"
+            "https://github.com/other/repo/releases/download/v0.2.15/biruzik-desktop-windows-x64.exe",
+            "biruzik-desktop-windows-x64.exe"
         )
         .is_err());
         assert!(validate_update_download_url(
             "https://github.com/donosov999-ai/codex-pet-desktop/releases/download/v0.2.15/other.exe",
-            "yongsheng-plan-windows-x64.exe"
+            "biruzik-desktop-windows-x64.exe"
         )
         .is_err());
         assert!(validate_update_download_url(
-            "https://api.github.com/repos/jieyangxchen/codex-pet-desktop/releases/latest",
-            "yongsheng-plan-windows-x64.exe"
+            "https://api.github.com/repos/donosov999-ai/codex-pet-desktop/releases/latest",
+            "biruzik-desktop-windows-x64.exe"
         )
         .is_err());
         assert!(validate_update_download_url(
-            "https://jieyangxchen.github.io/codex-pet-desktop/",
-            "yongsheng-plan-windows-x64.exe"
+            "https://donosov999-ai.github.io/codex-pet-desktop/",
+            "biruzik-desktop-windows-x64.exe"
         )
         .is_err());
         assert!(validate_update_download_url(
             "https://release-assets.githubusercontent.com/github-production-release-asset/123/file.exe",
-            "yongsheng-plan-windows-x64.exe"
+            "biruzik-desktop-windows-x64.exe"
         )
         .is_err());
         assert!(validate_update_download_url(
-            "https://github.com/donosov999-ai/codex-pet-desktop/releases/download/v0.2.15/nested/yongsheng-plan-windows-x64.exe",
-            "yongsheng-plan-windows-x64.exe"
+            "https://github.com/donosov999-ai/codex-pet-desktop/releases/download/v0.2.15/nested/biruzik-desktop-windows-x64.exe",
+            "biruzik-desktop-windows-x64.exe"
         )
         .is_err());
     }

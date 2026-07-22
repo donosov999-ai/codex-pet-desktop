@@ -32,7 +32,7 @@ function createPetDesktop({ pet, moveCalls = [], preferences }) {
 function lifePet() {
   return {
     id: "mi-fen",
-    displayName: "米粉",
+    displayName: "Mi Fen",
     version: "1.1.0",
     sourceKind: "managed",
     canUninstall: true,

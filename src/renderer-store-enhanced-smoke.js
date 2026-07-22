@@ -7,14 +7,14 @@ async function main() {
   const remotePetpacks = [
     {
       id: "mi-fen",
-      displayName: "米粉",
-      description: "全白猫咪",
+      displayName: "Mi Fen",
+      description: "white cat",
       version: "1.0.3",
       author: "Chen",
       license: "CC-BY-4.0",
       minAppVersion: "0.2.0",
-      changelog: "修正舔爪动作",
-      tags: ["猫咪", "白色"],
+      changelog: "Fixed the paw-licking animation",
+      tags: ["cat", "white"],
       sha256: crypto.createHash("sha256").update(Buffer.from([1, 2, 3])).digest("hex"),
       sizeBytes: 2048,
       updatedAt: "2026-05-17",
@@ -23,14 +23,14 @@ async function main() {
     },
     {
       id: "mi-jiu",
-      displayName: "米酒",
-      description: "深色猫咪",
+      displayName: "Mi Jiu",
+      description: "dark-coated cat",
       version: "1.0.0",
       author: "Chen",
       license: "CC-BY-4.0",
       minAppVersion: "0.2.0",
-      changelog: "首版",
-      tags: ["猫咪", "深色"],
+      changelog: "Initial release",
+      tags: ["cat", "dark coat"],
       sha256: "b".repeat(64),
       sizeBytes: 1024,
       updatedAt: "2026-05-16",
@@ -39,14 +39,14 @@ async function main() {
     },
     {
       id: "future",
-      displayName: "未来宠物",
-      description: "需要新版主程序",
+      displayName: "Future Pet",
+      description: "Requires a newer app",
       version: "2.0.0",
       author: "Chen",
       license: "CC-BY-4.0",
       minAppVersion: "9.0.0",
-      changelog: "新版格式",
-      tags: ["实验"],
+      changelog: "New format",
+      tags: ["experimental"],
       sha256: "c".repeat(64),
       sizeBytes: 1024,
       updatedAt: "2026-05-18",
@@ -67,7 +67,7 @@ async function main() {
         pets: [
           {
             id: "mi-fen",
-            displayName: "米粉",
+            displayName: "Mi Fen",
             version: "1.0.2",
             sourceKind: "managed",
             canUninstall: true,
@@ -75,7 +75,7 @@ async function main() {
           },
           {
             id: "mi-jiu",
-            displayName: "米酒",
+            displayName: "Mi Jiu",
             version: "1.0.0",
             sourceKind: "managed",
             canUninstall: true,
@@ -87,16 +87,16 @@ async function main() {
       getAppInfo: async () => ({
         version: "0.2.4",
         latestReleaseApi: "",
-        petpackIndexUrl: "https://jieyangxchen.github.io/codex-pet-desktop/petpacks/petpacks.json"
+        petpackIndexUrl: "https://donosov999-ai.github.io/codex-pet-desktop/petpacks/petpacks.json"
       }),
       getPreferences: async () => ({}),
       savePreferences: async (value) => value,
-      inspectPetpack: async () => ({ id: "mi-fen", displayName: "米粉", version: "1.0.3" }),
+      inspectPetpack: async () => ({ id: "mi-fen", displayName: "Mi Fen", version: "1.0.3" }),
       importPetpack: async () => {
         importCalls.push("import");
         return {
           importedPetId: "mi-fen",
-          displayName: "米粉",
+          displayName: "Mi Fen",
           version: "1.0.3",
           replaced: true,
           previousVersion: "1.0.2",
@@ -120,31 +120,31 @@ async function main() {
   await flush();
 
   let storeText = textOf(elements.get("#petStoreList"));
-  if (!storeText.includes("作者 Chen") || !storeText.includes("CC-BY-4.0") || !storeText.includes("修正舔爪动作") || !storeText.includes("sha256")) {
+  if (!storeText.includes("Author Chen") || !storeText.includes("CC-BY-4.0") || !storeText.includes("Fixed the paw-licking animation") || !storeText.includes("sha256")) {
     console.error(JSON.stringify({ ok: false, reason: "metadata not rendered", storeText }, null, 2));
     process.exit(1);
   }
-  if (!storeText.includes("需要主程序 v9.0.0")) {
+  if (!storeText.includes("Requires app v9.0.0")) {
     console.error(JSON.stringify({ ok: false, reason: "incompatible app version not shown", storeText }, null, 2));
     process.exit(1);
   }
 
-  elements.get("#storeSearch").value = "米粉";
+  elements.get("#storeSearch").value = "Mi Fen";
   elements.get("#storeSearch").dispatch("input");
   await flush();
   storeText = textOf(elements.get("#petStoreList"));
-  if (!storeText.includes("米粉") || storeText.includes("米酒") || storeText.includes("未来宠物")) {
+  if (!storeText.includes("Mi Fen") || storeText.includes("Mi Jiu") || storeText.includes("Future Pet")) {
     console.error(JSON.stringify({ ok: false, reason: "search filter failed", storeText }, null, 2));
     process.exit(1);
   }
 
   elements.get("#storeSearch").value = "";
   elements.get("#storeSearch").dispatch("input");
-  elements.get("#storeTagFilter").value = "深色";
+  elements.get("#storeTagFilter").value = "dark coat";
   elements.get("#storeTagFilter").dispatch("change");
   await flush();
   storeText = textOf(elements.get("#petStoreList"));
-  if (!storeText.includes("米酒") || storeText.includes("米粉") || storeText.includes("未来宠物")) {
+  if (!storeText.includes("Mi Jiu") || storeText.includes("Mi Fen") || storeText.includes("Future Pet")) {
     console.error(JSON.stringify({ ok: false, reason: "tag filter failed", storeText }, null, 2));
     process.exit(1);
   }
@@ -156,7 +156,7 @@ async function main() {
   elements.get("#updateAllPetpacksButton").click();
   await flush();
   await flush();
-  if (!findByText(elements.get("#petStoreStatus"), "已更新") || importCalls.length !== 1 || !fetchCalls.some((url) => url.endsWith("mi-fen-1.0.3.petpack"))) {
+  if (!findByText(elements.get("#petStoreStatus"), "Updated") || importCalls.length !== 1 || !fetchCalls.some((url) => url.endsWith("mi-fen-1.0.3.petpack"))) {
     console.error(JSON.stringify({ ok: false, reason: "update all did not update eligible petpacks", importCalls, fetchCalls, status: elements.get("#petStoreStatus").textContent }, null, 2));
     process.exit(1);
   }

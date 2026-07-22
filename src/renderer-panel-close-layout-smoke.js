@@ -52,7 +52,7 @@ async function main() {
   const resizeCalls = [];
   const pet = {
     id: "tigris-whippet",
-    displayName: "红糖",
+    displayName: "Hong Tang",
     version: "1.0.1",
     sourceKind: "managed",
     canUninstall: true,

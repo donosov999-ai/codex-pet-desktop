@@ -1,17 +1,17 @@
 import { resolveCareSpritesheetSource, resolveSpritesheetSource } from "./bridge.js";
 
 function versionLabel(pet) {
-  return pet?.version ? pet.version : "未标版本";
+  return pet?.version ? pet.version : "unversioned";
 }
 
 function sourceLabel(sourceKind) {
   return (
     {
-      managed: "应用内导入",
-      external: "外部目录",
-      bundled: "开发资源",
-      codex: "Codex 目录"
-    }[sourceKind] || "外部目录"
+      managed: "Imported in app",
+      external: "External directory",
+      bundled: "Bundled resource",
+      codex: "Codex directory"
+    }[sourceKind] || "External directory"
   );
 }
 
@@ -50,7 +50,7 @@ export function createPetManager({
     if (!state.activePet) {
       stopWander();
       dom.petEl.style.backgroundImage = "";
-      dom.petEl.setAttribute("aria-label", "未安装宠物");
+      dom.petEl.setAttribute("aria-label", "No pet installed");
       dom.petEl.textContent = "";
       dom.petEl.classList.add("empty");
       animation.configurePet(null);
@@ -94,7 +94,7 @@ export function createPetManager({
     if (!state.pets.length) {
       const empty = document.createElement("div");
       empty.className = "pet-manager-empty";
-      empty.textContent = "还没有安装宠物。";
+      empty.textContent = "No pets are installed yet.";
       dom.petManagerEl.replaceChildren(empty);
       return;
     }
@@ -119,13 +119,13 @@ export function createPetManager({
         actions.className = "pet-manager-actions";
         const reveal = document.createElement("button");
         reveal.type = "button";
-        reveal.textContent = "打开目录";
+        reveal.textContent = "Open directory";
         reveal.addEventListener("click", () => {
           petDesktop?.revealPet?.(pet.id).catch((error) => setPetStatus(error.message));
         });
         const uninstall = document.createElement("button");
         uninstall.type = "button";
-        uninstall.textContent = "卸载";
+        uninstall.textContent = "Uninstall";
         uninstall.disabled = !pet.canUninstall;
         uninstall.addEventListener("click", () => {
           uninstallPet(pet).catch((error) => setPetStatus(error.message));
@@ -144,17 +144,17 @@ export function createPetManager({
     renderPetManager();
     pickPet(preferredPetId || state.pets[0]?.id);
     if (result.errors?.length) {
-      setPetStatus(`已跳过 ${result.errors.length} 个无效宠物目录。`);
+      setPetStatus(`Skipped ${result.errors.length} invalid pet directories.`);
     }
   }
 
   async function uninstallPet(pet) {
     if (!pet?.canUninstall) {
-      setPetStatus("只能在这里卸载应用内导入的宠物包。");
+      setPetStatus("Only pet packs imported by this app can be uninstalled here.");
       return;
     }
     const result = await petDesktop.uninstallPet(pet.id);
-    setPetStatus(`已卸载 ${pet.displayName}`);
+    setPetStatus(`Uninstalled ${pet.displayName}`);
     refreshPetList(result, state.activePet?.id === pet.id ? undefined : state.activePet?.id);
   }
 

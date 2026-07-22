@@ -1,25 +1,26 @@
 {
   "id": "biruzik",
-  "displayName": "Бирюзик",
-  "description": "Белый пушистый стратег с огромными бирюзовыми глазами: гуляет по экрану, играет и принимает заботу.",
-  "version": "1.0.1",
+  "displayName": "Biruzik",
+  "description": "A fluffy white strategist with huge turquoise eyes who wanders, plays, and enjoys being cared for.",
+  "version": "1.0.2",
   "author": "Denis Onosov (ODV999)",
   "license": "CC-BY-4.0",
   "minAppVersion": "0.2.30",
   "spriteVersionNumber": 2,
   "tags": [
-    "кот",
-    "белый",
-    "уход",
-    "бирюзовые глаза",
-    "стратег"
+    "cat",
+    "white",
+    "care",
+    "turquoise eyes",
+    "strategist"
   ],
   "changelog": [
-    "Режимы ухода замедлены и теперь выполняют гарантированное число полных циклов.",
-    "Первая публикация Бирюзика в каталоге питомцев.",
-    "Добавлены сон, еда, мытьё, игра и туалет.",
-    "Добавлена самостоятельная короткая игра во время прогулок.",
-    "Подключён отдельный атлас ухода без нарушения стандартного формата Codex."
+    "Translated all pet metadata and care actions to English.",
+    "Care actions are slower and now complete a guaranteed number of full animation loops.",
+    "Published Biruzik in the pet catalog.",
+    "Added sleep, eat, wash, play, and toilet care actions.",
+    "Added short autonomous play sessions while wandering.",
+    "Added a separate care atlas while preserving the standard Codex resource format."
   ],
   "behavior": {
     "clickState": "waving",
@@ -74,7 +75,7 @@
     },
     "states": {
       "sleep": {
-        "label": "😴 Сон",
+        "label": "😴 Sleep",
         "row": 0,
         "frames": 6,
         "fps": 2,
@@ -83,7 +84,7 @@
         "mirror": false
       },
       "eat": {
-        "label": "🍎 Еда",
+        "label": "🍎 Eat",
         "row": 1,
         "frames": 6,
         "fps": 3,
@@ -92,7 +93,7 @@
         "mirror": false
       },
       "wash": {
-        "label": "🫧 Мытьё",
+        "label": "🫧 Wash",
         "row": 2,
         "frames": 6,
         "fps": 3,
@@ -101,7 +102,7 @@
         "mirror": false
       },
       "play": {
-        "label": "🎾 Игра",
+        "label": "🎾 Play",
         "row": 3,
         "frames": 6,
         "fps": 5,
@@ -110,7 +111,7 @@
         "mirror": false
       },
       "toilet": {
-        "label": "🚽 Туалет",
+        "label": "🚽 Toilet",
         "row": 4,
         "frames": 6,
         "fps": 3,

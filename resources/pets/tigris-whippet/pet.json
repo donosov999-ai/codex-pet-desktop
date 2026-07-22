@@ -1,20 +1,21 @@
 {
   "id": "tigris-whippet",
-  "displayName": "红糖",
-  "description": "红糖，我家的傻狗子。",
-  "version": "1.0.3",
+  "displayName": "Hong Tang",
+  "description": "Hong Tang, my lovable goofy dog.",
+  "version": "1.0.4",
   "author": "Chen",
   "license": "CC-BY-4.0",
   "minAppVersion": "0.2.0",
   "tags": [
-    "狗狗",
-    "惠比特",
-    "虎斑色"
+    "dog",
+    "whippet",
+    "brindle"
   ],
   "changelog": [
-    "更新资源介绍文案。",
-    "增加更自然的散步节奏和拖拽后反馈。",
-    "增加红糖贴近地面休息的待机资源。"
+    "Translated pet metadata to English.",
+    "Updated the pet description.",
+    "Added more natural wandering timing and post-drag feedback.",
+    "Added a low-to-the-ground resting idle animation for Hong Tang."
   ],
   "behavior": {
     "clickState": "review",

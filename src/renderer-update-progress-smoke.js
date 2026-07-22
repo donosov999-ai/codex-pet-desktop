@@ -13,10 +13,10 @@ async function main() {
             tag_name: "v0.2.17",
             assets: [
               {
-                name: "yongsheng-plan-windows-x64.exe",
+                name: "biruzik-desktop-windows-x64.exe",
                 size: 4096,
                 browser_download_url:
-                  "https://github.com/jieyangxchen/codex-pet-desktop/releases/download/v0.2.17/yongsheng-plan-windows-x64.exe"
+                  "https://github.com/donosov999-ai/codex-pet-desktop/releases/download/v0.2.17/biruzik-desktop-windows-x64.exe"
               }
             ]
           })
@@ -37,8 +37,8 @@ async function main() {
       getAppInfo: async () => ({
         version: "0.2.16",
         platform: "windows",
-        latestReleaseApi: "https://api.github.com/repos/jieyangxchen/codex-pet-desktop/releases/latest",
-        downloadsUrl: "https://jieyangxchen.github.io/codex-pet-desktop/",
+        latestReleaseApi: "https://api.github.com/repos/donosov999-ai/codex-pet-desktop/releases/latest",
+        downloadsUrl: "https://donosov999-ai.github.io/codex-pet-desktop/",
         petpackIndexUrl: ""
       }),
       downloadAndInstallAppUpdate: async (url, fileName) => {
@@ -70,8 +70,8 @@ async function main() {
   const progressEl = elements.get("#appUpdateProgress");
   let updateText = elements.get("#updateStatus").textContent;
   if (
-    downloadCalls[0]?.fileName !== "yongsheng-plan-windows-x64.exe" ||
-    !updateText.includes("正在下载主程序安装包") ||
+    downloadCalls[0]?.fileName !== "biruzik-desktop-windows-x64.exe" ||
+    !updateText.includes("Downloading the app installer") ||
     progressEl.classList.contains("hidden") ||
     progressEl.max !== 4096 ||
     progressEl.value !== 0
@@ -82,7 +82,7 @@ async function main() {
 
   await listener({
     payload: {
-      fileName: "yongsheng-plan-windows-x64.exe",
+      fileName: "biruzik-desktop-windows-x64.exe",
       received: 1024,
       total: 4096
     }
@@ -98,7 +98,7 @@ async function main() {
   resolveDownload();
   await flush();
 
-  if (!elements.get("#updateStatus").textContent.includes("已启动安装器") || !progressEl.classList.contains("hidden")) {
+  if (!elements.get("#updateStatus").textContent.includes("The installer has started") || !progressEl.classList.contains("hidden")) {
     console.error(JSON.stringify({ ok: false, reason: "download completion did not reset progress UI", updateText: elements.get("#updateStatus").textContent, progressEl }));
     process.exit(1);
   }

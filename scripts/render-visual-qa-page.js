@@ -24,8 +24,8 @@ function renderVisualQaPage(petpacks) {
       const displayName = escapeHtml(pet.displayName || pet.id);
       const id = escapeHtml(pet.id);
       const version = escapeHtml(pet.version);
-      const license = escapeHtml(pet.license || "未标许可");
-      const author = escapeHtml(pet.author || "未知作者");
+      const license = escapeHtml(pet.license || "License not specified");
+      const author = escapeHtml(pet.author || "Unknown author");
       const previewAtlas = escapeHtml(pet.previewAtlas);
       const dimensions = `${pet.qa.width}x${pet.qa.height}`;
       const rows = STATES.map(([state, row, frames]) => {
@@ -46,11 +46,11 @@ function renderVisualQaPage(petpacks) {
             <div class="preview" style="background-image: url('./${previewAtlas}')"></div>
             <div>
               <h2>${displayName}</h2>
-              <p class="meta">${id} · v${version} · 作者 ${author} · ${license} · ${escapeHtml(dimensions)} · ${escapeHtml(pet.spritesheet)}</p>
-              <a href="./${previewAtlas}">打开完整 atlas</a>
+              <p class="meta">${id} · v${version} · by ${author} · ${license} · ${escapeHtml(dimensions)} · ${escapeHtml(pet.spritesheet)}</p>
+              <a href="./${previewAtlas}">Open full atlas</a>
             </div>
           </header>
-          <div class="states" aria-label="${displayName} 动作帧">
+          <div class="states" aria-label="${displayName} animation frames">
 ${rows}
           </div>
         </article>`;
@@ -58,11 +58,11 @@ ${rows}
     .join("\n");
 
   return `<!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>宠物资源视觉 QA</title>
+    <title>Pet Pack Visual QA</title>
     <style>
       :root {
         color-scheme: light dark;
@@ -189,8 +189,8 @@ ${rows}
   </head>
   <body>
     <main>
-      <h1>宠物资源视觉 QA</h1>
-      <p class="summary">每个宠物按状态展示实际帧裁切，用于发布前检查动作比例、画风和错帧。</p>
+      <h1>Pet Pack Visual QA</h1>
+      <p class="summary">Each pet is shown as cropped frames for every state so scale, visual style, and frame order can be checked before release.</p>
       <section class="grid" aria-label="Pet visual QA">
 ${cards}
       </section>

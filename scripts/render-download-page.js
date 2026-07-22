@@ -15,42 +15,42 @@ function escapeHtml(value) {
 
 function petCard(pet) {
   const displayName = escapeHtml(pet.displayName || pet.id);
-  const description = escapeHtml(pet.description || "宠物资源包。");
+  const description = escapeHtml(pet.description || "Desktop pet pack.");
   const version = escapeHtml(pet.version || "1.0.0");
-  const author = escapeHtml(pet.author || "未知作者");
-  const license = escapeHtml(pet.license || "未标许可");
+  const author = escapeHtml(pet.author || "Unknown author");
+  const license = escapeHtml(pet.license || "License not specified");
   const tags = Array.isArray(pet.tags) ? pet.tags.map(escapeHtml).join(" · ") : "";
-  const changelog = Array.isArray(pet.changelog) && pet.changelog.length ? escapeHtml(pet.changelog[0]) : "暂无更新说明";
+  const changelog = Array.isArray(pet.changelog) && pet.changelog.length ? escapeHtml(pet.changelog[0]) : "No release notes";
   const fileName = escapeHtml(pet.fileName);
   const previewAtlas = escapeHtml(pet.previewAtlas || "");
   const visualQaHref = `./petpacks/visual-qa.html#${encodeURIComponent(pet.id || "")}`;
   const previewStyle = previewAtlas ? ` style="background-image: url('./petpacks/${previewAtlas}')"` : "";
   return `          <article class="download pet-download">
-            <div class="pet-preview"${previewStyle} aria-label="${displayName} idle 首帧预览"></div>
+            <div class="pet-preview"${previewStyle} aria-label="${displayName} idle frame preview"></div>
             <div class="download-body">
               <h3>${displayName}</h3>
               <p>${description}</p>
-              <p class="meta">v${version} · 作者 ${author} · ${license}</p>
+              <p class="meta">v${version} · by ${author} · ${license}</p>
               <p class="meta">${tags}</p>
-              <p class="meta">更新说明：${changelog}</p>
-              <a href="./petpacks/${fileName}">下载 ${displayName}</a>
-              <a class="secondary" href="${escapeHtml(visualQaHref)}">视觉 QA</a>
+              <p class="meta">Release notes: ${changelog}</p>
+              <a href="./petpacks/${fileName}">Download ${displayName}</a>
+              <a class="secondary" href="${escapeHtml(visualQaHref)}">Visual QA</a>
             </div>
           </article>`;
 }
 
 function renderDownloadPage(petpacks) {
   const cards = [...petpacks]
-    .sort((a, b) => String(a.displayName || a.id).localeCompare(String(b.displayName || b.id), "zh-CN"))
+    .sort((a, b) => String(a.displayName || a.id).localeCompare(String(b.displayName || b.id), "en"))
     .map(petCard)
     .join("\n");
 
   return `<!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>宠物·永生计划</title>
+    <title>Pet Forever Project</title>
     <style>
       :root {
         color-scheme: light dark;
@@ -228,12 +228,12 @@ function renderDownloadPage(petpacks) {
   </head>
   <body>
     <main>
-      <section class="hero" aria-label="品牌介绍">
+      <section class="hero" aria-label="Project introduction">
         <div class="hero-copy">
-          <h1>宠物·永生计划</h1>
-          <p>把熟悉的宠物留在桌面上。先安装主程序，再下载宠物资源包；主程序更新和宠物资源更新彼此独立。</p>
+          <h1>Pet Forever Project</h1>
+          <p>Keep familiar pets on your desktop. Install the app first, then download pet packs; app and pet updates remain independent.</p>
         </div>
-        <div class="hero-preview" aria-label="宠物预览">
+        <div class="hero-preview" aria-label="Pet previews">
 ${[...petpacks]
   .slice(0, 3)
   .map((pet) => `          <div class="hero-tile" style="background-image: url('./petpacks/${escapeHtml(pet.previewAtlas || "")}')"></div>`)
@@ -242,24 +242,24 @@ ${[...petpacks]
       </section>
 
       <section class="section" aria-label="App downloads">
-        <h2>主程序</h2>
+        <h2>Desktop app</h2>
         <div class="downloads">
           <article class="download">
             <h3>Windows</h3>
-            <p>适合 Windows x64。</p>
-            <a href="https://github.com/donosov999-ai/codex-pet-desktop/releases/latest/download/yongsheng-plan-windows-x64.exe">下载 Windows 版</a>
+            <p>For Windows x64.</p>
+            <a href="https://github.com/donosov999-ai/codex-pet-desktop/releases/latest/download/biruzik-desktop-windows-x64.exe">Download for Windows</a>
           </article>
           <article class="download">
             <h3>macOS</h3>
-            <p>适用于 Apple Silicon Mac。</p>
-            <a href="https://github.com/donosov999-ai/codex-pet-desktop/releases/latest/download/yongsheng-plan-macos-arm64.dmg">Apple Silicon</a>
+            <p>For Apple Silicon Macs.</p>
+            <a href="https://github.com/donosov999-ai/codex-pet-desktop/releases/latest/download/biruzik-desktop-macos-arm64.dmg">Apple Silicon</a>
           </article>
         </div>
       </section>
 
       <section class="section" aria-label="Petpacks">
-        <h2>宠物资源包</h2>
-        <p>下载 <code>.petpack</code> 后，在主程序里点击“导入本地宠物包”导入。</p>
+        <h2>Pet packs</h2>
+        <p>After downloading a <code>.petpack</code>, open the app and select <strong>Import local pet pack</strong>.</p>
         <div class="downloads">
 ${cards}
         </div>

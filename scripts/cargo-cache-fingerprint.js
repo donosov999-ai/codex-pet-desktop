@@ -12,7 +12,7 @@ function normalizeCargoLockForDependencyCache(lockSource) {
     .replace(/\r\n?/g, "\n")
     .split(/(?=^\[\[package\]\]$)/m)
     .map((block) => {
-      if (/^name = "yongsheng-plan"$/m.test(block) && !/^source = /m.test(block)) {
+      if (/^name = "biruzik-desktop"$/m.test(block) && !/^source = /m.test(block)) {
         return block.replace(/^version = "[^"]+"$/m, 'version = "<local-app>"');
       }
       return block;

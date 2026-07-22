@@ -1,18 +1,19 @@
 {
   "id": "shubiao",
-  "displayName": "鼠标",
-  "description": "鼠标，默默家的鼠标。",
-  "version": "1.0.0",
+  "displayName": "Shubiao",
+  "description": "Shubiao, Momo's little hamster.",
+  "version": "1.0.1",
   "author": "Chen",
   "license": "CC-BY-4.0",
   "minAppVersion": "0.2.0",
   "tags": [
-    "仓鼠",
-    "灰白",
-    "鼠标"
+    "hamster",
+    "gray and white",
+    "Shubiao"
   ],
   "changelog": [
-    "首版鼠标桌宠资源。"
+    "Translated pet metadata to English.",
+    "Initial Shubiao desktop pet release."
   ],
   "behavior": {
     "clickState": "waving",

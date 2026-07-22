@@ -638,12 +638,12 @@ mod tests {
         fs::write(external_pet.join("spritesheet.webp"), b"webp").expect("write external sprite");
         fs::write(
             bundled_pet.join("pet.json"),
-            r#"{"id":"mi-fen","displayName":"米粉"}"#,
+            r#"{"id":"mi-fen","displayName":"Mi Fen"}"#,
         )
         .expect("write bundled manifest");
         fs::write(
             external_pet.join("pet.json"),
-            r#"{"id":"tigris-whippet","displayName":"红糖"}"#,
+            r#"{"id":"tigris-whippet","displayName":"Hong Tang"}"#,
         )
         .expect("write external manifest");
 
@@ -666,17 +666,17 @@ mod tests {
         fs::write(external_pet.join("spritesheet.webp"), b"webp").expect("write external sprite");
         fs::write(
             managed_pet.join("petpack.json"),
-            r#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"米粉","version":"1.2.3"}"#,
+            r#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.2.3"}"#,
         )
         .expect("write managed petpack manifest");
         fs::write(
             managed_pet.join("pet.json"),
-            r#"{"id":"mi-fen","displayName":"米粉","version":"1.0.0"}"#,
+            r#"{"id":"mi-fen","displayName":"Mi Fen","version":"1.0.0"}"#,
         )
         .expect("write managed manifest");
         fs::write(
             external_pet.join("pet.json"),
-            r#"{"id":"hong-tang","displayName":"红糖","version":"2.0.0"}"#,
+            r#"{"id":"hong-tang","displayName":"Hong Tang","version":"2.0.0"}"#,
         )
         .expect("write external manifest");
 
@@ -704,12 +704,12 @@ mod tests {
         fs::write(managed_pet.join("spritesheet.webp"), b"webp").expect("write managed sprite");
         fs::write(
             managed_pet.join("petpack.json"),
-            r#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"米粉","version":"1.2.3","author":"Chen","license":"CC-BY-4.0","minAppVersion":"0.2.0","tags":["猫咪","白色"],"changelog":["更新图集"]}"#,
+            r#"{"format":"codex-petpack","formatVersion":1,"id":"mi-fen","displayName":"Mi Fen","version":"1.2.3","author":"Chen","license":"CC-BY-4.0","minAppVersion":"0.2.0","tags":["cat","white"],"changelog":["Updated atlas"]}"#,
         )
         .expect("write managed petpack manifest");
         fs::write(
             managed_pet.join("pet.json"),
-            r#"{"id":"mi-fen","displayName":"米粉"}"#,
+            r#"{"id":"mi-fen","displayName":"Mi Fen"}"#,
         )
         .expect("write minimal manifest");
 
@@ -720,8 +720,8 @@ mod tests {
         assert_eq!(list.pets[0].author, "Chen");
         assert_eq!(list.pets[0].license, "CC-BY-4.0");
         assert_eq!(list.pets[0].min_app_version, "0.2.0");
-        assert_eq!(list.pets[0].tags, vec!["猫咪", "白色"]);
-        assert_eq!(list.pets[0].changelog, vec!["更新图集"]);
+        assert_eq!(list.pets[0].tags, vec!["cat", "white"]);
+        assert_eq!(list.pets[0].changelog, vec!["Updated atlas"]);
     }
 
     #[test]
@@ -734,7 +734,7 @@ mod tests {
             pet.join("pet.json"),
             r#"{
                 "id":"mi-fen",
-                "displayName":"米粉",
+                "displayName":"Mi Fen",
                 "behavior":{
                     "clickState":"waiting",
                     "idleStates":["review"],
@@ -786,7 +786,7 @@ mod tests {
             pet.join("pet.json"),
             r#"{
                 "id":"biruzik",
-                "displayName":"Бирюзик",
+                "displayName":"Biruzik",
                 "care":{
                     "spritesheetPath":"care-spritesheet.webp",
                     "atlas":{"width":1536,"height":1040,"columns":8,"rows":5,"cellWidth":192,"cellHeight":208},

@@ -56,7 +56,7 @@ function savePreferences(overrides = {}) {
   const preferences = currentPreferences(overrides);
   state.preferences = preferences;
   return petDesktop?.savePreferences?.(preferences)?.catch((error) => {
-    setPetStatus(`保存设置失败：${error.message}`);
+    setPetStatus(`Failed to save settings: ${error.message}`);
   });
 }
 
@@ -84,7 +84,7 @@ function normalizedPetDirection(direction) {
 }
 
 function directionLabel(direction) {
-  return direction === "left" ? "朝左" : "朝右";
+  return direction === "left" ? "left" : "right";
 }
 
 function applyPetDirection(direction) {
@@ -98,7 +98,7 @@ function applyPetDirection(direction) {
 function setPetDirection(direction) {
   const nextDirection = normalizedPetDirection(direction);
   applyPetDirection(nextDirection);
-  setPetStatus(`已切换为${directionLabel(nextDirection)}。`);
+  setPetStatus(`Switched to ${directionLabel(nextDirection)}.`);
   savePreferences({ petDirection: nextDirection });
 }
 
@@ -157,7 +157,7 @@ function setWanderPaused(paused) {
   dom.wanderToggle.checked = !paused;
   if (paused) {
     interactions.stopWander();
-    setPetStatus("已暂停自动散步。");
+    setPetStatus("Automatic wandering paused.");
     savePreferences({ autoWander: false });
     syncTrayState();
     return;
@@ -165,7 +165,7 @@ function setWanderPaused(paused) {
   if (interactions.hasActivePet()) {
     interactions.scheduleWander();
   }
-  setPetStatus("已恢复自动散步。");
+  setPetStatus("Automatic wandering resumed.");
   savePreferences({ autoWander: true });
   syncTrayState();
 }
@@ -197,7 +197,7 @@ async function init() {
   applyPreferences((await petDesktop.getPreferences?.()) || {});
   interactions.refreshLifeEngine();
   await windowLayout.syncWindowLayout();
-  setUpdateStatus(`当前版本 v${cleanVersion(state.appInfo.version)}`);
+  setUpdateStatus(`Current version v${cleanVersion(state.appInfo.version)}`);
 
   const windowState = await petDesktop.getWindowState();
   if (!state.preferences.alwaysOnTop && windowState.alwaysOnTop) {

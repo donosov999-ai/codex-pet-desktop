@@ -72,7 +72,7 @@ if (qaPreviewFailures.length > 0) {
   failures.push(`qa report missing previewAtlas for ${qaPreviewFailures.map((pet) => pet.id).join(", ")}`);
 }
 
-for (const text of ["宠物资源视觉 QA", "发布前检查动作比例", "Pet visual QA"]) {
+for (const text of ["Pet Pack Visual QA", "scale, visual style", "Pet visual QA"]) {
   if (!html.includes(text)) {
     failures.push(`visual QA page missing ${text}`);
   }

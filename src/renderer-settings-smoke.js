@@ -6,7 +6,7 @@ async function main() {
   const pets = [
     {
       id: "mi-fen",
-      displayName: "米粉",
+      displayName: "Mi Fen",
       version: "1.0.2",
       sourceKind: "managed",
       canUninstall: true,
@@ -14,7 +14,7 @@ async function main() {
     },
     {
       id: "mi-jiu",
-      displayName: "米酒",
+      displayName: "Mi Jiu",
       version: "1.0.0",
       sourceKind: "managed",
       canUninstall: true,

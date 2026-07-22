@@ -3,7 +3,7 @@ const { loadRenderer } = require("./renderer-smoke-harness");
 async function main() {
   const oldPet = {
     id: "mi-fen",
-    displayName: "米粉",
+    displayName: "Mi Fen",
     spritesheetPath: "/pets/mi-fen/spritesheet.webp",
     spritesheetRevision: "old"
   };
@@ -23,7 +23,7 @@ async function main() {
         inspectCalls += 1;
         return {
           id: "mi-fen",
-          displayName: "米粉",
+          displayName: "Mi Fen",
           version: "1.0.2",
           existingManagedVersion: "1.0.1",
           existingVisibleVersion: "1.0.1",
@@ -36,7 +36,7 @@ async function main() {
         importCalls += 1;
         return {
           importedPetId: "mi-fen",
-          displayName: "米粉",
+          displayName: "Mi Fen",
           version: "1.0.2",
           replaced: true,
           previousVersion: "1.0.1",

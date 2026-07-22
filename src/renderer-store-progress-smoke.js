@@ -16,7 +16,7 @@ async function main() {
 
   const oldPet = {
     id: "mi-fen",
-    displayName: "米粉",
+    displayName: "Mi Fen",
     version: "1.0.1",
     sourceKind: "managed",
     canUninstall: true,
@@ -33,8 +33,8 @@ async function main() {
           json: async () => [
             {
               id: "mi-fen",
-              displayName: "米粉",
-              description: "全白猫咪",
+              displayName: "Mi Fen",
+              description: "white cat",
               version: "1.0.2",
               fileName: "mi-fen-1.0.2.petpack"
             }
@@ -70,7 +70,7 @@ async function main() {
       }),
       inspectPetpack: async () => ({
         id: "mi-fen",
-        displayName: "米粉",
+        displayName: "Mi Fen",
         version: "1.0.2",
         existingManagedVersion: "1.0.1",
         existingVisibleVersion: "1.0.1",
@@ -82,7 +82,7 @@ async function main() {
         importCalls.push(true);
         return {
           importedPetId: "mi-fen",
-          displayName: "米粉",
+          displayName: "Mi Fen",
           version: "1.0.2",
           replaced: true,
           previousVersion: "1.0.1",
@@ -101,7 +101,7 @@ async function main() {
   elements.get("#refreshStoreButton").click();
   await flush();
 
-  const updateButton = findByText(elements.get("#petStoreList"), "更新");
+  const updateButton = findByText(elements.get("#petStoreList"), "Update");
   if (!updateButton) {
     console.error(JSON.stringify({ ok: false, reason: "missing update button" }));
     process.exit(1);

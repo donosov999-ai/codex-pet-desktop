@@ -15,71 +15,71 @@ export function arrayBufferToBase64(buffer) {
 export function friendlyPetpackError(error) {
   const message = String(error?.message || error || "");
   if (/invalid zip|not a zip|Invalid archive|zip/i.test(message)) {
-    return "这不是有效的 .petpack 文件。";
+    return "This is not a valid .petpack file.";
   }
   if (message.includes("pet.json")) {
-    return "资源包缺少 pet.json，或 pet.json 内容不合法。";
+    return "The pack is missing pet.json, or pet.json is invalid.";
   }
   if (message.includes("spritesheet.webp") || message.includes("spritesheet")) {
-    return "资源包缺少图集文件 spritesheet.webp。";
+    return "The pack is missing the spritesheet.webp atlas.";
   }
   if (message.includes("Unsupported petpack format version")) {
-    return "资源包版本不受当前主程序支持。";
+    return "This pet pack version is not supported by the current app.";
   }
   if (message.includes("Unsupported petpack format")) {
-    return "资源包格式不受支持。";
+    return "This pet pack format is not supported.";
   }
   if (message.includes("Pet id mismatch")) {
-    return "petpack.json 和 pet.json 的宠物 id 不一致。";
+    return "The pet IDs in petpack.json and pet.json do not match.";
   }
   if (message.includes("Invalid pet id")) {
-    return "宠物 id 只能包含英文字母、数字、短横线或下划线。";
+    return "Pet IDs may contain only letters, numbers, hyphens, and underscores.";
   }
   if (message.includes("requires app version") || message.includes("minAppVersion")) {
-    return "资源包需要更新版本的主程序。";
+    return "This pack requires a newer app version.";
   }
-  return message || "导入资源包失败。";
+  return message || "Failed to import the pet pack.";
 }
 
 export function importPreviewMessage(preview) {
   const name = preview.displayName || preview.id;
-  const version = preview.version || "未知";
+  const version = preview.version || "unknown";
   const existing = preview.existingManagedVersion || preview.existingVisibleVersion || "";
   const source = preview.existingVisibleSourceKind || "";
 
   if (preview.compatible === false) {
-    return preview.compatibilityMessage || `该资源包需要更新版本的主程序。`;
+    return preview.compatibilityMessage || "This pack requires a newer app version.";
   }
   if (preview.versionRelation === "upgrade") {
-    return `将覆盖 ${name}: v${existing || "未知"} -> v${version}。${preview.changelog?.[0] ? ` 更新说明：${preview.changelog[0]}。` : ""}`;
+    return `Replace ${name}: v${existing || "unknown"} -> v${version}.${preview.changelog?.[0] ? ` Changes: ${preview.changelog[0]}.` : ""}`;
   }
   if (preview.versionRelation === "same") {
-    return `已安装同版本 ${name} v${version}，继续会重新覆盖资源文件。`;
+    return `${name} v${version} is already installed. Continuing will replace its files.`;
   }
   if (preview.versionRelation === "downgrade") {
-    return `当前是 v${existing || "未知"}，选择的 ${name} 是 v${version}，继续会降级。`;
+    return `The installed version is v${existing || "unknown"}; the selected ${name} is v${version}. Continuing will downgrade it.`;
   }
   if (preview.willReplaceManaged) {
-    return `将覆盖 ${name}，新版本为 v${version}。`;
+    return `Replace ${name} with v${version}.`;
   }
   if (source && source !== "managed") {
-    return `检测到同 id 宠物来自 ${source}，导入 ${name} v${version} 到应用数据后可能不会优先显示。`;
+    return `A pet with the same ID was found in ${source}. Importing ${name} v${version} into app data may not take priority.`;
   }
-  return `将导入 ${name} v${version}。`;
+  return `Import ${name} v${version}.`;
 }
 
 export function importConfirmLabel(preview) {
   if (!preview) {
-    return "导入";
+    return "Import";
   }
   if (preview.versionRelation === "downgrade") {
-    return "确认降级";
+    return "Confirm downgrade";
   }
   if (preview.compatible === false) {
-    return "暂不可导入";
+    return "Cannot import";
   }
   if (preview.willReplaceManaged || preview.existingVisibleVersion) {
-    return "确认覆盖";
+    return "Confirm replacement";
   }
-  return "确认导入";
+  return "Confirm import";
 }
