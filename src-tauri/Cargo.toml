@@ -1,6 +1,6 @@
 [package]
 name = "biruzik-desktop"
-version = "0.2.32"
+version = "0.2.33"
 description = "Standalone desktop pet app for the Internet Immortality Project."
 authors = ["Denis Onosov (ODV999)"]
 license = "MIT"

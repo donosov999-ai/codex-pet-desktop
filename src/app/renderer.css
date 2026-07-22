@@ -46,7 +46,7 @@ html.panel-with-pet #stage {
   width: var(--cell-width);
   height: var(--cell-height);
   transform: scale(var(--scale)) scaleX(var(--direction-scale));
-  transform-origin: center bottom;
+  transform-origin: center center;
   image-rendering: auto;
   background-repeat: no-repeat;
   background-size: var(--atlas-width) var(--atlas-height);

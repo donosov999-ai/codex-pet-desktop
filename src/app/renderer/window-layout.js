@@ -66,13 +66,13 @@ export function createWindowLayout({ dom, petDesktop, state }) {
     return !dom.panelEl.classList.contains("hidden");
   }
 
-  function petAnchor(size, visiblePanel) {
+  function petAnchor(size, visiblePanel, scale) {
     if (!hasPet()) {
       return null;
     }
     return {
       x: size.width / 2 + (visiblePanel ? (PANEL_WIDTH + PANEL_GAP) / 2 : 0),
-      y: size.height / 2 + CELL_HEIGHT / 2
+      y: size.height / 2 + (CELL_HEIGHT * normalizedScale(scale)) / 2
     };
   }
 
@@ -81,13 +81,14 @@ export function createWindowLayout({ dom, petDesktop, state }) {
       return;
     }
     const visiblePanel = typeof panelVisibleOverride === "boolean" ? panelVisibleOverride : panelVisible();
+    const scale = normalizedScale(Number(dom.scaleRange.value) || state.preferences.scale || 0.9);
     const size = desiredWindowSize({
-      scale: Number(dom.scaleRange.value) || state.preferences.scale || 0.9,
+      scale,
       hasPet: hasPet(),
       panelVisible: visiblePanel
     });
     const hasActivePet = hasPet();
-    const nextPetAnchor = petAnchor(size, visiblePanel);
+    const nextPetAnchor = petAnchor(size, visiblePanel, scale);
     const signature = `${size.width}x${size.height}:${hasActivePet ? "pet" : "empty"}:${visiblePanel ? "panel" : "plain"}`;
     if (signature === lastSignature) {
       if (centerIfEmpty && !hasPet()) {

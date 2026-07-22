@@ -1,4 +1,16 @@
+const fs = require("node:fs");
+const path = require("node:path");
 const { loadRenderer } = require("./renderer-smoke-harness");
+
+const CELL_HEIGHT = 208;
+
+function transformedPetTop(windowHeight, scale) {
+  const css = fs.readFileSync(path.join(__dirname, "app", "renderer.css"), "utf8");
+  const origin = css.match(/#pet\s*\{[\s\S]*?transform-origin:\s*([^;]+);/)?.[1]?.trim() || "center center";
+  const originY = /\bbottom\b/.test(origin) ? 1 : 0.5;
+  const layoutTop = (windowHeight - CELL_HEIGHT) / 2;
+  return layoutTop + CELL_HEIGHT * originY - CELL_HEIGHT * scale * originY;
+}
 
 async function main() {
   const resizeCalls = [];
@@ -29,8 +41,8 @@ async function main() {
       openDownloads: async () => {},
       moveBy: async () => {},
       setIgnoreMouseEvents: async () => {},
-      resizeWindow: async (width, height) => {
-        resizeCalls.push({ width, height });
+      resizeWindow: async (width, height, anchor) => {
+        resizeCalls.push({ width, height, anchor });
       },
       centerPosition: async () => {
         centerCalls.push(true);
@@ -55,6 +67,44 @@ async function main() {
   const largePetWindow = resizeCalls.at(-1);
   if (!largePetWindow || largePetWindow.width <= initialPetWindow.width || largePetWindow.height <= initialPetWindow.height) {
     console.error(JSON.stringify({ ok: false, reason: "window did not grow with pet scale", resizeCalls }, null, 2));
+    process.exit(1);
+  }
+  const largePetTop = transformedPetTop(largePetWindow.height, 1.8);
+  if (largePetTop < 0) {
+    console.error(
+      JSON.stringify(
+        {
+          ok: false,
+          reason: "scaled pet is clipped above the transparent window",
+          scale: 1.8,
+          top: largePetTop,
+          window: largePetWindow
+        },
+        null,
+        2
+      )
+    );
+    process.exit(1);
+  }
+  const expectedCurrentBottom = initialPetWindow.height / 2 + (CELL_HEIGHT * 0.6) / 2;
+  const expectedNextBottom = largePetWindow.height / 2 + (CELL_HEIGHT * 1.8) / 2;
+  if (
+    Math.abs(largePetWindow.anchor?.current?.y - expectedCurrentBottom) > 0.01 ||
+    Math.abs(largePetWindow.anchor?.next?.y - expectedNextBottom) > 0.01
+  ) {
+    console.error(
+      JSON.stringify(
+        {
+          ok: false,
+          reason: "resize anchor does not preserve the scaled pet baseline",
+          anchor: largePetWindow.anchor,
+          expectedCurrentBottom,
+          expectedNextBottom
+        },
+        null,
+        2
+      )
+    );
     process.exit(1);
   }
 
