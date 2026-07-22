@@ -229,6 +229,8 @@ function validatePetResources(petsRoot, options = {}) {
             const row = Number(state?.row);
             const frames = Number(state?.frames);
             const fps = Number(state?.fps);
+            const loops = state?.loops === undefined ? null : Number(state.loops);
+            const durationMs = state?.durationMs === undefined ? null : Number(state.durationMs);
             if (!/^[a-z0-9][a-z0-9_-]*$/i.test(stateId)) {
               petReport.errors.push(`Invalid care state id: ${stateId}`);
             }
@@ -240,6 +242,12 @@ function validatePetResources(petsRoot, options = {}) {
             }
             if (!Number.isFinite(fps) || fps <= 0) {
               petReport.errors.push(`Invalid care fps for ${stateId}: ${state?.fps}`);
+            }
+            if (loops !== null && (!Number.isInteger(loops) || loops < 1)) {
+              petReport.errors.push(`Invalid care loop count for ${stateId}: ${state?.loops}`);
+            }
+            if (durationMs !== null && (!Number.isFinite(durationMs) || durationMs < 1000)) {
+              petReport.errors.push(`Invalid care duration for ${stateId}: ${state?.durationMs}`);
             }
           }
           if (

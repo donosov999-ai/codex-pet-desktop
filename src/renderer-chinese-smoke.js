@@ -7,7 +7,7 @@ async function main() {
     petDesktop: {
       listPets: async () => ({ pets: [], errors: [] }),
       getAppInfo: async () => ({
-        version: "0.2.29",
+        version: "0.2.30",
         latestReleaseApi: "",
         downloadsUrl: "https://jieyangxchen.github.io/codex-pet-desktop/",
         petpackIndexUrl: ""

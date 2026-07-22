@@ -1,12 +1,11 @@
 const { loadRenderer } = require("./renderer-smoke-harness");
+const biruzikManifest = require("../resources/pets/biruzik/pet.json");
 
 async function main() {
   const moveCalls = [];
   const resizeCalls = [];
   const pet = {
-    id: "biruzik",
-    displayName: "Бирюзик",
-    version: "1.0.0",
+    ...biruzikManifest,
     spritesheetUrl: "biruzik-standard.webp",
     behavior: {
       doubleClickState: "jumping",
@@ -18,22 +17,8 @@ async function main() {
       }
     },
     care: {
+      ...biruzikManifest.care,
       spritesheetUrl: "biruzik-care.webp",
-      atlas: {
-        width: 1536,
-        height: 1040,
-        columns: 8,
-        rows: 5,
-        cellWidth: 192,
-        cellHeight: 208
-      },
-      states: {
-        sleep: { label: "Сон", row: 0, frames: 6, fps: 3, durationMs: 9000 },
-        eat: { label: "Еда", row: 1, frames: 6, fps: 5, durationMs: 6500 },
-        wash: { label: "Мытьё", row: 2, frames: 6, fps: 5, durationMs: 6500 },
-        play: { label: "Игра", row: 3, frames: 6, fps: 7, durationMs: 5000 },
-        toilet: { label: "Туалет", row: 4, frames: 6, fps: 4, durationMs: 5500 }
-      }
     }
   };
 
@@ -41,7 +26,7 @@ async function main() {
     random: () => 0,
     petDesktop: {
       listPets: async () => ({ pets: [pet], errors: [] }),
-      getAppInfo: async () => ({ version: "0.2.29", platform: "windows" }),
+      getAppInfo: async () => ({ version: "0.2.30", platform: "windows" }),
       getPreferences: async () => ({ scale: 0.9, autoWander: true, naturalLife: true }),
       savePreferences: async (value) => value,
       moveBy: async (x, y) => {
@@ -61,15 +46,18 @@ async function main() {
 
   const petElement = elements.get("#pet");
   const careActions = elements.get("#careActions");
+  function advanceAnimation(now) {
+    for (const callback of animationFrames.splice(0, animationFrames.length)) {
+      callback(now);
+    }
+  }
   if (careActions.children.length !== 5) {
     throw new Error(`expected 5 care actions, found ${careActions.children.length}`);
   }
 
   petElement.dispatch("pointerenter");
   timeouts.at(-1)?.();
-  for (const frame of [...animationFrames]) {
-    frame(1000);
-  }
+  advanceAnimation(1000);
   await flush();
   if (moveCalls.length !== 0) {
     throw new Error("hover must pause autonomous movement");
@@ -89,8 +77,29 @@ async function main() {
   if (elements.get("#stateSelect").value !== "eat") {
     throw new Error("care action did not switch to eat state");
   }
+  advanceAnimation(3000);
+  advanceAnimation(23999);
+  if (elements.get("#stateSelect").value !== "eat") {
+    throw new Error("eat action ended before its 12 complete cycles");
+  }
+  advanceAnimation(24000);
+  if (elements.get("#stateSelect").value !== "idle") {
+    throw new Error("eat action did not finish after 24 seconds");
+  }
 
-  console.log(JSON.stringify({ ok: true, careActions: careActions.children.length, expanded }, null, 2));
+  careActions.children.find((button) => button.dataset.careState === "sleep")?.click();
+  advanceAnimation(59000);
+  if (elements.get("#stateSelect").value !== "sleep") {
+    throw new Error("sleep action ended before 60 seconds");
+  }
+  advanceAnimation(60000);
+  if (elements.get("#stateSelect").value !== "idle") {
+    throw new Error("sleep action did not finish after 60 seconds");
+  }
+
+  console.log(
+    JSON.stringify({ ok: true, careActions: careActions.children.length, eatDurationMs: 24000, sleepDurationMs: 60000, expanded }, null, 2)
+  );
 }
 
 main().catch((error) => {

@@ -38,14 +38,20 @@ export function normalizeCareConfig(care = {}) {
     if (row < 0 || row >= rows || frames < 1 || frames > columns || fps <= 0) {
       continue;
     }
+    const cycleDurationMs = (frames / fps) * 1000;
+    const requestedDurationMs = Math.max(1000, finiteNumber(raw.durationMs, 6000));
+    const requestedLoops = positiveInteger(raw.loops, 0);
+    const loops = Math.max(1, requestedLoops, Math.ceil(requestedDurationMs / cycleDurationMs));
     states[id] = {
       atlas: "care",
       row,
       frames,
       fps,
+      loops,
+      cycleDurationMs: Math.round(cycleDurationMs),
       once: raw.once === true,
       mirror: raw.mirror !== false,
-      durationMs: Math.max(1000, finiteNumber(raw.durationMs, 6000)),
+      durationMs: Math.round(loops * cycleDurationMs),
       label: typeof raw.label === "string" && raw.label.trim() ? raw.label.trim() : id
     };
   }
@@ -146,6 +152,11 @@ export function createAnimation(dom) {
     return Object.entries(careConfig.states).map(([id, state]) => ({ id, ...state }));
   }
 
+  function getCareState(id) {
+    const state = careConfig.states[id];
+    return state ? { id, ...state } : null;
+  }
+
   function planAutonomousCare(random = Math.random) {
     if (!careConfig.autonomousStates.length || random() >= careConfig.autonomousChance) {
       return null;
@@ -155,7 +166,7 @@ export function createAnimation(dom) {
       careConfig.autonomousStates.length - 1
     );
     const state = careConfig.autonomousStates[index];
-    return { direction: 0, durationMs: careConfig.states[state].durationMs, state };
+    return { direction: 0, durationMs: careConfig.states[state].durationMs, kind: "care", state };
   }
 
   function animationLoop(now) {
@@ -179,6 +190,7 @@ export function createAnimation(dom) {
   return {
     animationLoop,
     configurePet,
+    getCareState,
     getCareStates,
     planAutonomousCare,
     renderStateOptions,

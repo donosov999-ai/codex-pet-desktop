@@ -2,10 +2,10 @@
   "id": "biruzik",
   "displayName": "Бирюзик",
   "description": "Белый пушистый стратег с огромными бирюзовыми глазами: гуляет по экрану, играет и принимает заботу.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "Denis Onosov (ODV999)",
   "license": "CC-BY-4.0",
-  "minAppVersion": "0.2.29",
+  "minAppVersion": "0.2.30",
   "spriteVersionNumber": 2,
   "tags": [
     "кот",
@@ -15,6 +15,7 @@
     "стратег"
   ],
   "changelog": [
+    "Режимы ухода замедлены и теперь выполняют гарантированное число полных циклов.",
     "Первая публикация Бирюзика в каталоге питомцев.",
     "Добавлены сон, еда, мытьё, игра и туалет.",
     "Добавлена самостоятельная короткая игра во время прогулок.",
@@ -76,40 +77,45 @@
         "label": "😴 Сон",
         "row": 0,
         "frames": 6,
-        "fps": 3,
-        "durationMs": 9000,
+        "fps": 2,
+        "loops": 20,
+        "durationMs": 60000,
         "mirror": false
       },
       "eat": {
         "label": "🍎 Еда",
         "row": 1,
         "frames": 6,
-        "fps": 5,
-        "durationMs": 6500,
+        "fps": 3,
+        "loops": 12,
+        "durationMs": 24000,
         "mirror": false
       },
       "wash": {
         "label": "🫧 Мытьё",
         "row": 2,
         "frames": 6,
-        "fps": 5,
-        "durationMs": 6500,
+        "fps": 3,
+        "loops": 12,
+        "durationMs": 24000,
         "mirror": false
       },
       "play": {
         "label": "🎾 Игра",
         "row": 3,
         "frames": 6,
-        "fps": 7,
-        "durationMs": 5000,
+        "fps": 5,
+        "loops": 15,
+        "durationMs": 18000,
         "mirror": false
       },
       "toilet": {
         "label": "🚽 Туалет",
         "row": 4,
         "frames": 6,
-        "fps": 4,
-        "durationMs": 5500,
+        "fps": 3,
+        "loops": 6,
+        "durationMs": 12000,
         "mirror": false
       }
     },

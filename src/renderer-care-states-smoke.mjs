@@ -1,25 +1,44 @@
 #!/usr/bin/env node
 
+import fs from "node:fs";
 import { createAnimation, normalizeCareConfig } from "./app/renderer/animation.js";
 
-const care = {
-  atlas: { width: 1536, height: 1040, columns: 8, rows: 5, cellWidth: 192, cellHeight: 208 },
-  states: {
-    play: { label: "Игра", row: 3, frames: 6, fps: 7, durationMs: 5000, mirror: false },
-    idle: { label: "Нельзя заменить", row: 0, frames: 6, fps: 5 },
-    broken: { row: 99, frames: 12, fps: 0 }
-  },
-  autonomousStates: ["play", "missing"],
-  autonomousChance: 0.25
+const manifest = JSON.parse(fs.readFileSync(new URL("../resources/pets/biruzik/pet.json", import.meta.url), "utf8"));
+const care = manifest.care;
+const normalized = normalizeCareConfig(care);
+const expectedTimings = {
+  sleep: { fps: 2, loops: 20, durationMs: 60000 },
+  eat: { fps: 3, loops: 12, durationMs: 24000 },
+  wash: { fps: 3, loops: 12, durationMs: 24000 },
+  play: { fps: 5, loops: 15, durationMs: 18000 },
+  toilet: { fps: 3, loops: 6, durationMs: 12000 }
 };
 
-const normalized = normalizeCareConfig(care);
-if (
-  Object.keys(normalized.states).join(",") !== "play" ||
-  normalized.autonomousStates.join(",") !== "play" ||
-  normalized.autonomousChance !== 0.25
-) {
-  throw new Error(`Unexpected normalized care config: ${JSON.stringify(normalized)}`);
+for (const [stateId, expected] of Object.entries(expectedTimings)) {
+  const state = normalized.states[stateId];
+  if (!state) {
+    throw new Error(`Missing care state: ${stateId}`);
+  }
+  if (state.fps !== expected.fps || state.loops !== expected.loops || state.durationMs !== expected.durationMs) {
+    throw new Error(`Unexpected ${stateId} timing: ${JSON.stringify(state)}`);
+  }
+  const completeCycleDuration = Math.round((state.frames / state.fps) * 1000 * state.loops);
+  if (state.durationMs !== completeCycleDuration) {
+    throw new Error(`${stateId} must finish after complete animation cycles`);
+  }
+}
+
+const invalid = normalizeCareConfig({
+  atlas: care.atlas,
+  states: {
+    idle: { row: 0, frames: 6, fps: 5 },
+    broken: { row: 99, frames: 12, fps: 0 }
+  },
+  autonomousStates: ["broken"],
+  autonomousChance: 2
+});
+if (Object.keys(invalid.states).length !== 0 || invalid.autonomousStates.length !== 0 || invalid.autonomousChance !== 1) {
+  throw new Error(`Invalid care config was not rejected: ${JSON.stringify(invalid)}`);
 }
 
 globalThis.document = {
@@ -50,8 +69,8 @@ if (style.backgroundImage !== 'url("asset://care")' || style.backgroundSize !== 
 }
 const randomValues = [0.1, 0];
 const autonomous = animation.planAutonomousCare(() => randomValues.shift());
-if (autonomous?.state !== "play" || autonomous.durationMs !== 5000) {
+if (autonomous?.state !== "play" || autonomous.durationMs !== 18000 || autonomous.kind !== "care") {
   throw new Error(`Unexpected autonomous care plan: ${JSON.stringify(autonomous)}`);
 }
 
-console.log("renderer care states smoke passed");
+console.log(JSON.stringify({ ok: true, timings: expectedTimings }, null, 2));
