@@ -47,6 +47,13 @@ struct PetManifest {
     name: Option<String>,
     #[serde(rename = "spritesheetPath")]
     spritesheet_path: Option<String>,
+    care: Option<PetCareManifest>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct PetCareManifest {
+    spritesheet_path: String,
 }
 
 fn safe_pet_id(id: &str) -> Result<&str, String> {
@@ -65,8 +72,8 @@ pub(crate) fn install_petpack_bytes(bytes: &[u8], pets_dir: &Path) -> Result<Pat
     validate_petpack_size(bytes)?;
     let mut archive = ZipArchive::new(Cursor::new(bytes)).map_err(|error| error.to_string())?;
     validate_archive_limits(&mut archive)?;
-    let (petpack, spritesheet_path) = validate_petpack_archive(&mut archive)?;
-    validate_required_files(&mut archive, &spritesheet_path)?;
+    let (petpack, asset_paths) = validate_petpack_archive(&mut archive)?;
+    validate_required_files(&mut archive, &asset_paths)?;
 
     let destination = pets_dir.join(&petpack.id);
     let temp_destination = pets_dir.join(format!(".{}.installing", petpack.id));
@@ -99,8 +106,8 @@ pub(crate) fn inspect_petpack_bytes(bytes: &[u8]) -> Result<PetpackSummary, Stri
     validate_petpack_size(bytes)?;
     let mut archive = ZipArchive::new(Cursor::new(bytes)).map_err(|error| error.to_string())?;
     validate_archive_limits(&mut archive)?;
-    let (petpack, spritesheet_path) = validate_petpack_archive(&mut archive)?;
-    validate_required_files(&mut archive, &spritesheet_path)?;
+    let (petpack, asset_paths) = validate_petpack_archive(&mut archive)?;
+    validate_required_files(&mut archive, &asset_paths)?;
     Ok(PetpackSummary {
         id: petpack.id,
         display_name: petpack.display_name,
@@ -153,7 +160,7 @@ fn validate_archive_limits(archive: &mut ZipArchive<Cursor<&[u8]>>) -> Result<()
 
 fn validate_petpack_archive(
     archive: &mut ZipArchive<Cursor<&[u8]>>,
-) -> Result<(PetpackManifest, String), String> {
+) -> Result<(PetpackManifest, Vec<String>), String> {
     let petpack: PetpackManifest = read_json_entry(archive, "petpack.json")?;
     if petpack.format != PETPACK_FORMAT {
         return Err(format!("Unsupported petpack format: {}", petpack.format));
@@ -204,19 +211,28 @@ fn validate_petpack_archive(
     if pet_display.trim().is_empty() {
         return Err("pet.json displayName is required".to_string());
     }
-    Ok((
-        petpack,
-        pet.spritesheet_path
-            .unwrap_or_else(|| "spritesheet.webp".to_string()),
-    ))
+    let mut asset_paths = vec![pet
+        .spritesheet_path
+        .unwrap_or_else(|| "spritesheet.webp".to_string())];
+    if let Some(care) = pet.care {
+        asset_paths.push(care.spritesheet_path);
+    }
+    Ok((petpack, asset_paths))
 }
 
 fn validate_required_files(
     archive: &mut ZipArchive<Cursor<&[u8]>>,
-    spritesheet_path: &str,
+    asset_paths: &[String],
 ) -> Result<(), String> {
-    let required_files = ["petpack.json", "pet.json", spritesheet_path];
+    let mut required_files = vec!["petpack.json", "pet.json"];
+    required_files.extend(asset_paths.iter().map(String::as_str));
     for file in required_files {
+        let path = Path::new(file);
+        if path.components().count() != 1 || path.file_name().is_none() {
+            return Err(format!(
+                "Petpack asset paths must be root file names: {file}"
+            ));
+        }
         if archive.by_name(file).is_err() {
             return Err(format!("Missing required petpack file: {file}"));
         }
@@ -322,6 +338,47 @@ mod tests {
         assert!(installed.join("petpack.json").is_file());
         assert!(installed.join("pet.json").is_file());
         assert!(installed.join("spritesheet.webp").is_file());
+    }
+
+    #[test]
+    fn installs_optional_care_spritesheet() {
+        let root = temp_root();
+        let pack = petpack(&[
+            (
+                "petpack.json",
+                br#"{"format":"codex-petpack","formatVersion":1,"id":"biruzik","displayName":"Biruzik","version":"1.0.0","author":"ODV999","license":"All Rights Reserved","minAppVersion":"0.2.29","tags":["cat"],"changelog":["Care states"]}"#,
+            ),
+            (
+                "pet.json",
+                br#"{"id":"biruzik","displayName":"Biruzik","spritesheetPath":"spritesheet.webp","care":{"spritesheetPath":"care-spritesheet.webp"}}"#,
+            ),
+            ("spritesheet.webp", b"webp"),
+            ("care-spritesheet.webp", b"care"),
+        ]);
+
+        let installed = install_petpack_bytes(&pack, &root).expect("install care petpack");
+
+        assert!(installed.join("care-spritesheet.webp").is_file());
+    }
+
+    #[test]
+    fn rejects_missing_declared_care_spritesheet() {
+        let root = temp_root();
+        let pack = petpack(&[
+            (
+                "petpack.json",
+                br#"{"format":"codex-petpack","formatVersion":1,"id":"biruzik","displayName":"Biruzik","version":"1.0.0","author":"ODV999","license":"All Rights Reserved","minAppVersion":"0.2.29","tags":["cat"],"changelog":["Care states"]}"#,
+            ),
+            (
+                "pet.json",
+                br#"{"id":"biruzik","displayName":"Biruzik","spritesheetPath":"spritesheet.webp","care":{"spritesheetPath":"care-spritesheet.webp"}}"#,
+            ),
+            ("spritesheet.webp", b"webp"),
+        ]);
+
+        let error = install_petpack_bytes(&pack, &root).expect_err("reject missing care atlas");
+
+        assert!(error.contains("care-spritesheet.webp"));
     }
 
     #[test]

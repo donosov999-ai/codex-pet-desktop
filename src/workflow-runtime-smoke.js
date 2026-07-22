@@ -21,7 +21,7 @@ const minimumActionMajors = new Map([
 
 function hasNode24RuntimeOptIn(source) {
   return /^env:\n(?:[ \t]+[A-Z0-9_]+:.*\n)*[ \t]+FORCE_JAVASCRIPT_ACTIONS_TO_NODE24:[ \t]*(true|"true"|'true')[ \t]*$/m.test(
-    source
+    source.replace(/\r\n/g, "\n")
   );
 }
 

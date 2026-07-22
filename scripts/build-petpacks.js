@@ -83,6 +83,10 @@ for (const id of listPets()) {
   fs.mkdirSync(stagingDir, { recursive: true });
   fs.copyFileSync(path.join(petDir, "pet.json"), path.join(stagingDir, "pet.json"));
   fs.copyFileSync(path.join(petDir, spritesheet), path.join(stagingDir, spritesheet));
+  const careSpritesheet = manifest.care?.spritesheetPath || "";
+  if (careSpritesheet) {
+    fs.copyFileSync(path.join(petDir, careSpritesheet), path.join(stagingDir, careSpritesheet));
+  }
   writePetpackManifest(stagingDir, manifest);
   const fileName = `${id}-${manifest.version || "1.0.0"}.petpack`;
   const outPath = path.join(outDir, fileName);
@@ -92,11 +96,15 @@ for (const id of listPets()) {
   }
 
   fs.rmSync(outPath, { force: true });
-  createPetpackZip(outPath, [
+  const packageFiles = [
     { name: "petpack.json", path: path.join(stagingDir, "petpack.json") },
     { name: "pet.json", path: path.join(stagingDir, "pet.json") },
     { name: spritesheet, path: path.join(stagingDir, spritesheet) }
-  ]);
+  ];
+  if (careSpritesheet) {
+    packageFiles.push({ name: careSpritesheet, path: path.join(stagingDir, careSpritesheet) });
+  }
+  createPetpackZip(outPath, packageFiles);
 
   const previewAtlas = `previews/${id}-${manifest.version || "1.0.0"}-atlas.webp`;
   fs.copyFileSync(path.join(petDir, spritesheet), path.join(outDir, previewAtlas));
@@ -118,6 +126,7 @@ for (const id of listPets()) {
     sha256: sha256(outPath),
     previewAtlas,
     spritesheet,
+    care: manifest.care || null,
     sprite: SPRITE,
     qa: {
       ok: qa.ok === true,

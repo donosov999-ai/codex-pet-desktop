@@ -1,4 +1,4 @@
-import { resolveSpritesheetSource } from "./bridge.js";
+import { resolveCareSpritesheetSource, resolveSpritesheetSource } from "./bridge.js";
 
 function versionLabel(pet) {
   return pet?.version ? pet.version : "未标版本";
@@ -19,6 +19,7 @@ export function createPetManager({
   animation,
   dom,
   petDesktop,
+  playCareAction,
   scheduleWander,
   setPetStatus,
   state,
@@ -26,6 +27,24 @@ export function createPetManager({
   syncWindowLayout = () => {},
   tauriConvertFileSrc
 }) {
+  function renderCareActions() {
+    const careStates = animation.getCareStates?.() || [];
+    dom.careControlsEl?.classList.toggle("hidden", careStates.length === 0);
+    if (!dom.careActionsEl) {
+      return;
+    }
+    dom.careActionsEl.replaceChildren(
+      ...careStates.map((careState) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.dataset.careState = careState.id;
+        button.textContent = careState.label;
+        button.addEventListener("click", () => playCareAction?.(careState.id, careState.durationMs));
+        return button;
+      })
+    );
+  }
+
   function pickPet(id) {
     state.activePet = state.pets.find((pet) => pet.id === id) || state.pets[0];
     if (!state.activePet) {
@@ -34,6 +53,8 @@ export function createPetManager({
       dom.petEl.setAttribute("aria-label", "未安装宠物");
       dom.petEl.textContent = "";
       dom.petEl.classList.add("empty");
+      animation.configurePet(null);
+      renderCareActions();
       const panelVisible = !dom.panelEl.classList.contains("hidden");
       dom.emptyStateEl.classList.toggle("hidden", panelVisible);
       document.documentElement.classList.toggle("panel-with-pet", false);
@@ -44,7 +65,9 @@ export function createPetManager({
     dom.emptyStateEl.classList.add("hidden");
     document.documentElement.classList.toggle("panel-with-pet", !dom.panelEl.classList.contains("hidden"));
     const source = resolveSpritesheetSource(state.activePet, tauriConvertFileSrc);
-    dom.petEl.style.backgroundImage = source ? `url("${source}")` : "";
+    const careSource = resolveCareSpritesheetSource(state.activePet, tauriConvertFileSrc);
+    animation.configurePet(state.activePet, { standardSource: source, careSource });
+    renderCareActions();
     dom.petEl.textContent = "";
     dom.petEl.setAttribute("aria-label", state.activePet.displayName);
     dom.petSelect.value = state.activePet.id;

@@ -14,6 +14,7 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
   let edgePaused = false;
   let preferredNextDirection = 0;
   let mousePassthrough = null;
+  let moveInFlight = false;
   let panelVisibilityRevision = 0;
   const lifeEngine = createLifeEngine({
     behavior: state.activePet?.behavior,
@@ -168,12 +169,14 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
         !hasActivePet() ||
         !dom.wanderToggle.checked ||
         dragging ||
+        pointerInsideInteractiveArea ||
         panelOpen()
       ) {
         scheduleWander();
         return;
       }
       const currentBehavior = refreshLifeEngine();
+      const carePlan = naturalLifeEnabled() ? animation.planAutonomousCare?.() : null;
       const plan = naturalLifeEnabled()
         ? lifeEngine.planAutonomous({
             autoWander: Boolean(dom.wanderToggle.checked),
@@ -181,7 +184,11 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
             panelOpen: panelOpen()
           })
         : null;
-      if (!applyWanderPlan(preferEdgeRecoveryDirection(plan, currentBehavior) || legacyWanderPlan(currentBehavior))) {
+      if (
+        !applyWanderPlan(
+          carePlan || preferEdgeRecoveryDirection(plan, currentBehavior) || legacyWanderPlan(currentBehavior)
+        )
+      ) {
         scheduleWander();
       }
     }, delay);
@@ -193,25 +200,34 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
       wanderDirection !== 0 &&
       now < wanderUntil &&
       dom.wanderToggle.checked &&
-      !dragging
+      !dragging &&
+      !pointerInsideInteractiveArea &&
+      !panelOpen() &&
+      !moveInFlight
     ) {
-      petDesktop?.moveBy(wanderDirection * 2, 0)?.then((bounds) => {
-        if (bounds?.hitEdge === "left") {
-          const behavior = refreshLifeEngine();
-          wanderDirection = 0;
-          preferredNextDirection = 1;
-          edgePaused = true;
-          wanderUntil = performance.now() + randomDuration(behavior.natural.edgePauseMs);
-          animation.setState(pick(behavior.natural.edgePauseStates));
-        } else if (bounds?.hitEdge === "right") {
-          const behavior = refreshLifeEngine();
-          wanderDirection = 0;
-          preferredNextDirection = -1;
-          edgePaused = true;
-          wanderUntil = performance.now() + randomDuration(behavior.natural.edgePauseMs);
-          animation.setState(pick(behavior.natural.edgePauseStates));
-        }
-      });
+      moveInFlight = true;
+      Promise.resolve(petDesktop?.moveBy(wanderDirection, 0))
+        .then((bounds) => {
+          if (bounds?.hitEdge === "left") {
+            const behavior = refreshLifeEngine();
+            wanderDirection = 0;
+            preferredNextDirection = 1;
+            edgePaused = true;
+            wanderUntil = performance.now() + randomDuration(behavior.natural.edgePauseMs);
+            animation.setState(pick(behavior.natural.edgePauseStates));
+          } else if (bounds?.hitEdge === "right") {
+            const behavior = refreshLifeEngine();
+            wanderDirection = 0;
+            preferredNextDirection = -1;
+            edgePaused = true;
+            wanderUntil = performance.now() + randomDuration(behavior.natural.edgePauseMs);
+            animation.setState(pick(behavior.natural.edgePauseStates));
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          moveInFlight = false;
+        });
     }
     if (wanderUntil && now >= wanderUntil) {
       wanderDirection = 0;
@@ -221,6 +237,18 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
       scheduleWander();
     }
     requestAnimationFrame(wanderLoop);
+  }
+
+  function playCareAction(stateName, durationMs) {
+    stopWander();
+    if (!animation.setState(stateName)) {
+      scheduleWander();
+      return false;
+    }
+    wanderDirection = 0;
+    edgePaused = false;
+    wanderUntil = performance.now() + Math.max(1000, Number(durationMs) || 6000);
+    return true;
   }
 
   function finalizePanelClosed() {
@@ -235,6 +263,8 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
   function setPanelVisible(show) {
     const revision = ++panelVisibilityRevision;
     if (show) {
+      stopWander();
+      animation.setState("idle");
       dom.panelEl.classList.remove("hidden");
       dom.panelBackdropEl.classList.remove("hidden");
       dom.emptyStateEl.classList.toggle("hidden", true);
@@ -286,6 +316,25 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
       dragLastScreenY = event.screenY;
       setMousePassthrough(false);
       dom.petEl.setPointerCapture?.(event.pointerId);
+    });
+
+    dom.petEl.addEventListener("pointerenter", () => {
+      if (dragging || panelOpen()) {
+        return;
+      }
+      pointerInsideInteractiveArea = true;
+      stopWander();
+      animation.setState("idle");
+      setMousePassthrough(false);
+    });
+
+    dom.petEl.addEventListener("pointerleave", () => {
+      if (dragging || panelOpen()) {
+        return;
+      }
+      pointerInsideInteractiveArea = false;
+      scheduleWander(900);
+      setMousePassthrough(false);
     });
 
     dom.petEl.addEventListener("pointermove", (event) => {
@@ -351,6 +400,9 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
     dom.petEl.addEventListener("dblclick", () => {
       const behavior = refreshLifeEngine();
       const plan = lifeEngine.planInteraction("doubleClick");
+      if ((animation.getCareStates?.() || []).length > 0) {
+        togglePanel(true);
+      }
       animation.setState(plan?.state || behavior.doubleClickState, {
         onceReturn: plan?.onceReturn || behavior.natural.doubleClickReturnState
       });
@@ -437,6 +489,7 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
   return {
     bind,
     hasActivePet,
+    playCareAction,
     scheduleWander,
     refreshLifeEngine,
     setMousePassthrough,

@@ -87,6 +87,18 @@ pub(crate) struct PetBehavior {
     life: Option<Value>,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub(crate) struct PetCare {
+    spritesheet_path: String,
+    spritesheet_url: String,
+    spritesheet_revision: String,
+    atlas: Value,
+    states: Value,
+    autonomous_states: Vec<String>,
+    autonomous_chance: f64,
+}
+
 impl Default for PetBehavior {
     fn default() -> Self {
         Self {
@@ -117,6 +129,8 @@ pub(crate) struct PetPackage {
     tags: Vec<String>,
     changelog: Vec<String>,
     behavior: PetBehavior,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    care: Option<PetCare>,
     manifest_path: String,
     pub(crate) root: String,
     pub(crate) source_kind: String,
@@ -154,8 +168,21 @@ struct PetManifest {
     tags: Option<Vec<String>>,
     changelog: Option<Vec<String>>,
     behavior: Option<PetBehaviorManifest>,
+    care: Option<PetCareManifest>,
     #[serde(rename = "spritesheetPath")]
     spritesheet_path: Option<String>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct PetCareManifest {
+    spritesheet_path: String,
+    atlas: Value,
+    states: Value,
+    #[serde(default)]
+    autonomous_states: Vec<String>,
+    #[serde(default)]
+    autonomous_chance: f64,
 }
 
 #[derive(Debug, serde::Deserialize)]
@@ -358,6 +385,21 @@ fn normalize_pet_package(dir: &Path, source_kind: PetSourceKind) -> Result<PetPa
     )
     .unwrap_or_else(|| manifest.changelog.unwrap_or_default());
     let behavior = manifest.behavior.map(Into::into).unwrap_or_default();
+    let care = match manifest.care {
+        Some(care) => {
+            let resolved = resolve_optional_asset(dir, &care.spritesheet_path, "care spritesheet")?;
+            Some(PetCare {
+                spritesheet_path: resolved.display().to_string(),
+                spritesheet_url: file_url(&resolved)?,
+                spritesheet_revision: file_revision(&resolved),
+                atlas: care.atlas,
+                states: care.states,
+                autonomous_states: care.autonomous_states,
+                autonomous_chance: care.autonomous_chance.clamp(0.0, 1.0),
+            })
+        }
+        None => None,
+    };
     let spritesheet_path = manifest
         .spritesheet_path
         .unwrap_or_else(|| "spritesheet.webp".to_string());
@@ -380,6 +422,7 @@ fn normalize_pet_package(dir: &Path, source_kind: PetSourceKind) -> Result<PetPa
         tags,
         changelog,
         behavior,
+        care,
         manifest_path: manifest_path.display().to_string(),
         root: dir.display().to_string(),
         source_kind: source_kind.as_str().to_string(),
@@ -388,6 +431,22 @@ fn normalize_pet_package(dir: &Path, source_kind: PetSourceKind) -> Result<PetPa
         spritesheet_url: file_url(&resolved_spritesheet)?,
         spritesheet_revision: file_revision(&resolved_spritesheet),
     })
+}
+
+fn resolve_optional_asset(dir: &Path, file_name: &str, label: &str) -> Result<PathBuf, String> {
+    let candidate = Path::new(file_name);
+    if candidate.components().count() != 1 || candidate.file_name().is_none() {
+        return Err(format!("Invalid {label} path: {file_name}"));
+    }
+    let root = dir.canonicalize().map_err(|error| error.to_string())?;
+    let resolved = dir
+        .join(candidate)
+        .canonicalize()
+        .map_err(|_| format!("Missing {label}: {}", dir.join(candidate).display()))?;
+    if !resolved.starts_with(&root) {
+        return Err(format!("Invalid {label} path: {file_name}"));
+    }
+    Ok(resolved)
 }
 
 fn non_empty(value: Option<String>) -> Option<String> {
@@ -714,6 +773,43 @@ mod tests {
         assert_eq!(behavior["natural"]["postDragState"], "review");
         assert_eq!(behavior["life"]["phases"][0]["id"], "active");
         assert_eq!(behavior["life"]["phases"][0]["from"], 10);
+    }
+
+    #[test]
+    fn surfaces_optional_care_atlas_and_states() {
+        let root = temp_root();
+        let pet = root.join("biruzik");
+        fs::create_dir_all(&pet).expect("create pet");
+        fs::write(pet.join("spritesheet.webp"), b"webp").expect("write sprite");
+        fs::write(pet.join("care-spritesheet.webp"), b"care").expect("write care sprite");
+        fs::write(
+            pet.join("pet.json"),
+            r#"{
+                "id":"biruzik",
+                "displayName":"Бирюзик",
+                "care":{
+                    "spritesheetPath":"care-spritesheet.webp",
+                    "atlas":{"width":1536,"height":1040,"columns":8,"rows":5,"cellWidth":192,"cellHeight":208},
+                    "states":{"play":{"row":3,"frames":6,"fps":7}},
+                    "autonomousStates":["play"],
+                    "autonomousChance":0.22
+                }
+            }"#,
+        )
+        .expect("write manifest");
+
+        let list = list_pet_packages_from_roots(vec![root]);
+        let pet_value = serde_json::to_value(&list.pets[0]).expect("serialize pet");
+        let care = &pet_value["care"];
+
+        assert!(care["spritesheetUrl"]
+            .as_str()
+            .expect("care URL")
+            .starts_with("file://"));
+        assert_eq!(care["atlas"]["rows"], 5);
+        assert_eq!(care["states"]["play"]["row"], 3);
+        assert_eq!(care["autonomousStates"], serde_json::json!(["play"]));
+        assert_eq!(care["autonomousChance"], 0.22);
     }
 
     #[test]

@@ -105,7 +105,7 @@ const config = {
     ...(baseConfig.bundle || {}),
     active: true,
     targets: bundleTargetsForPlatform(platform),
-    resources: {}
+    resources: baseConfig.bundle?.resources || {}
   }
 };
 

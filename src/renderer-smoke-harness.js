@@ -129,6 +129,8 @@ async function loadRenderer(options = {}) {
     "#closePanelButton",
     "#petSelect",
     "#stateSelect",
+    "#careControls",
+    "#careActions",
     "#scaleRange",
     "#directionLeftButton",
     "#directionRightButton",

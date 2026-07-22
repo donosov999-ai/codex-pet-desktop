@@ -18,7 +18,7 @@ impl Default for UserPreferences {
     fn default() -> Self {
         Self {
             selected_pet_id: String::new(),
-            scale: 0.6,
+            scale: 0.9,
             pet_direction: "right".to_string(),
             auto_wander: true,
             natural_life: true,

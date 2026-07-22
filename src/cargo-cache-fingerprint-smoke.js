@@ -26,13 +26,14 @@ if (!releaseSource.includes("steps.cargo-cache-key.outputs.fingerprint")) {
 }
 
 if (cargoDependencyFingerprint) {
-  const base = cargoDependencyFingerprint(lockSource);
-  const lineEndingsChanged = cargoDependencyFingerprint(lockSource.replace(/\n/g, "\r\n"));
+  const normalizedLockSource = lockSource.replace(/\r\n?/g, "\n");
+  const base = cargoDependencyFingerprint(normalizedLockSource);
+  const lineEndingsChanged = cargoDependencyFingerprint(normalizedLockSource.replace(/\n/g, "\r\n"));
   const appVersionChanged = cargoDependencyFingerprint(
-    lockSource.replace(/(name = "yongsheng-plan"\nversion = ")[^"]+(")/, "$19.9.9$2")
+    normalizedLockSource.replace(/(name = "yongsheng-plan"\nversion = ")[^"]+(")/, "$19.9.9$2")
   );
   const dependencyVersionChanged = cargoDependencyFingerprint(
-    lockSource.replace(/(name = "reqwest"\nversion = ")[^"]+(")/, "$10.0.0$2")
+    normalizedLockSource.replace(/(name = "reqwest"\nversion = ")[^"]+(")/, "$10.0.0$2")
   );
 
   if (base !== lineEndingsChanged) {

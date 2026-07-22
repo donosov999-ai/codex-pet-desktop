@@ -3,7 +3,7 @@
   --cell-height: 208px;
   --atlas-width: 1536px;
   --atlas-height: 1872px;
-  --scale: 0.6;
+  --scale: 0.9;
   --direction-scale: 1;
   --panel-bg: rgba(20, 23, 28, 0.92);
   --panel-border: rgba(255, 255, 255, 0.14);
@@ -264,6 +264,22 @@ button:hover {
   color: #10151b;
   background: var(--accent);
   border-color: var(--accent);
+}
+
+.care-controls {
+  display: grid;
+  gap: 7px;
+}
+
+.care-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.care-actions button {
+  min-height: 34px;
+  padding: 7px 9px;
 }
 
 .app-update-actions {

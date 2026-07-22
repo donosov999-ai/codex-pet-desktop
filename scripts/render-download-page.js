@@ -247,12 +247,12 @@ ${[...petpacks]
           <article class="download">
             <h3>Windows</h3>
             <p>适合 Windows x64。</p>
-            <a href="https://github.com/jieyangxchen/codex-pet-desktop/releases/latest/download/yongsheng-plan-windows-x64.exe">下载 Windows 版</a>
+            <a href="https://github.com/donosov999-ai/codex-pet-desktop/releases/latest/download/yongsheng-plan-windows-x64.exe">下载 Windows 版</a>
           </article>
           <article class="download">
             <h3>macOS</h3>
             <p>适用于 Apple Silicon Mac。</p>
-            <a href="https://github.com/jieyangxchen/codex-pet-desktop/releases/latest/download/yongsheng-plan-macos-arm64.dmg">Apple Silicon</a>
+            <a href="https://github.com/donosov999-ai/codex-pet-desktop/releases/latest/download/yongsheng-plan-macos-arm64.dmg">Apple Silicon</a>
           </article>
         </div>
       </section>

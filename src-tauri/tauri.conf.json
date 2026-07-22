@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "永生计划",
-  "version": "0.2.28",
-  "identifier": "io.github.jieyangxchen.yongshengplan",
+  "productName": "Biruzik Desktop",
+  "version": "0.2.29",
+  "identifier": "com.odv999.biruzik",
   "build": {
     "frontendDist": "../src/app",
     "beforeDevCommand": "",
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "永生计划",
+        "title": "Бирюзик",
         "url": "renderer.html",
         "width": 320,
         "height": 340,
@@ -50,7 +50,9 @@
       "icons/icon.png",
       "icons/icon.ico"
     ],
-    "resources": {},
+    "resources": {
+      "../resources/pets/biruzik": "pets/biruzik"
+    },
     "windows": {}
   }
 }
