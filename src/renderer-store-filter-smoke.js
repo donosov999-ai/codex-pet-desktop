@@ -18,7 +18,7 @@ async function main() {
   const localPets = [
     {
       id: "mi-fen",
-      displayName: "米粉",
+      displayName: "Mi Fen",
       version: "1.0.1",
       sourceKind: "managed",
       canUninstall: true,
@@ -26,7 +26,7 @@ async function main() {
     },
     {
       id: "mi-jiu",
-      displayName: "米酒",
+      displayName: "Mi Jiu",
       version: "1.0.0",
       sourceKind: "managed",
       canUninstall: true,
@@ -45,8 +45,8 @@ async function main() {
         json: async () => [
           {
             id: "mi-fen",
-            displayName: "米粉",
-            description: "全白猫咪",
+            displayName: "Mi Fen",
+            description: "white cat",
             version: "1.0.2",
             sizeBytes: 2048,
             updatedAt: "2026-05-17",
@@ -54,8 +54,8 @@ async function main() {
           },
           {
             id: "mi-jiu",
-            displayName: "米酒",
-            description: "深色猫咪",
+            displayName: "Mi Jiu",
+            description: "dark-coated cat",
             version: "1.0.0",
             sizeBytes: 1024,
             updatedAt: "2026-05-16",
@@ -63,8 +63,8 @@ async function main() {
           },
           {
             id: "hong-tang",
-            displayName: "红糖",
-            description: "惠比特",
+            displayName: "Hong Tang",
+            description: "whippet",
             version: "1.0.1",
             sizeBytes: 4096,
             updatedAt: "2026-05-15",
@@ -78,8 +78,8 @@ async function main() {
       getAppInfo: async () => ({
         version: "0.2.3",
         latestReleaseApi: "",
-        downloadsUrl: "https://jieyangxchen.github.io/codex-pet-desktop/",
-        petpackIndexUrl: "https://jieyangxchen.github.io/codex-pet-desktop/petpacks/petpacks.json"
+        downloadsUrl: "https://donosov999-ai.github.io/codex-pet-desktop/",
+        petpackIndexUrl: "https://donosov999-ai.github.io/codex-pet-desktop/petpacks/petpacks.json"
       }),
       getPreferences: async () => ({}),
       savePreferences: async (value) => value,
@@ -113,7 +113,7 @@ async function main() {
   elements.get("#storeFilter").dispatch("change");
   await flush();
   storeText = textOf(elements.get("#petStoreList"));
-  if (!storeText.includes("米粉") || storeText.includes("米酒") || storeText.includes("红糖")) {
+  if (!storeText.includes("Mi Fen") || storeText.includes("Mi Jiu") || storeText.includes("Hong Tang")) {
     console.error(JSON.stringify({ ok: false, reason: "updates filter failed", storeText }));
     process.exit(1);
   }
@@ -122,16 +122,16 @@ async function main() {
   elements.get("#storeFilter").dispatch("change");
   await flush();
   storeText = textOf(elements.get("#petStoreList"));
-  if (!storeText.includes("红糖") || storeText.includes("米粉") || storeText.includes("米酒")) {
+  if (!storeText.includes("Hong Tang") || storeText.includes("Mi Fen") || storeText.includes("Mi Jiu")) {
     console.error(JSON.stringify({ ok: false, reason: "uninstalled filter failed", storeText }));
     process.exit(1);
   }
 
-  const installButton = findButtonByText(elements.get("#petStoreList"), "安装") || findByText(elements.get("#petStoreList"), "安装");
+  const installButton = findButtonByText(elements.get("#petStoreList"), "Install") || findByText(elements.get("#petStoreList"), "Install");
   installButton.click();
   await flush();
   const statusText = elements.get("#petStoreStatus").textContent;
-  if (!statusText.includes("安装失败") || !statusText.includes("打开下载页")) {
+  if (!statusText.includes("Install failed") || !statusText.includes("downloads page")) {
     console.error(JSON.stringify({ ok: false, reason: "store failure did not show fallback", statusText, fetchCalls }));
     process.exit(1);
   }

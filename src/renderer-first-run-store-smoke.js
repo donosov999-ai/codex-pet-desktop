@@ -10,8 +10,8 @@ async function main() {
         json: async () => [
           {
             id: "mi-fen",
-            displayName: "米粉",
-            description: "全白猫咪",
+            displayName: "Mi Fen",
+            description: "white cat",
             version: "1.0.2",
             fileName: "mi-fen-1.0.2.petpack",
             previewAtlas: "previews/mi-fen-1.0.2-atlas.webp"
@@ -24,7 +24,7 @@ async function main() {
       getAppInfo: async () => ({
         version: "0.2.3",
         latestReleaseApi: "",
-        petpackIndexUrl: "https://jieyangxchen.github.io/codex-pet-desktop/petpacks/petpacks.json"
+        petpackIndexUrl: "https://donosov999-ai.github.io/codex-pet-desktop/petpacks/petpacks.json"
       }),
       getPreferences: async () => ({}),
       savePreferences: async (value) => value,
@@ -51,8 +51,8 @@ async function main() {
   if (
     elements.get("#panel").classList.contains("hidden") ||
     !fetchCalls[0]?.endsWith("/petpacks/petpacks.json") ||
-    !storeText.includes("米粉") ||
-    !storeText.includes("安装")
+    !storeText.includes("Mi Fen") ||
+    !storeText.includes("Install")
   ) {
     console.error(
       JSON.stringify({

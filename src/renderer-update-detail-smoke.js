@@ -3,7 +3,7 @@ const { loadRenderer } = require("./renderer-smoke-harness");
 async function main() {
   const pet = {
     id: "mi-fen",
-    displayName: "米粉",
+    displayName: "Mi Fen",
     version: "1.0.2",
     sourceKind: "managed",
     canUninstall: true,
@@ -14,15 +14,15 @@ async function main() {
       ok: true,
       json: async () => ({
         tag_name: "v0.2.4",
-        html_url: "https://github.com/jieyangxchen/codex-pet-desktop/releases/tag/v0.2.4",
-        body: "新增设置持久化\n优化资源库"
+        html_url: "https://github.com/donosov999-ai/codex-pet-desktop/releases/tag/v0.2.4",
+        body: "Added persistent settings\nImproved the pet catalog"
       })
     }),
     petDesktop: {
       listPets: async () => ({ pets: [pet], errors: [] }),
       getAppInfo: async () => ({
         version: "0.2.3",
-        latestReleaseApi: "https://api.github.com/repos/jieyangxchen/codex-pet-desktop/releases/latest",
+        latestReleaseApi: "https://api.github.com/repos/donosov999-ai/codex-pet-desktop/releases/latest",
         petpackIndexUrl: ""
       }),
       getPreferences: async () => ({}),
@@ -50,10 +50,10 @@ async function main() {
 
   const updateText = elements.get("#updateStatus").textContent;
   if (
-    !updateText.includes("当前 v0.2.3") ||
-    !updateText.includes("最新 v0.2.4") ||
-    !updateText.includes("新增设置持久化") ||
-    !updateText.includes("打开下载页")
+    !updateText.includes("current v0.2.3") ||
+    !updateText.includes("latest v0.2.4") ||
+    !updateText.includes("Added persistent settings") ||
+    !updateText.includes("Open downloads")
   ) {
     console.error(JSON.stringify({ ok: false, reason: "update detail text missing", updateText }));
     process.exit(1);

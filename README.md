@@ -1,127 +1,75 @@
-<h1 align="center">宠物·永生计划</h1>
+<h1 align="center">Pet Forever Project</h1>
 
 <p align="center">
-  一个独立运行的 Windows/macOS 桌面宠物应用。主程序和宠物资源包解耦，让米粉、米酒、红糖、玲玲这类宠物以 <code>.petpack</code> 的方式长期保存、独立更新、随时导入。
+  A standalone Windows and macOS desktop-pet app. The app and pet packs are independent, so pets can be installed, preserved, and updated as portable <code>.petpack</code> files.
 </p>
 
 <p align="center">
-  <a href="https://jieyangxchen.github.io/codex-pet-desktop/">下载页</a> ·
-  <a href="https://github.com/jieyangxchen/codex-pet-desktop/releases/latest">最新 Release</a> ·
-  <a href="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/petpacks.json">宠物包索引</a> ·
-  <a href="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/visual-qa.html">视觉 QA</a>
+  <a href="https://donosov999-ai.github.io/codex-pet-desktop/">Download page</a> ·
+  <a href="https://github.com/donosov999-ai/codex-pet-desktop/releases/latest">Latest release</a> ·
+  <a href="https://donosov999-ai.github.io/codex-pet-desktop/petpacks/petpacks.json">Pet-pack index</a> ·
+  <a href="https://donosov999-ai.github.io/codex-pet-desktop/petpacks/visual-qa.html">Visual QA</a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/jieyangxchen/codex-pet-desktop/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/jieyangxchen/codex-pet-desktop?label=release"></a>
-  <a href="https://github.com/jieyangxchen/codex-pet-desktop/actions/workflows/release.yml"><img alt="Release workflow" src="https://github.com/jieyangxchen/codex-pet-desktop/actions/workflows/release.yml/badge.svg"></a>
-  <a href="https://github.com/jieyangxchen/codex-pet-desktop/actions/workflows/pages.yml"><img alt="Pages workflow" src="https://github.com/jieyangxchen/codex-pet-desktop/actions/workflows/pages.yml/badge.svg"></a>
+  <a href="https://github.com/donosov999-ai/codex-pet-desktop/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/donosov999-ai/codex-pet-desktop?label=release"></a>
+  <a href="https://github.com/donosov999-ai/codex-pet-desktop/actions/workflows/release.yml"><img alt="Release workflow" src="https://github.com/donosov999-ai/codex-pet-desktop/actions/workflows/release.yml/badge.svg"></a>
+  <a href="https://github.com/donosov999-ai/codex-pet-desktop/actions/workflows/pages.yml"><img alt="Pages workflow" src="https://github.com/donosov999-ai/codex-pet-desktop/actions/workflows/pages.yml/badge.svg"></a>
   <a href="./LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue"></a>
 </p>
 
-<p align="center">
-  <a href="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/visual-qa.html">
-    <img width="24%" alt="米粉宠物包动作预览" src="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/previews/mi-fen-1.0.4-atlas.webp">
-  </a>
-  <a href="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/visual-qa.html">
-    <img width="24%" alt="米酒宠物包动作预览" src="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/previews/mi-jiu-1.0.2-atlas.webp">
-  </a>
-  <a href="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/visual-qa.html">
-    <img width="24%" alt="红糖宠物包动作预览" src="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/previews/tigris-whippet-1.0.3-atlas.webp">
-  </a>
-  <a href="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/visual-qa.html">
-    <img width="24%" alt="红糖真实版宠物包动作预览" src="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/previews/tigris-whippet-real-1.0.0-atlas.webp">
-  </a>
-  <a href="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/visual-qa.html">
-    <img width="24%" alt="玲玲宠物包动作预览" src="https://jieyangxchen.github.io/codex-pet-desktop/petpacks/previews/lingling-1.0.0-atlas.webp">
-  </a>
-</p>
+> This is a community project, not an official OpenAI or Codex application. It supports Codex-style `pet.json` and `spritesheet.webp` resources, but it runs independently from Codex.
 
-> 这是社区项目，不是 OpenAI 或 Codex 官方应用。项目复用了 Codex 风格的 `pet.json` + `spritesheet.webp` 宠物资源格式，但主程序不依赖 Codex 启动或运行。
+## Start in three steps
 
-## Why this exists / 项目初衷
+1. Download the installer from the [download page](https://donosov999-ai.github.io/codex-pet-desktop/) or [latest release](https://github.com/donosov999-ai/codex-pet-desktop/releases/latest).
+2. Start the app and install a pet from the catalog, or import a local `.petpack` file.
+3. Drag the pet into position. Right-click it to open controls for size, animation, wandering, care actions, updates, and installed pets.
 
-很多人和宠物之间的关系，不只是“养过一只猫/狗”这么简单。它们在某个阶段陪我们生活、等我们回家、把很普通的一天变得有回应；当它们离开后，照片和视频当然还在，但偶尔还是会希望它们能以一种轻一点、日常一点的方式重新出现在屏幕上。
+## What is included
 
-宠物·永生计划就是为了这种陪伴和纪念需求存在的。它不试图替代真实的生命，也不把思念包装成宏大的东西，只是把一只只具体的宠物做成可以长期保存、随时导入、安静待在桌面的资源包。
+- A transparent Tauri/Rust desktop window with drag, tray, animation, care, and autonomous behavior.
+- A built-in catalog backed by GitHub Pages.
+- Portable `.petpack` import, update, compatibility, integrity, and uninstall flows.
+- Independent app releases and pet-pack releases.
+- Biruzik care modes: sleep, eat, wash, play, and toilet.
 
-做这个项目的过程中，我也在帮朋友、以及社媒上认识的朋友生成他们想再看一眼的宠物。为了这些需求，我自费从 Plus 会员升级到了 Pro 会员，因为希望更多朋友能再看到他们的宠物，也希望这些小小的陪伴不只停留在聊天窗口里。
+Current pet packs: Biruzik, Hong Tang, Hong Tang Realistic, Lingling, Mi Fen, Mi Jiu, Shubiao, and Tiantian.
 
-## 三步开始
+## Downloads
 
-1. 打开 [下载页](https://jieyangxchen.github.io/codex-pet-desktop/) 或 [最新 Release](https://github.com/jieyangxchen/codex-pet-desktop/releases/latest)，下载适合你系统的安装包。
-2. 启动主程序，进入资源库安装米粉、米酒、红糖、红糖真实版或玲玲，也可以手动导入 `.petpack`。
-3. 把桌宠拖到顺手的位置，右键打开控制面板，调整大小、置顶、自动散步和资源更新。
-
-如果这个项目帮你留下了一只想长期保存的桌宠，欢迎点一个 Star；问题、宠物资源建议和适配反馈可以发到 [Discussions](https://github.com/jieyangxchen/codex-pet-desktop/discussions) 或 [Issues](https://github.com/jieyangxchen/codex-pet-desktop/issues)。
-
-## 这是什么
-
-宠物·永生计划把桌宠分成两部分：
-
-- 主程序：一个 Tauri/Rust 桌面应用，负责透明窗口、拖动、托盘、互动、导入和资源库。
-- 宠物包：每只宠物一个 `.petpack`，里面放 `petpack.json`、`pet.json` 和 `spritesheet.webp`。
-
-这样主程序优化和宠物资源更新可以分开发布。换图、加动作、修宠物资源时，只需要更新 Pages 上的宠物包，不需要重新构建安装包。
-
-## 下载入口
-
-推荐从下载页开始：
-[https://jieyangxchen.github.io/codex-pet-desktop/](https://jieyangxchen.github.io/codex-pet-desktop/)
-
-| 类型 | 链接 | 说明 |
-| --- | --- | --- |
-| Windows 主程序 | [yongsheng-plan-windows-x64.exe](https://github.com/jieyangxchen/codex-pet-desktop/releases/latest/download/yongsheng-plan-windows-x64.exe) | Windows x64 安装包 |
-| macOS Apple Silicon | [yongsheng-plan-macos-arm64.dmg](https://github.com/jieyangxchen/codex-pet-desktop/releases/latest/download/yongsheng-plan-macos-arm64.dmg) | M 系列芯片 Mac |
-| 最新 Release | [GitHub Releases](https://github.com/jieyangxchen/codex-pet-desktop/releases/latest) | 主程序发布页 |
-| 宠物包索引 | [petpacks.json](https://jieyangxchen.github.io/codex-pet-desktop/petpacks/petpacks.json) | 应用内资源库读取的索引 |
-| 资源视觉检查 | [visual-qa.html](https://jieyangxchen.github.io/codex-pet-desktop/petpacks/visual-qa.html) | 查看每个宠物包的动作帧 |
-
-首次安装主程序后，如果还没有宠物，会自动打开宠物资源库。可以直接在应用里安装宠物，也可以从下载页下载 `.petpack` 后手动导入。
-
-## 当前宠物包
-
-| 宠物 | 文件 | 说明 |
-| --- | --- | --- |
-| 米粉 | [mi-fen-1.0.4.petpack](https://jieyangxchen.github.io/codex-pet-desktop/petpacks/mi-fen-1.0.4.petpack) | 木老师的工友 |
-| 米酒 | [mi-jiu-1.0.2.petpack](https://jieyangxchen.github.io/codex-pet-desktop/petpacks/mi-jiu-1.0.2.petpack) | 木老师的工友 |
-| 红糖 | [tigris-whippet-1.0.3.petpack](https://jieyangxchen.github.io/codex-pet-desktop/petpacks/tigris-whippet-1.0.3.petpack) | 我家的傻狗子 |
-| 红糖真实版 | [tigris-whippet-real-1.0.0.petpack](https://jieyangxchen.github.io/codex-pet-desktop/petpacks/tigris-whippet-real-1.0.0.petpack) | 我家的虎斑惠比特 |
-| 玲玲 | [lingling-1.0.0.petpack](https://jieyangxchen.github.io/codex-pet-desktop/petpacks/lingling-1.0.0.petpack) | 木老师室友的小斗 |
-
-同一个宠物 id 再次导入时会覆盖应用数据目录里的旧版本。应用内资源库会按索引里的版本、大小、SHA-256 和更新说明判断是否可更新。
-
-## 运行规则
-
-- 主程序正式安装包不内置宠物资源。
-- 首次启动如果没有已安装宠物，会显示空状态并打开资源库入口。
-- `CODEX_PETS_DIR`、应用数据目录和 `~/.codex/pets` 仍可作为外部宠物目录。
-- 宠物包通过 GitHub Pages 分发；主程序通过 GitHub Releases 分发。
-- 推送 `v*` tag 会触发 Release workflow，构建 Windows 和 macOS 主程序。
-- 修改 `resources/pets/**`、下载页或宠物包脚本会触发 Pages workflow，重新生成 `.petpack`、资源索引和下载页。
-
-## 交互
-
-| 操作 | 行为 |
+| Package | Link |
 | --- | --- |
-| 拖动桌宠 | 移动位置，拖动时暂停自动游走 |
-| 单击桌宠 | 播放当前宠物配置的互动动画 |
-| 双击桌宠 | 播放跳跃动画 |
-| 右键桌宠 | 打开或关闭控制面板 |
-| 托盘左键 | 显示或隐藏桌宠 |
-| 托盘右键 | 打开急救菜单，支持显示、隐藏、召回、暂停/恢复自动散步、打开资源库、打开数据目录、置顶和退出 |
+| Windows x64 | [biruzik-desktop-windows-x64.exe](https://github.com/donosov999-ai/codex-pet-desktop/releases/latest/download/biruzik-desktop-windows-x64.exe) |
+| Apple Silicon macOS | [biruzik-desktop-macos-arm64.dmg](https://github.com/donosov999-ai/codex-pet-desktop/releases/latest/download/biruzik-desktop-macos-arm64.dmg) |
+| Pet-pack index | [petpacks.json](https://donosov999-ai.github.io/codex-pet-desktop/petpacks/petpacks.json) |
+| Pet visual QA | [visual-qa.html](https://donosov999-ai.github.io/codex-pet-desktop/petpacks/visual-qa.html) |
 
-控制面板包含控制、资源库、已安装、更新等分区，支持安装/更新宠物包、本地导入、切换宠物、调整大小、切换动作状态、置顶、自动散步、卸载资源和检查更新。
+If no pet is installed on first launch, the app opens the catalog automatically.
 
-## 宠物资源格式
+## Controls
 
-仓库内每只宠物位于 `resources/pets/<pet-id>/`，至少包含：
+| Input | Behavior |
+| --- | --- |
+| Drag pet | Move the pet and pause autonomous movement while dragging |
+| Single click | Play the configured click interaction |
+| Double click | Play the configured double-click interaction |
+| Right click | Open or close the control panel |
+| Left-click tray icon | Show or hide the pet |
+| Right-click tray icon | Open recovery and app controls |
+
+The tray menu can show, hide, or recenter the pet; pause or resume wandering; open the catalog or data folder; toggle always-on-top; and quit.
+
+## Pet resource format
+
+Each source pet lives in `resources/pets/<pet-id>/` and contains at least:
 
 ```text
 pet.json
 spritesheet.webp
 ```
 
-`.petpack` 是 zip 容器，根目录包含：
+A `.petpack` is a zip container with these root files:
 
 ```text
 petpack.json
@@ -129,27 +77,27 @@ pet.json
 spritesheet.webp
 ```
 
-`petpack.json` 最小字段：
+Minimal `petpack.json`:
 
 ```json
 {
   "format": "codex-petpack",
   "formatVersion": 1,
   "id": "mi-fen",
-  "displayName": "米粉",
-  "version": "1.0.3"
+  "displayName": "Mi Fen",
+  "version": "1.0.5"
 }
 ```
 
-图集要求：
+Standard atlas layout:
 
-| 项 | 要求 |
+| Property | Value |
 | --- | --- |
-| 文件尺寸 | `1536x1872` |
-| 网格 | 8 列 x 9 行 |
-| 单帧 | `192x208` |
+| Image size | `1536x1872` |
+| Grid | 8 columns × 9 rows |
+| Frame size | `192x208` |
 
-| 行号 | 状态 | 帧数 |
+| Row | State | Frames |
 | --- | --- | --- |
 | 0 | `idle` | 6 |
 | 1 | `running-right` | 8 |
@@ -161,15 +109,9 @@ spritesheet.webp
 | 7 | `running` | 6 |
 | 8 | `review` | 6 |
 
-## 开发
+## Development
 
-环境要求：
-
-- Node.js 22
-- Rust stable
-- Tauri CLI v2
-
-常用命令：
+Requirements: Node.js 22, stable Rust, and Tauri CLI v2.
 
 ```bash
 npm install
@@ -181,69 +123,44 @@ cargo test
 cargo run
 ```
 
-打包主程序：
+Build the app:
 
 ```bash
 node scripts/build-app.js build windows
 node scripts/build-app.js build macos-arm64
 ```
 
-生成宠物包和下载页：
+Build pet packs and the download page:
 
 ```bash
 node scripts/build-petpacks.js
 node scripts/render-download-page.js
 ```
 
-开发模式会扫描仓库里的 `resources/pets`，方便制作和预览资源；正式安装包不依赖这个目录。
-
-## 项目结构
+## Project layout
 
 ```text
-resources/pets/                 宠物资源源目录，用于生成独立 .petpack
-src-tauri/                      Rust/Tauri 主进程、窗口、托盘、打包配置
-src/app/                        打包进主程序的前端运行时文件
-src/*-smoke.js                  Node 冒烟测试
-scripts/build-app.js            生成无内置资源的主程序安装包
-scripts/build-petpacks.js       生成独立宠物资源包和 petpacks.json
-scripts/qa-petpack-assets.js    校验宠物 manifest、图集尺寸和动作帧
-scripts/render-download-page.js 根据 petpacks.json 生成 GitHub Pages 下载页
-docs/index.html                 GitHub Pages 静态下载页
+resources/pets/                 Pet-pack sources
+src-tauri/                      Rust/Tauri process, window, tray, and packaging
+src/app/                        Renderer bundled into the desktop app
+src/*-smoke.js                  Node smoke tests
+scripts/build-app.js            App installer build
+scripts/build-petpacks.js       Pet-pack and index build
+scripts/qa-petpack-assets.js    Manifest, atlas, and animation validation
+scripts/render-download-page.js GitHub Pages renderer
+docs/index.html                 Generated download page
 ```
 
-## 发布
+## Release model
 
-提交范围判断：
+- A `v*` tag triggers the app release workflow for Windows and macOS installers.
+- Changes under `resources/pets/**` or to page-generation scripts trigger the Pages workflow.
+- The installed app checks this fork's releases and pet-pack index.
 
-```bash
-node scripts/release-scope.js README.md
-node scripts/release-scope.js resources/pets/mi-fen/pet.json
-node scripts/release-scope.js src/app/renderer/index.js
-```
+## Credits
 
-README-only 变更只推 `main`，不升级主程序版本、不推 `v*` tag。宠物资源变更走 Pages 发布，也不升级主程序版本。只有主程序代码、配置或构建链路变更，或明确需要发版时，才升级版本并推送新的 `v*` tag。
+Forked from [jieyangxchen/codex-pet-desktop](https://github.com/jieyangxchen/codex-pet-desktop). Biruzik and the English-only fork are maintained by Denis Onosov (ODV999).
 
-主程序发布：
+## License
 
-```bash
-git tag v0.2.25
-git push origin v0.2.25
-```
-
-GitHub Actions 会构建并发布：
-
-- `yongsheng-plan-windows-x64.exe`
-- `yongsheng-plan-macos-arm64.dmg`
-
-宠物包发布：
-
-```bash
-node scripts/build-petpacks.js
-node scripts/render-download-page.js
-```
-
-提交 `resources/pets/**`、`scripts/build-petpacks.js`、`scripts/render-download-page.js` 或 `docs/index.html` 后，Pages workflow 会重新部署下载页和宠物包资源。
-
-## 许可证
-
-MIT
+MIT. Individual pet packs retain the license declared in their manifest.

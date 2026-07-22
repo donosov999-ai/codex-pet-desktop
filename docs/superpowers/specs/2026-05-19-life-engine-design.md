@@ -42,7 +42,7 @@ If the user leaves the pet alone for a while, it may perform a medium-intensity 
 
 Existing controls remain meaningful:
 
-- `自动散步` stays the movement and autonomous-behavior gate. When it is off, click, double-click, and drag feedback still work, but the pet does not self-initiate movement.
+- `Automatic wandering` stays the movement and autonomous-behavior gate. When it is off, click, double-click, and drag feedback still work, but the pet does not self-initiate movement.
 - The new natural-life switch controls phase-aware behavior selection. When disabled, the app uses the current simpler random wander behavior.
 
 ## Architecture
@@ -100,7 +100,7 @@ Add an optional `behavior.life` object for per-pet overrides. The first version 
 
 Add `naturalLife` to user preferences with default `true`.
 
-The renderer panel should expose this as a compact checkbox or toggle near `自动散步`, using Chinese UI copy consistent with the current panel. The preference must survive restart and fall back to enabled for older preference files.
+The renderer panel should expose this as a compact checkbox or toggle near `Automatic wandering`, using English UI copy consistent with the current panel. The preference must survive restart and fall back to enabled for older preference files.
 
 ## Data Flow
 

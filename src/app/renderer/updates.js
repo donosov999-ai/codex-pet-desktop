@@ -34,7 +34,7 @@ function setProgress(progressEl, { visible = false, received = 0, total = 0 } = 
   }
   progressEl.removeAttribute?.("max");
   progressEl.removeAttribute?.("value");
-  progressEl.setAttribute?.("aria-valuetext", received > 0 ? `已下载 ${formatBytes(received)}` : "正在下载");
+  progressEl.setAttribute?.("aria-valuetext", received > 0 ? `Downloaded ${formatBytes(received)}` : "Downloading");
 }
 
 function errorMessage(error) {
@@ -45,7 +45,7 @@ function errorMessage(error) {
     return error;
   }
   if (error === undefined || error === null) {
-    return "未知错误";
+    return "Unknown error";
   }
   try {
     return JSON.stringify(error);
@@ -83,8 +83,8 @@ export function createUpdateController({ dom, listenAppUpdateDownloadProgress = 
   function setDownloadStatus({ received = 0, total = 0 } = {}) {
     const current = formatBytes(received);
     const maximum = formatBytes(total);
-    const progressText = current && maximum ? `：${current} / ${maximum}` : current ? `：已下载 ${current}` : "";
-    setUpdateStatus(`正在下载主程序安装包${progressText}。下载完成后会自动打开安装器。`);
+    const progressText = current && maximum ? `: ${current} / ${maximum}` : current ? `: downloaded ${current}` : "";
+    setUpdateStatus(`Downloading the app installer${progressText}. The installer will open automatically when the download finishes.`);
   }
 
   function applyAppUpdateDownloadProgress(progress = {}) {
@@ -107,24 +107,24 @@ export function createUpdateController({ dom, listenAppUpdateDownloadProgress = 
     const latest = await response.json();
     const latestTag = latest.tag_name || latest.name || "";
     if (!latestTag) {
-      throw new Error("最新版本号缺失");
+      throw new Error("Latest version number is missing");
     }
     return { latest, latestTag };
   }
 
   async function checkForUpdates() {
     if (!state.appInfo.latestReleaseApi || typeof fetch !== "function") {
-      setUpdateStatus("检查更新不可用。");
+      setUpdateStatus("Update checking is unavailable.");
       return;
     }
     dom.checkUpdateButton.disabled = true;
-    setUpdateStatus("正在检查主程序更新...");
+    setUpdateStatus("Checking for app updates...");
     try {
       let release;
       try {
         release = await fetchLatestRelease();
       } catch (error) {
-        setUpdateStatus(`检查主程序版本失败：${errorMessage(error)}`);
+        setUpdateStatus(`Failed to check the app version: ${errorMessage(error)}`);
         return;
       }
       const { latest, latestTag } = release;
@@ -134,32 +134,32 @@ export function createUpdateController({ dom, listenAppUpdateDownloadProgress = 
           .map((line) => line.trim())
           .filter(Boolean)
           .slice(0, 2)
-          .join("；");
-        const noteText = notes ? `更新内容：${notes}。` : "";
+          .join("; ");
+        const noteText = notes ? `Changes: ${notes}. ` : "";
         const asset = findInstallerAsset(latest, state.appInfo.platform);
         if (!asset || !petDesktop?.downloadAndInstallAppUpdate) {
           setUpdateStatus(
-            `发现主程序新版本：当前 v${cleanVersion(state.appInfo.version)}，最新 ${latestTag}。${noteText}没有找到可自动安装的安装包，请点击“打开下载页”下载。`
+            `A new app version is available: current v${cleanVersion(state.appInfo.version)}, latest ${latestTag}. ${noteText}No auto-installable asset was found; use Open downloads instead.`
           );
           return;
         }
         activeAppUpdateFileName = asset.name;
         setProgress(dom.appUpdateProgressEl, { visible: true, received: 0, total: Number(asset.size) || 0 });
-        setUpdateStatus(`发现主程序新版本：当前 v${cleanVersion(state.appInfo.version)}，最新 ${latestTag}。${noteText}`);
+        setUpdateStatus(`A new app version is available: current v${cleanVersion(state.appInfo.version)}, latest ${latestTag}. ${noteText}`);
         setDownloadStatus({ received: 0, total: Number(asset.size) || 0 });
         try {
           await petDesktop.downloadAndInstallAppUpdate(asset.browser_download_url, asset.name);
         } catch (error) {
-          setUpdateStatus(`下载或启动主程序安装包失败：${errorMessage(error)}。可以点击“打开下载页”手动下载。`);
+          setUpdateStatus(`Failed to download or launch the app installer: ${errorMessage(error)}. Use Open downloads to install it manually.`);
           return;
         }
         activeAppUpdateFileName = "";
-        setUpdateStatus("已启动安装器，请按提示完成安装。");
+        setUpdateStatus("The installer has started. Follow its prompts to finish the update.");
         return;
       }
-      setUpdateStatus(`主程序已是最新版本 v${cleanVersion(state.appInfo.version)}。`);
+      setUpdateStatus(`The app is up to date at v${cleanVersion(state.appInfo.version)}.`);
     } catch (error) {
-      setUpdateStatus(`检查主程序版本失败：${errorMessage(error)}`);
+      setUpdateStatus(`Failed to check the app version: ${errorMessage(error)}`);
     } finally {
       setProgress(dom.appUpdateProgressEl, { visible: false });
       activeAppUpdateFileName = "";
@@ -169,11 +169,11 @@ export function createUpdateController({ dom, listenAppUpdateDownloadProgress = 
 
   async function checkPetpackUpdates() {
     if (!state.appInfo.petpackIndexUrl || typeof fetch !== "function") {
-      setUpdateStatus("宠物资源更新检查不可用。");
+      setUpdateStatus("Pet pack update checking is unavailable.");
       return;
     }
     dom.checkPetpackUpdatesButton.disabled = true;
-    setUpdateStatus("正在检查宠物资源更新...");
+    setUpdateStatus("Checking for pet pack updates...");
     try {
       const response = await fetch(state.appInfo.petpackIndexUrl, {
         headers: { Accept: "application/json" }
@@ -184,7 +184,7 @@ export function createUpdateController({ dom, listenAppUpdateDownloadProgress = 
       const remotePetpacks = await response.json();
       setUpdateStatus(summarizePetpackUpdates(state.pets, remotePetpacks, state.appInfo.version).message);
     } catch (error) {
-      setUpdateStatus(`检查宠物资源更新失败：${errorMessage(error)}`);
+      setUpdateStatus(`Failed to check pet pack updates: ${errorMessage(error)}`);
     } finally {
       dom.checkPetpackUpdatesButton.disabled = false;
     }
@@ -201,8 +201,8 @@ export function createUpdateController({ dom, listenAppUpdateDownloadProgress = 
     dom.openDownloadsButton?.addEventListener("click", () => {
       petDesktop
         ?.openDownloads?.()
-        .then(() => setUpdateStatus("已打开下载页。"))
-        .catch((error) => setUpdateStatus(`打开下载页失败：${errorMessage(error)}`));
+        .then(() => setUpdateStatus("Opened the downloads page."))
+        .catch((error) => setUpdateStatus(`Failed to open the downloads page: ${errorMessage(error)}`));
     });
   }
 

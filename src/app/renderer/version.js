@@ -58,36 +58,36 @@ export function summarizePetpackUpdates(localPets, remotePetpacks, appVersion = 
   if (upgrades.length) {
     const first = upgrades[0];
     const name = first.remote.displayName || first.remote.id;
-    const more = upgrades.length > 1 ? `，另有 ${upgrades.length - 1} 个资源可更新` : "";
+    const more = upgrades.length > 1 ? `; ${upgrades.length - 1} more updates are available` : "";
     return {
       kind: "upgrade",
-      message: `${name}有新资源 v${first.remote.version}，当前 v${
-        first.local.version || "未知"
-      }${more}。可以在宠物资源库里直接更新。`
+      message: `${name} v${first.remote.version} is available; current v${
+        first.local.version || "unknown"
+      }${more}. Update it directly from the pet catalog.`
     };
   }
 
   if (incompatibleUpgrades.length) {
     const first = incompatibleUpgrades[0];
     const name = first.remote.displayName || first.remote.id;
-    const more = incompatibleUpgrades.length > 1 ? `，另有 ${incompatibleUpgrades.length - 1} 个资源也需要新版主程序` : "";
+    const more = incompatibleUpgrades.length > 1 ? `; ${incompatibleUpgrades.length - 1} more packs also require a newer app` : "";
     return {
       kind: "app-upgrade-required",
-      message: `${name}有新资源 v${first.remote.version}，但需要先升级主程序到 v${
-        first.remote.minAppVersion || "更高版本"
-      }${more}。`
+      message: `${name} v${first.remote.version} is available, but first update the app to v${
+        first.remote.minAppVersion || "a newer version"
+      }${more}.`
     };
   }
 
   if (missing.length) {
     return {
       kind: "missing",
-      message: `资源库有 ${missing.length} 个未安装宠物。`
+      message: `The catalog contains ${missing.length} uninstalled pets.`
     };
   }
 
   return {
     kind: "current",
-    message: "宠物资源已是当前下载页版本。"
+    message: "Pet resources already match the downloads page."
   };
 }

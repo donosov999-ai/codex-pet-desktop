@@ -1,113 +1,113 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Бирюзик</title>
+    <title>Biruzik</title>
     <link rel="stylesheet" href="./renderer.css" />
   </head>
   <body>
-    <main id="stage" aria-label="Бирюзик">
-      <div id="pet" role="img" aria-label="Бирюзик"></div>
-      <section id="emptyState" class="empty-state hidden" aria-label="Добавление питомца">
-        <strong>Питомец не найден</strong>
-        <span>Импортируйте пакет питомца или установите его из каталога.</span>
-        <button id="openStoreEmptyButton" type="button">Открыть каталог</button>
-        <button id="importEmptyButton" type="button">Импортировать пакет</button>
+    <main id="stage" aria-label="Biruzik">
+      <div id="pet" role="img" aria-label="Biruzik"></div>
+      <section id="emptyState" class="empty-state hidden" aria-label="Add a pet">
+        <strong>No pet found</strong>
+        <span>Import a pet pack or install one from the catalog.</span>
+        <button id="openStoreEmptyButton" type="button">Open catalog</button>
+        <button id="importEmptyButton" type="button">Import pack</button>
       </section>
       <div id="panelBackdrop" class="panel-backdrop hidden" aria-hidden="true"></div>
-      <section id="panel" class="panel hidden" aria-label="Управление питомцем">
+      <section id="panel" class="panel hidden" aria-label="Pet controls">
         <div class="panel-topbar">
-          <nav class="panel-tabs" aria-label="Разделы управления">
-            <button id="tabControl" class="active" type="button" data-panel-tab="controlSection">Управление</button>
-            <button id="tabStore" type="button" data-panel-tab="storeSection">Каталог</button>
-            <button id="tabManager" type="button" data-panel-tab="managerSection">Питомцы</button>
-            <button id="tabUpdate" type="button" data-panel-tab="updateSection">Обновления</button>
+          <nav class="panel-tabs" aria-label="Control sections">
+            <button id="tabControl" class="active" type="button" data-panel-tab="controlSection">Controls</button>
+            <button id="tabStore" type="button" data-panel-tab="storeSection">Catalog</button>
+            <button id="tabManager" type="button" data-panel-tab="managerSection">Pets</button>
+            <button id="tabUpdate" type="button" data-panel-tab="updateSection">Updates</button>
           </nav>
-          <button id="closePanelButton" class="panel-close" type="button" aria-label="Закрыть панель" title="Закрыть">×</button>
+          <button id="closePanelButton" class="panel-close" type="button" aria-label="Close panel" title="Close">×</button>
         </div>
-        <section id="controlSection" class="panel-section" aria-label="Основные настройки">
+        <section id="controlSection" class="panel-section" aria-label="Main settings">
           <div class="panel-row">
-            <label for="petSelect">Питомец</label>
+            <label for="petSelect">Pet</label>
             <select id="petSelect"></select>
           </div>
           <div class="panel-row">
-            <label for="stateSelect">Действие</label>
+            <label for="stateSelect">Action</label>
             <select id="stateSelect"></select>
           </div>
-          <section id="careControls" class="care-controls hidden" aria-label="Уход за питомцем">
-            <span class="row-label">Уход</span>
+          <section id="careControls" class="care-controls hidden" aria-label="Pet care">
+            <span class="row-label">Care</span>
             <div id="careActions" class="care-actions"></div>
           </section>
           <div class="panel-row">
-            <label for="scaleRange">Размер</label>
+            <label for="scaleRange">Size</label>
             <input id="scaleRange" type="range" min="0.6" max="1.8" step="0.1" value="0.9" />
           </div>
           <div class="panel-row">
-            <span class="row-label">Направление</span>
-            <div class="direction-control" role="group" aria-label="Направление питомца">
-              <button id="directionLeftButton" type="button" data-pet-direction="left">Влево</button>
-              <button id="directionRightButton" type="button" data-pet-direction="right">Вправо</button>
+            <span class="row-label">Direction</span>
+            <div class="direction-control" role="group" aria-label="Pet direction">
+              <button id="directionLeftButton" type="button" data-pet-direction="left">Left</button>
+              <button id="directionRightButton" type="button" data-pet-direction="right">Right</button>
             </div>
           </div>
           <label class="check-row">
             <input id="wanderToggle" type="checkbox" checked />
-            <span>Гулять по экрану</span>
+            <span>Wander across the screen</span>
           </label>
           <label class="check-row">
             <input id="naturalLifeToggle" type="checkbox" checked />
-            <span>Самостоятельные действия</span>
+            <span>Autonomous actions</span>
           </label>
           <label class="check-row">
             <input id="topToggle" type="checkbox" checked />
-            <span>Поверх остальных окон</span>
+            <span>Always on top</span>
           </label>
-          <button id="importButton" type="button">Импортировать пакет питомца</button>
-          <section id="importPreview" class="import-preview hidden" aria-label="Предпросмотр импорта">
+          <button id="importButton" type="button">Import pet pack</button>
+          <section id="importPreview" class="import-preview hidden" aria-label="Import preview">
             <p id="importPreviewText"></p>
             <div class="import-preview-actions">
-              <button id="confirmImportButton" type="button">Импортировать</button>
-              <button id="cancelImportButton" type="button">Отмена</button>
+              <button id="confirmImportButton" type="button">Import</button>
+              <button id="cancelImportButton" type="button">Cancel</button>
             </div>
           </section>
           <p id="petStatus" class="pet-status" aria-live="polite"></p>
-          <button id="quitButton" type="button">Закрыть Бирюзика</button>
+          <button id="quitButton" type="button">Quit Biruzik</button>
         </section>
-        <section id="storeSection" class="panel-section hidden" aria-label="Каталог питомцев">
-          <div class="panel-heading">Каталог питомцев</div>
-          <input id="storeSearch" type="search" placeholder="Найти питомца" aria-label="Поиск питомца" />
-          <select id="storeFilter" aria-label="Фильтр каталога">
-            <option value="all">Все питомцы</option>
-            <option value="updates">Есть обновления</option>
-            <option value="uninstalled">Не установлены</option>
-            <option value="installed">Установлены</option>
+        <section id="storeSection" class="panel-section hidden" aria-label="Pet catalog">
+          <div class="panel-heading">Pet catalog</div>
+          <input id="storeSearch" type="search" placeholder="Find a pet" aria-label="Search pets" />
+          <select id="storeFilter" aria-label="Catalog filter">
+            <option value="all">All pets</option>
+            <option value="updates">Updates available</option>
+            <option value="uninstalled">Not installed</option>
+            <option value="installed">Installed</option>
           </select>
-          <select id="storeTagFilter" aria-label="Категория каталога">
-            <option value="all">Все категории</option>
+          <select id="storeTagFilter" aria-label="Catalog category">
+            <option value="all">All categories</option>
           </select>
-          <button id="refreshStoreButton" type="button">Обновить каталог</button>
-          <button id="updateAllPetpacksButton" type="button">Обновить всех питомцев</button>
+          <button id="refreshStoreButton" type="button">Refresh catalog</button>
+          <button id="updateAllPetpacksButton" type="button">Update all pets</button>
           <p id="petStoreStatus" class="store-status" aria-live="polite"></p>
-          <progress id="petStoreProgress" class="store-progress hidden" max="1" value="0" aria-label="Ход установки"></progress>
+          <progress id="petStoreProgress" class="store-progress hidden" max="1" value="0" aria-label="Installation progress"></progress>
           <div id="petStoreList" class="pet-store-list"></div>
         </section>
-        <section id="managerSection" class="panel-section hidden pet-manager" aria-label="Установленные питомцы">
-          <div class="panel-heading">Установленные питомцы</div>
+        <section id="managerSection" class="panel-section hidden pet-manager" aria-label="Installed pets">
+          <div class="panel-heading">Installed pets</div>
           <div id="petManager" class="pet-manager-list"></div>
         </section>
-        <section id="updateSection" class="panel-section hidden app-update" aria-label="Обновления">
-          <div class="panel-heading">Обновления</div>
+        <section id="updateSection" class="panel-section hidden app-update" aria-label="Updates">
+          <div class="panel-heading">Updates</div>
           <div class="app-update-actions">
-            <button id="checkUpdateButton" type="button">Проверить приложение</button>
-            <button id="checkPetpackUpdatesButton" type="button">Проверить питомцев</button>
-            <button id="openDownloadsButton" type="button">Открыть загрузки</button>
-            <button id="openStoreButton" type="button">Открыть каталог</button>
+            <button id="checkUpdateButton" type="button">Check app</button>
+            <button id="checkPetpackUpdatesButton" type="button">Check pets</button>
+            <button id="openDownloadsButton" type="button">Open downloads</button>
+            <button id="openStoreButton" type="button">Open catalog</button>
           </div>
           <p id="updateStatus" class="update-status" aria-live="polite"></p>
-          <progress id="appUpdateProgress" class="store-progress hidden" max="1" value="0" aria-label="Загрузка обновления"></progress>
+          <progress id="appUpdateProgress" class="store-progress hidden" max="1" value="0" aria-label="Update download"></progress>
         </section>
       </section>
-      <input id="petpackInput" class="petpack-input" type="file" accept=".petpack,application/zip" aria-label="Выбрать пакет питомца" />
+      <input id="petpackInput" class="petpack-input" type="file" accept=".petpack,application/zip" aria-label="Select a pet pack" />
     </main>
     <script type="module" src="./renderer/index.js"></script>
   </body>

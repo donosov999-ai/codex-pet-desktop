@@ -9,7 +9,7 @@ async function main() {
       getAppInfo: async () => ({
         version: "0.2.30",
         latestReleaseApi: "",
-        downloadsUrl: "https://jieyangxchen.github.io/codex-pet-desktop/",
+        downloadsUrl: "https://donosov999-ai.github.io/codex-pet-desktop/",
         petpackIndexUrl: ""
       }),
       inspectPetpack: async () => {
@@ -43,34 +43,26 @@ async function main() {
   const pageText = `${htmlText} ${runtimeText}`;
 
   const expected = [
-    "Питомец не найден",
-    "Импортировать пакет",
-    "Питомец",
-    "Действие",
-    "Размер",
-    "Гулять по экрану",
-    "Самостоятельные действия",
-    "Поверх остальных окон",
-    "Обновления",
-    "Каталог",
-    "Импортировать пакет питомца",
-    "Установленные питомцы",
-    "Закрыть Бирюзика",
-    "Спокойно"
+    "No pet found",
+    "Import pack",
+    "Pet",
+    "Action",
+    "Size",
+    "Wander across the screen",
+    "Autonomous actions",
+    "Always on top",
+    "Updates",
+    "Catalog",
+    "Import pet pack",
+    "Installed pets",
+    "Quit Biruzik",
+    "Idle"
   ];
   const missing = expected.filter((text) => !pageText.includes(text));
-  const englishLeaks = [
-    "Import Petpack",
-    "No pet installed",
-    "Auto wander",
-    "Always on top",
-    "Open Downloads",
-    "Installed pets",
-    "Quit"
-  ].filter((text) => pageText.includes(text));
+  const nonEnglishText = pageText.match(/[\u0400-\u04ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/gu) || [];
 
-  if (missing.length || englishLeaks.length) {
-    console.error(JSON.stringify({ ok: false, reason: "renderer text is not fully localized", missing, englishLeaks }));
+  if (missing.length || nonEnglishText.length) {
+    console.error(JSON.stringify({ ok: false, reason: "renderer text is not English-only", missing, nonEnglishText }));
     process.exit(1);
   }
 

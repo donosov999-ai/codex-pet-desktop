@@ -116,12 +116,12 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path release-assets
           Get-ChildItem src-tauri\target\release\bundle\nsis\*.exe | ForEach-Object {
-            Copy-Item $_.FullName "release-assets\yongsheng-plan-windows-x64.exe"
+            Copy-Item $_.FullName "release-assets\biruzik-desktop-windows-x64.exe"
           }
 
       - uses: actions/upload-artifact@v7
         with:
-          name: yongsheng-plan-windows-x64
+          name: biruzik-desktop-windows-x64
           path: release-assets/*.exe
 
   build-macos:
@@ -169,11 +169,11 @@ jobs:
       - name: Rename installer
         run: |
           mkdir -p release-assets
-          cp src-tauri/target/${{ env.MACOS_TARGET }}/release/bundle/dmg/*.dmg "release-assets/yongsheng-plan-macos-${{ env.MACOS_ARCH }}.dmg"
+          cp src-tauri/target/${{ env.MACOS_TARGET }}/release/bundle/dmg/*.dmg "release-assets/biruzik-desktop-macos-${{ env.MACOS_ARCH }}.dmg"
 
       - uses: actions/upload-artifact@v7
         with:
-          name: yongsheng-plan-macos-${{ env.MACOS_ARCH }}
+          name: biruzik-desktop-macos-${{ env.MACOS_ARCH }}
           path: release-assets/*.dmg
 
   publish:
@@ -193,7 +193,7 @@ jobs:
             release-assets/*.exe
             release-assets/*.dmg
           body: |
-            先下载永生计划主程序，再从 GitHub Pages 宠物包页面下载并导入宠物。
+            Install Biruzik Desktop first, then download and import pet packs from GitHub Pages.
 
-            - `yongsheng-plan-windows-x64.exe`: Windows x64 主程序
-            - `yongsheng-plan-macos-arm64.dmg`: Apple Silicon Mac 主程序
+            - `biruzik-desktop-windows-x64.exe`: Windows x64 app
+            - `biruzik-desktop-macos-arm64.dmg`: Apple Silicon macOS app

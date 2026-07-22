@@ -51,5 +51,5 @@ pub fn run() {
             Ok(())
         })
         .run(tauri::generate_context!())
-        .expect("error while running 永生计划");
+        .expect("error while running Biruzik Desktop");
 }

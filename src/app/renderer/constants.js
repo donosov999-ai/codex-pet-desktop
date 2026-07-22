@@ -16,13 +16,13 @@ export const STATES = {
 };
 
 export const STATE_LABELS = {
-  idle: "Спокойно",
-  "running-right": "Бежит вправо",
-  "running-left": "Бежит влево",
-  waving: "Приветствует",
-  jumping: "Прыгает",
-  failed: "Расстроен",
-  waiting: "Ждёт",
-  running: "Играет",
-  review: "Наблюдает"
+  idle: "Idle",
+  "running-right": "Running right",
+  "running-left": "Running left",
+  waving: "Waving",
+  jumping: "Jumping",
+  failed: "Upset",
+  waiting: "Waiting",
+  running: "Playing",
+  review: "Watching"
 };

@@ -30,7 +30,7 @@ async function main() {
         pets: [
           {
             id: "mi-fen",
-            displayName: "米粉",
+            displayName: "Mi Fen",
             version: "1.0.2",
             sourceKind: "managed",
             canUninstall: true,

@@ -30,7 +30,7 @@ if (cargoDependencyFingerprint) {
   const base = cargoDependencyFingerprint(normalizedLockSource);
   const lineEndingsChanged = cargoDependencyFingerprint(normalizedLockSource.replace(/\n/g, "\r\n"));
   const appVersionChanged = cargoDependencyFingerprint(
-    normalizedLockSource.replace(/(name = "yongsheng-plan"\nversion = ")[^"]+(")/, "$19.9.9$2")
+    normalizedLockSource.replace(/(name = "biruzik-desktop"\nversion = ")[^"]+(")/, "$19.9.9$2")
   );
   const dependencyVersionChanged = cargoDependencyFingerprint(
     normalizedLockSource.replace(/(name = "reqwest"\nversion = ")[^"]+(")/, "$10.0.0$2")

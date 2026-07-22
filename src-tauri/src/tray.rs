@@ -21,31 +21,31 @@ fn tray_menu(
     auto_wander: bool,
     always_on_top: bool,
 ) -> tauri::Result<Menu<Wry>> {
-    let show = MenuItem::with_id(app, "show", "显示桌宠", true, None::<&str>)?;
-    let hide = MenuItem::with_id(app, "hide", "隐藏桌宠", true, None::<&str>)?;
-    let recall = MenuItem::with_id(app, "recall", "召回到屏幕中央", true, None::<&str>)?;
+    let show = MenuItem::with_id(app, "show", "Show pet", true, None::<&str>)?;
+    let hide = MenuItem::with_id(app, "hide", "Hide pet", true, None::<&str>)?;
+    let recall = MenuItem::with_id(app, "recall", "Bring to screen center", true, None::<&str>)?;
     let wander_id = if auto_wander {
         "pause_wander"
     } else {
         "resume_wander"
     };
     let wander_label = if auto_wander {
-        "暂停自动散步"
+        "Pause automatic wandering"
     } else {
-        "恢复自动散步"
+        "Resume automatic wandering"
     };
     let wander = MenuItem::with_id(app, wander_id, wander_label, true, None::<&str>)?;
-    let open_store = MenuItem::with_id(app, "open_store", "打开宠物资源库", true, None::<&str>)?;
-    let open_data = MenuItem::with_id(app, "open_data", "打开数据目录", true, None::<&str>)?;
+    let open_store = MenuItem::with_id(app, "open_store", "Open pet catalog", true, None::<&str>)?;
+    let open_data = MenuItem::with_id(app, "open_data", "Open data folder", true, None::<&str>)?;
     let always = CheckMenuItem::with_id(
         app,
         "always_on_top",
-        "保持置顶",
+        "Always on top",
         true,
         always_on_top,
         None::<&str>,
     )?;
-    let quit = MenuItem::with_id(app, "quit", "退出", true, None::<&str>)?;
+    let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
     Menu::with_items(
         app,
         &[
@@ -81,7 +81,7 @@ pub(crate) fn setup_tray(app: &AppHandle<Wry>) -> tauri::Result<()> {
 
     TrayIconBuilder::with_id(TRAY_ID)
         .icon(icon)
-        .tooltip("Бирюзик")
+        .tooltip("Biruzik")
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| {

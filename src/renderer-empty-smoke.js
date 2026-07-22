@@ -7,7 +7,7 @@ async function main() {
   let importCalls = 0;
   const importedPet = {
     id: "mi-fen",
-    displayName: "米粉",
+    displayName: "Mi Fen",
     version: "1.0.2",
     sourceKind: "managed",
     canUninstall: true,
@@ -27,7 +27,7 @@ async function main() {
         inspectCalls += 1;
         return {
           id: "mi-fen",
-          displayName: "米粉",
+          displayName: "Mi Fen",
           version: "1.0.2",
           existingManagedVersion: "",
           existingVisibleVersion: "",
@@ -40,7 +40,7 @@ async function main() {
         importCalls += 1;
         return {
           importedPetId: "mi-fen",
-          displayName: "米粉",
+          displayName: "Mi Fen",
           version: "1.0.2",
           replaced: false,
           previousVersion: "",
@@ -99,7 +99,7 @@ async function main() {
   elements.get("#confirmImportButton").click();
   await flush();
 
-  if (inspectCalls !== 2 || importCalls !== 1 || !elements.get("#petStatus").textContent.includes("已导入")) {
+  if (inspectCalls !== 2 || importCalls !== 1 || !elements.get("#petStatus").textContent.includes("Imported")) {
     console.error(
       JSON.stringify({ ok: false, reason: "empty first import did not complete", inspectCalls, importCalls, status: elements.get("#petStatus").textContent })
     );

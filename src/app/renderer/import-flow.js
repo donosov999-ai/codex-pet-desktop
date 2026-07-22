@@ -58,12 +58,12 @@ export function createImportFlow({
       refreshPetList(result.pets, result.importedPetId);
       if (result.replaced) {
         setPetStatus(
-          `已覆盖 ${result.displayName || result.importedPetId}: ${
-            result.previousVersion || "未知"
-          } -> ${result.version || "未知"}`
+          `Replaced ${result.displayName || result.importedPetId}: ${
+            result.previousVersion || "unknown"
+          } -> ${result.version || "unknown"}`
         );
       } else {
-        setPetStatus(`已导入 ${result.displayName || result.importedPetId} ${result.version || ""}`.trim());
+        setPetStatus(`Imported ${result.displayName || result.importedPetId} ${result.version || ""}`.trim());
       }
       clearImportPreview();
       setPanelVisible(false);
@@ -88,7 +88,7 @@ export function createImportFlow({
       if (!state.pets.length) {
         setPanelVisible(false);
       }
-      setPetStatus("已取消导入。");
+      setPetStatus("Import canceled.");
     });
     dom.petpackInput.addEventListener("change", () => {
       prepareSelectedPetpack(dom.petpackInput.files?.[0]).catch((error) => {

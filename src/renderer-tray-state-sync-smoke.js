@@ -4,7 +4,7 @@ async function main() {
   const trayCalls = [];
   const pet = {
     id: "mi-fen",
-    displayName: "米粉",
+    displayName: "Mi Fen",
     version: "1.0.2",
     sourceKind: "managed",
     canUninstall: true,

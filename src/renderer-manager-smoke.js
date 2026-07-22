@@ -3,7 +3,7 @@ const { findByText, loadRenderer, textOf } = require("./renderer-smoke-harness")
 async function main() {
   const oldPet = {
     id: "mi-fen",
-    displayName: "米粉",
+    displayName: "Mi Fen",
     version: "1.0.1",
     sourceKind: "managed",
     canUninstall: true,
@@ -24,7 +24,7 @@ async function main() {
       listPets: async () => ({ pets: [oldPet], errors: [] }),
       inspectPetpack: async () => ({
         id: "mi-fen",
-        displayName: "米粉",
+        displayName: "Mi Fen",
         version: "1.0.2",
         existingManagedVersion: "1.0.1",
         existingVisibleVersion: "1.0.1",
@@ -34,7 +34,7 @@ async function main() {
       }),
       importPetpack: async () => ({
         importedPetId: "mi-fen",
-        displayName: "米粉",
+        displayName: "Mi Fen",
         version: "1.0.2",
         replaced: true,
         previousVersion: "1.0.1",
@@ -55,7 +55,7 @@ async function main() {
   });
 
   const managerText = textOf(elements.get("#petManager"));
-  if (!managerText.includes("米粉") || !managerText.includes("1.0.1") || !managerText.includes("应用内导入")) {
+  if (!managerText.includes("Mi Fen") || !managerText.includes("1.0.1") || !managerText.includes("Imported in app")) {
     console.error(JSON.stringify({ ok: false, reason: "manager did not render pet metadata", managerText }));
     process.exit(1);
   }
@@ -75,12 +75,12 @@ async function main() {
   await flush();
 
   const statusText = elements.get("#petStatus").textContent;
-  if (!statusText.includes("已覆盖") || !statusText.includes("1.0.1") || !statusText.includes("1.0.2")) {
+  if (!statusText.includes("Replaced") || !statusText.includes("1.0.1") || !statusText.includes("1.0.2")) {
     console.error(JSON.stringify({ ok: false, reason: "import overwrite status missing", statusText }));
     process.exit(1);
   }
 
-  const uninstallButton = findByText(elements.get("#petManager"), "卸载");
+  const uninstallButton = findByText(elements.get("#petManager"), "Uninstall");
   if (!uninstallButton) {
     console.error(JSON.stringify({ ok: false, reason: "missing uninstall button", managerText: textOf(elements.get("#petManager")) }));
     process.exit(1);

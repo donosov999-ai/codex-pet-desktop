@@ -16,13 +16,13 @@
 - Create `src/renderer-life-engine-smoke.mjs`: pure module smoke test for pet-time scaling, phases, interactions, idle plans, and gating.
 - Modify `src/app/renderer/interactions.js`: integrate life-engine plans while retaining legacy random wander when `naturalLife` is off.
 - Modify `src/app/renderer/index.js`: include `naturalLife` in state, current preferences, apply/save flow, and event binding.
-- Modify `src/app/renderer.html`: add a compact Chinese toggle near `自动散步`.
+- Modify `src/app/renderer.html`: add a compact English toggle near `Automatic wandering`.
 - Modify `src/app/renderer/dom.js`: expose `naturalLifeToggle`.
 - Modify `src/renderer-smoke-harness.js`: add `#naturalLifeToggle` to fake DOM and default it checked.
 - Modify `src/renderer-settings-smoke.js`: verify loading and saving `naturalLife`.
 - Modify `src/renderer-natural-behavior-smoke.js`: verify phase-aware behavior preserves manifest natural timings.
 - Add `src/renderer-life-integration-smoke.js`: verify `naturalLife: false` keeps legacy wander behavior and `autoWander: false` suppresses autonomous movement.
-- Modify `src/renderer-chinese-smoke.js`: include the new Chinese UI label.
+- Modify `src/renderer-english-smoke.js`: include the new English UI label.
 - Modify `src-tauri/src/preferences.rs`: persist `natural_life: bool` with default `true` and old-file fallback.
 - Modify `package.json`: add the two new smoke tests to `npm run smoke`.
 
@@ -526,7 +526,7 @@ git commit -m "feat: add pet life engine planner"
 - Modify: `src/app/renderer/index.js`
 - Modify: `src/renderer-smoke-harness.js`
 - Modify: `src/renderer-settings-smoke.js`
-- Modify: `src/renderer-chinese-smoke.js`
+- Modify: `src/renderer-english-smoke.js`
 
 - [ ] **Step 1: Write failing preference assertions**
 
@@ -630,10 +630,10 @@ Extend the save assertion:
 merged.naturalLife !== true
 ```
 
-Update `src/renderer-chinese-smoke.js` expected text:
+Update `src/renderer-english-smoke.js` expected text:
 
 ```js
-"自然生命节奏",
+"Natural life rhythm",
 ```
 
 - [ ] **Step 5: Run renderer settings smoke and verify it fails**
@@ -648,12 +648,12 @@ Expected: FAIL because `#naturalLifeToggle` is not in the fake DOM or real DOM.
 
 - [ ] **Step 6: Add the UI and DOM wiring**
 
-In `src/app/renderer.html`, add this checkbox after the `自动散步` checkbox and before `保持置顶`:
+In `src/app/renderer.html`, add this checkbox after the `Automatic wandering` checkbox and before `Always on top`:
 
 ```html
 <label class="check-row">
   <input id="naturalLifeToggle" type="checkbox" checked />
-  <span>自然生命节奏</span>
+  <span>Natural life rhythm</span>
 </label>
 ```
 
@@ -714,7 +714,7 @@ Run:
 ```bash
 cd src-tauri && cargo test preferences
 node ../src/renderer-settings-smoke.js
-node ../src/renderer-chinese-smoke.js
+node ../src/renderer-english-smoke.js
 ```
 
 Expected: all PASS.
@@ -724,7 +724,7 @@ Expected: all PASS.
 Run:
 
 ```bash
-git add src-tauri/src/preferences.rs src/app/renderer.html src/app/renderer/dom.js src/app/renderer/index.js src/renderer-smoke-harness.js src/renderer-settings-smoke.js src/renderer-chinese-smoke.js
+git add src-tauri/src/preferences.rs src/app/renderer.html src/app/renderer/dom.js src/app/renderer/index.js src/renderer-smoke-harness.js src/renderer-settings-smoke.js src/renderer-english-smoke.js
 git commit -m "feat: add natural life preference"
 ```
 
@@ -746,7 +746,7 @@ async function main() {
   const moveCalls = [];
   const pet = {
     id: "mi-fen",
-    displayName: "米粉",
+    displayName: "Mi Fen",
     version: "1.0.3",
     sourceKind: "managed",
     canUninstall: true,

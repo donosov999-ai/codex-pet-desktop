@@ -3,7 +3,7 @@ const { loadRenderer } = require("./renderer-smoke-harness");
 async function main() {
   const pet = {
     id: "mi-fen",
-    displayName: "米粉",
+    displayName: "Mi Fen",
     version: "1.0.3",
     sourceKind: "managed",
     canUninstall: true,

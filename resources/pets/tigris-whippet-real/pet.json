@@ -1,19 +1,20 @@
 {
   "id": "tigris-whippet-real",
-  "displayName": "红糖真实版",
-  "description": "红糖真实版，我家的虎斑惠比特，安静、好奇、自信、有点懒，适合在桌面上陪我工作。",
-  "version": "1.0.0",
+  "displayName": "Hong Tang Realistic",
+  "description": "A realistic Hong Tang: a quiet, curious, confident, slightly lazy brindle whippet who keeps you company while you work.",
+  "version": "1.0.1",
   "author": "Chen",
   "license": "CC-BY-4.0",
   "minAppVersion": "0.2.0",
   "tags": [
-    "狗狗",
-    "惠比特",
-    "虎斑色",
-    "真实版"
+    "dog",
+    "whippet",
+    "brindle",
+    "realistic"
   ],
   "changelog": [
-    "新增红糖真实版桌宠资源，保留原红糖像素版不变。"
+    "Translated pet metadata to English.",
+    "Added the realistic Hong Tang desktop pet while preserving the original pixel version."
   ],
   "behavior": {
     "clickState": "waving",

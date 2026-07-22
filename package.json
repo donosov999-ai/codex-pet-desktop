@@ -1,16 +1,16 @@
 {
-  "name": "yongsheng-plan",
-  "version": "0.2.30",
+  "name": "biruzik-desktop",
+  "version": "0.2.31",
   "description": "Standalone desktop pet app for the Internet Immortality Project.",
   "license": "MIT",
-  "author": "jieyangxchen",
-  "homepage": "https://github.com/jieyangxchen/codex-pet-desktop#readme",
+  "author": "Denis Onosov (ODV999)",
+  "homepage": "https://github.com/donosov999-ai/codex-pet-desktop#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jieyangxchen/codex-pet-desktop.git"
+    "url": "git+https://github.com/donosov999-ai/codex-pet-desktop.git"
   },
   "bugs": {
-    "url": "https://github.com/jieyangxchen/codex-pet-desktop/issues"
+    "url": "https://github.com/donosov999-ai/codex-pet-desktop/issues"
   },
   "keywords": [
     "desktop-pet",

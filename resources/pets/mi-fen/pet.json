@@ -1,20 +1,21 @@
 {
   "id": "mi-fen",
-  "displayName": "米粉",
-  "description": "米粉，木老师的工友。",
-  "version": "1.0.4",
+  "displayName": "Mi Fen",
+  "description": "Mi Fen, Teacher Mu's work companion.",
+  "version": "1.0.5",
   "author": "Chen",
   "license": "CC-BY-4.0",
   "minAppVersion": "0.2.0",
   "tags": [
-    "猫咪",
-    "白色",
-    "趴着"
+    "cat",
+    "white",
+    "resting"
   ],
   "changelog": [
-    "更新资源介绍文案。",
-    "增加更自然的散步节奏和拖拽后反馈。",
-    "修正单击互动动作的比例和画风。"
+    "Translated pet metadata to English.",
+    "Updated the pet description.",
+    "Added more natural wandering timing and post-drag feedback.",
+    "Fixed the scale and style of the single-click interaction."
   ],
   "behavior": {
     "clickState": "waiting",

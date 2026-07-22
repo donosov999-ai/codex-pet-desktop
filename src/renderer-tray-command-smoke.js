@@ -5,7 +5,7 @@ async function main() {
   const fetchCalls = [];
   const pet = {
     id: "mi-fen",
-    displayName: "米粉",
+    displayName: "Mi Fen",
     version: "1.0.2",
     sourceKind: "managed",
     canUninstall: true,
@@ -19,7 +19,7 @@ async function main() {
         json: async () => [
           {
             id: "mi-fen",
-            displayName: "米粉",
+            displayName: "Mi Fen",
             version: "1.0.2",
             fileName: "mi-fen-1.0.2.petpack"
           }
@@ -39,8 +39,8 @@ async function main() {
       getAppInfo: async () => ({
         version: "0.2.2",
         latestReleaseApi: "",
-        downloadsUrl: "https://jieyangxchen.github.io/codex-pet-desktop/",
-        petpackIndexUrl: "https://jieyangxchen.github.io/codex-pet-desktop/petpacks/petpacks.json"
+        downloadsUrl: "https://donosov999-ai.github.io/codex-pet-desktop/",
+        petpackIndexUrl: "https://donosov999-ai.github.io/codex-pet-desktop/petpacks/petpacks.json"
       }),
       inspectPetpack: async () => {
         throw new Error("not used");
@@ -68,14 +68,14 @@ async function main() {
 
   await listener({ payload: { command: "pause_wander" } });
   await flush();
-  if (elements.get("#wanderToggle").checked || !elements.get("#petStatus").textContent.includes("已暂停自动散步")) {
+  if (elements.get("#wanderToggle").checked || !elements.get("#petStatus").textContent.includes("Automatic wandering paused")) {
     console.error(JSON.stringify({ ok: false, reason: "pause command did not update wander state", checked: elements.get("#wanderToggle").checked, status: elements.get("#petStatus").textContent }));
     process.exit(1);
   }
 
   await listener({ payload: { command: "resume_wander" } });
   await flush();
-  if (!elements.get("#wanderToggle").checked || !elements.get("#petStatus").textContent.includes("已恢复自动散步")) {
+  if (!elements.get("#wanderToggle").checked || !elements.get("#petStatus").textContent.includes("Automatic wandering resumed")) {
     console.error(JSON.stringify({ ok: false, reason: "resume command did not update wander state", checked: elements.get("#wanderToggle").checked, status: elements.get("#petStatus").textContent }));
     process.exit(1);
   }
