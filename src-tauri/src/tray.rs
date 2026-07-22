@@ -81,7 +81,7 @@ pub(crate) fn setup_tray(app: &AppHandle<Wry>) -> tauri::Result<()> {
 
     TrayIconBuilder::with_id(TRAY_ID)
         .icon(icon)
-        .tooltip("永生计划")
+        .tooltip("Бирюзик")
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| {

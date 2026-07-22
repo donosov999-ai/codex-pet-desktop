@@ -10,10 +10,13 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
   let wanderTimer = 0;
   let wanderDirection = 0;
   let wanderUntil = 0;
+  let activeCareState = "";
+  let careUntil = 0;
   let lastQuietState = "";
   let edgePaused = false;
   let preferredNextDirection = 0;
   let mousePassthrough = null;
+  let moveInFlight = false;
   let panelVisibilityRevision = 0;
   const lifeEngine = createLifeEngine({
     behavior: state.activePet?.behavior,
@@ -73,6 +76,11 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
     if (!plan) {
       return false;
     }
+    if (plan.kind === "care") {
+      return playCareAction(plan.state, plan.durationMs);
+    }
+    activeCareState = "";
+    careUntil = 0;
     wanderDirection = plan.direction || 0;
     preferredNextDirection = 0;
     edgePaused = false;
@@ -143,6 +151,19 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
     window.clearTimeout(wanderTimer);
   }
 
+  function careActive(now = performance.now()) {
+    return Boolean(activeCareState && careUntil > now);
+  }
+
+  function cancelCareAction({ resetState = false } = {}) {
+    const wasActive = Boolean(activeCareState || careUntil);
+    activeCareState = "";
+    careUntil = 0;
+    if (wasActive && resetState) {
+      animation.setState("idle");
+    }
+  }
+
   function scheduleWander(delayOverride) {
     window.clearTimeout(wanderTimer);
     if (!hasActivePet()) {
@@ -150,6 +171,10 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
       wanderUntil = 0;
       edgePaused = false;
       preferredNextDirection = 0;
+      return;
+    }
+    if (careActive()) {
+      wanderTimer = window.setTimeout(() => scheduleWander(), Math.max(250, careUntil - performance.now() + 50));
       return;
     }
     const behavior = refreshLifeEngine();
@@ -168,12 +193,14 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
         !hasActivePet() ||
         !dom.wanderToggle.checked ||
         dragging ||
+        pointerInsideInteractiveArea ||
         panelOpen()
       ) {
         scheduleWander();
         return;
       }
       const currentBehavior = refreshLifeEngine();
+      const carePlan = naturalLifeEnabled() ? animation.planAutonomousCare?.() : null;
       const plan = naturalLifeEnabled()
         ? lifeEngine.planAutonomous({
             autoWander: Boolean(dom.wanderToggle.checked),
@@ -181,37 +208,60 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
             panelOpen: panelOpen()
           })
         : null;
-      if (!applyWanderPlan(preferEdgeRecoveryDirection(plan, currentBehavior) || legacyWanderPlan(currentBehavior))) {
+      if (
+        !applyWanderPlan(
+          carePlan || preferEdgeRecoveryDirection(plan, currentBehavior) || legacyWanderPlan(currentBehavior)
+        )
+      ) {
         scheduleWander();
       }
     }, delay);
   }
 
   function wanderLoop(now) {
+    if (activeCareState) {
+      if (now >= careUntil) {
+        activeCareState = "";
+        careUntil = 0;
+        animation.setState("idle");
+        scheduleWander();
+      }
+      requestAnimationFrame(wanderLoop);
+      return;
+    }
     if (
       hasActivePet() &&
       wanderDirection !== 0 &&
       now < wanderUntil &&
       dom.wanderToggle.checked &&
-      !dragging
+      !dragging &&
+      !pointerInsideInteractiveArea &&
+      !panelOpen() &&
+      !moveInFlight
     ) {
-      petDesktop?.moveBy(wanderDirection * 2, 0)?.then((bounds) => {
-        if (bounds?.hitEdge === "left") {
-          const behavior = refreshLifeEngine();
-          wanderDirection = 0;
-          preferredNextDirection = 1;
-          edgePaused = true;
-          wanderUntil = performance.now() + randomDuration(behavior.natural.edgePauseMs);
-          animation.setState(pick(behavior.natural.edgePauseStates));
-        } else if (bounds?.hitEdge === "right") {
-          const behavior = refreshLifeEngine();
-          wanderDirection = 0;
-          preferredNextDirection = -1;
-          edgePaused = true;
-          wanderUntil = performance.now() + randomDuration(behavior.natural.edgePauseMs);
-          animation.setState(pick(behavior.natural.edgePauseStates));
-        }
-      });
+      moveInFlight = true;
+      Promise.resolve(petDesktop?.moveBy(wanderDirection, 0))
+        .then((bounds) => {
+          if (bounds?.hitEdge === "left") {
+            const behavior = refreshLifeEngine();
+            wanderDirection = 0;
+            preferredNextDirection = 1;
+            edgePaused = true;
+            wanderUntil = performance.now() + randomDuration(behavior.natural.edgePauseMs);
+            animation.setState(pick(behavior.natural.edgePauseStates));
+          } else if (bounds?.hitEdge === "right") {
+            const behavior = refreshLifeEngine();
+            wanderDirection = 0;
+            preferredNextDirection = -1;
+            edgePaused = true;
+            wanderUntil = performance.now() + randomDuration(behavior.natural.edgePauseMs);
+            animation.setState(pick(behavior.natural.edgePauseStates));
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          moveInFlight = false;
+        });
     }
     if (wanderUntil && now >= wanderUntil) {
       wanderDirection = 0;
@@ -221,6 +271,20 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
       scheduleWander();
     }
     requestAnimationFrame(wanderLoop);
+  }
+
+  function playCareAction(stateName, durationMs) {
+    stopWander();
+    const careState = animation.getCareState?.(stateName);
+    if (!careState || !animation.setState(stateName)) {
+      scheduleWander();
+      return false;
+    }
+    wanderDirection = 0;
+    edgePaused = false;
+    activeCareState = stateName;
+    careUntil = performance.now() + Math.max(1000, Number(careState.durationMs) || Number(durationMs) || 6000);
+    return true;
   }
 
   function finalizePanelClosed() {
@@ -235,6 +299,10 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
   function setPanelVisible(show) {
     const revision = ++panelVisibilityRevision;
     if (show) {
+      stopWander();
+      if (!careActive()) {
+        animation.setState("idle");
+      }
       dom.panelEl.classList.remove("hidden");
       dom.panelBackdropEl.classList.remove("hidden");
       dom.emptyStateEl.classList.toggle("hidden", true);
@@ -279,6 +347,7 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
         return;
       }
       stopWander();
+      cancelCareAction();
       dragging = true;
       movedDuringDrag = false;
       pointerInsideInteractiveArea = true;
@@ -286,6 +355,27 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
       dragLastScreenY = event.screenY;
       setMousePassthrough(false);
       dom.petEl.setPointerCapture?.(event.pointerId);
+    });
+
+    dom.petEl.addEventListener("pointerenter", () => {
+      if (dragging || panelOpen()) {
+        return;
+      }
+      pointerInsideInteractiveArea = true;
+      stopWander();
+      if (!careActive()) {
+        animation.setState("idle");
+      }
+      setMousePassthrough(false);
+    });
+
+    dom.petEl.addEventListener("pointerleave", () => {
+      if (dragging || panelOpen()) {
+        return;
+      }
+      pointerInsideInteractiveArea = false;
+      scheduleWander(900);
+      setMousePassthrough(false);
     });
 
     dom.petEl.addEventListener("pointermove", (event) => {
@@ -341,6 +431,7 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
         return;
       }
       if (!dragging && dom.panelEl.classList.contains("hidden")) {
+        cancelCareAction();
         const behavior = refreshLifeEngine();
         const plan = lifeEngine.planInteraction("click");
         animation.setState(plan?.state || behavior.clickState, {
@@ -349,8 +440,12 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
       }
     });
     dom.petEl.addEventListener("dblclick", () => {
+      cancelCareAction();
       const behavior = refreshLifeEngine();
       const plan = lifeEngine.planInteraction("doubleClick");
+      if ((animation.getCareStates?.() || []).length > 0) {
+        togglePanel(true);
+      }
       animation.setState(plan?.state || behavior.doubleClickState, {
         onceReturn: plan?.onceReturn || behavior.natural.doubleClickReturnState
       });
@@ -423,8 +518,14 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
       }
     });
 
-    dom.petSelect.addEventListener("change", () => pickPet(dom.petSelect.value));
-    dom.stateSelect.addEventListener("change", () => animation.setState(dom.stateSelect.value));
+    dom.petSelect.addEventListener("change", () => {
+      cancelCareAction();
+      pickPet(dom.petSelect.value);
+    });
+    dom.stateSelect.addEventListener("change", () => {
+      cancelCareAction();
+      animation.setState(dom.stateSelect.value);
+    });
     dom.scaleRange.addEventListener("input", () => {
       document.documentElement.style.setProperty("--scale", dom.scaleRange.value);
       onLayoutChange().catch?.(() => {});
@@ -437,6 +538,7 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
   return {
     bind,
     hasActivePet,
+    playCareAction,
     scheduleWander,
     refreshLifeEngine,
     setMousePassthrough,

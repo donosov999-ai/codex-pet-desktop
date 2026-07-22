@@ -17,7 +17,7 @@ const state = {
   pendingImport: null,
   preferences: {
     selectedPetId: "",
-    scale: 0.6,
+    scale: 0.9,
     petDirection: "right",
     autoWander: true,
     naturalLife: true,
@@ -26,9 +26,9 @@ const state = {
   appInfo: {
     version: "0.0.0",
     platform: "",
-    downloadsUrl: "https://jieyangxchen.github.io/codex-pet-desktop/",
-    latestReleaseApi: "https://api.github.com/repos/jieyangxchen/codex-pet-desktop/releases/latest",
-    petpackIndexUrl: "https://jieyangxchen.github.io/codex-pet-desktop/petpacks/petpacks.json"
+    downloadsUrl: "https://donosov999-ai.github.io/codex-pet-desktop/",
+    latestReleaseApi: "https://api.github.com/repos/donosov999-ai/codex-pet-desktop/releases/latest",
+    petpackIndexUrl: "https://donosov999-ai.github.io/codex-pet-desktop/petpacks/petpacks.json"
   }
 };
 
@@ -43,7 +43,7 @@ function setUpdateStatus(message) {
 function currentPreferences(overrides = {}) {
   return {
     selectedPetId: state.activePet?.id || dom.petSelect.value || "",
-    scale: Number(dom.scaleRange.value) || 0.6,
+    scale: Number(dom.scaleRange.value) || 0.9,
     petDirection: state.preferences.petDirection || "right",
     autoWander: Boolean(dom.wanderToggle.checked),
     naturalLife: Boolean(dom.naturalLifeToggle.checked),
@@ -71,7 +71,7 @@ function syncTrayState() {
 
 function applyPreferences(preferences) {
   state.preferences = { ...state.preferences, ...(preferences || {}) };
-  dom.scaleRange.value = String(state.preferences.scale || 0.6);
+  dom.scaleRange.value = String(state.preferences.scale || 0.9);
   document.documentElement.style.setProperty("--scale", dom.scaleRange.value);
   applyPetDirection(state.preferences.petDirection);
   dom.wanderToggle.checked = state.preferences.autoWander !== false;
@@ -115,6 +115,7 @@ const petManager = createPetManager({
   animation,
   dom,
   petDesktop,
+  playCareAction: interactions.playCareAction,
   scheduleWander: interactions.scheduleWander,
   setPetStatus,
   state,
@@ -229,7 +230,7 @@ async function init() {
   });
   dom.scaleRange.addEventListener("input", () => {
     windowLayout.syncWindowLayout().catch(() => {});
-    savePreferences({ scale: Number(dom.scaleRange.value) || 0.6 });
+    savePreferences({ scale: Number(dom.scaleRange.value) || 0.9 });
   });
   [dom.directionLeftButton, dom.directionRightButton].forEach((button) => {
     button?.addEventListener("click", () => {

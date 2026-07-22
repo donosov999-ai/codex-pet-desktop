@@ -16,13 +16,13 @@ export const STATES = {
 };
 
 export const STATE_LABELS = {
-  idle: "待机",
-  "running-right": "向右走",
-  "running-left": "向左走",
-  waving: "互动",
-  jumping: "跳跃",
-  failed: "受惊",
-  waiting: "等待",
-  running: "小跑",
-  review: "观察"
+  idle: "Спокойно",
+  "running-right": "Бежит вправо",
+  "running-left": "Бежит влево",
+  waving: "Приветствует",
+  jumping: "Прыгает",
+  failed: "Расстроен",
+  waiting: "Ждёт",
+  running: "Играет",
+  review: "Наблюдает"
 };

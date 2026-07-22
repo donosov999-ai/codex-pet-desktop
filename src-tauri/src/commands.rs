@@ -13,12 +13,12 @@ use crate::{
     windowing::{self, WindowBounds},
 };
 
-const DOWNLOADS_URL: &str = "https://jieyangxchen.github.io/codex-pet-desktop/";
+const DOWNLOADS_URL: &str = "https://github.com/donosov999-ai/codex-pet-desktop/releases";
 const PETPACK_INDEX_URL: &str =
-    "https://jieyangxchen.github.io/codex-pet-desktop/petpacks/petpacks.json";
+    "https://donosov999-ai.github.io/codex-pet-desktop/petpacks/petpacks.json";
 const LATEST_RELEASE_API: &str =
-    "https://api.github.com/repos/jieyangxchen/codex-pet-desktop/releases/latest";
-const UPDATE_REPO_DOWNLOAD_PREFIX: &str = "/jieyangxchen/codex-pet-desktop/releases/download/";
+    "https://api.github.com/repos/donosov999-ai/codex-pet-desktop/releases/latest";
+const UPDATE_REPO_DOWNLOAD_PREFIX: &str = "/donosov999-ai/codex-pet-desktop/releases/download/";
 const MAX_UPDATE_INSTALLER_BYTES: u64 = 250 * 1024 * 1024;
 const APP_UPDATE_DOWNLOAD_PROGRESS_EVENT: &str = "pet-desktop-app-update-download-progress";
 const ALLOWED_UPDATE_INSTALLERS: &[&str] = &[
@@ -102,7 +102,7 @@ fn list_pets(app: AppHandle<Wry>) -> PetList {
 #[tauri::command]
 fn get_app_info() -> AppInfo {
     AppInfo {
-        display_name: "永生计划",
+        display_name: "Бирюзик",
         version: env!("CARGO_PKG_VERSION"),
         platform: std::env::consts::OS,
         downloads_url: DOWNLOADS_URL,
@@ -617,12 +617,12 @@ mod tests {
     #[test]
     fn validates_update_download_urls() {
         assert!(validate_update_download_url(
-            "https://github.com/jieyangxchen/codex-pet-desktop/releases/download/v0.2.15/yongsheng-plan-windows-x64.exe",
+            "https://github.com/donosov999-ai/codex-pet-desktop/releases/download/v0.2.15/yongsheng-plan-windows-x64.exe",
             "yongsheng-plan-windows-x64.exe"
         )
         .is_ok());
         assert!(validate_update_download_url(
-            "https://github.com/jieyangxchen/codex-pet-desktop/releases/download/v0.2.15/yongsheng-plan-macos-arm64.dmg",
+            "https://github.com/donosov999-ai/codex-pet-desktop/releases/download/v0.2.15/yongsheng-plan-macos-arm64.dmg",
             "yongsheng-plan-macos-arm64.dmg"
         )
         .is_ok());
@@ -637,7 +637,7 @@ mod tests {
         )
         .is_err());
         assert!(validate_update_download_url(
-            "https://github.com/jieyangxchen/codex-pet-desktop/releases/download/v0.2.15/other.exe",
+            "https://github.com/donosov999-ai/codex-pet-desktop/releases/download/v0.2.15/other.exe",
             "yongsheng-plan-windows-x64.exe"
         )
         .is_err());
@@ -657,7 +657,7 @@ mod tests {
         )
         .is_err());
         assert!(validate_update_download_url(
-            "https://github.com/jieyangxchen/codex-pet-desktop/releases/download/v0.2.15/nested/yongsheng-plan-windows-x64.exe",
+            "https://github.com/donosov999-ai/codex-pet-desktop/releases/download/v0.2.15/nested/yongsheng-plan-windows-x64.exe",
             "yongsheng-plan-windows-x64.exe"
         )
         .is_err());

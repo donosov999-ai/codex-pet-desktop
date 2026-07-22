@@ -1,20 +1,25 @@
 {
   "id": "biruzik",
   "displayName": "Бирюзик",
-  "description": "Белый пушистый стратег с огромными бирюзовыми глазами, спокойным характером и инженерной хваткой.",
-  "version": "1.0.0",
+  "description": "Белый пушистый стратег с огромными бирюзовыми глазами: гуляет по экрану, играет и принимает заботу.",
+  "version": "1.0.1",
   "author": "Denis Onosov (ODV999)",
   "license": "CC-BY-4.0",
-  "minAppVersion": "0.2.0",
+  "minAppVersion": "0.2.30",
   "spriteVersionNumber": 2,
   "tags": [
     "кот",
     "белый",
+    "уход",
     "бирюзовые глаза",
     "стратег"
   ],
   "changelog": [
-    "Первая публикация Бирюзика в каталоге питомцев."
+    "Режимы ухода замедлены и теперь выполняют гарантированное число полных циклов.",
+    "Первая публикация Бирюзика в каталоге питомцев.",
+    "Добавлены сон, еда, мытьё, игра и туалет.",
+    "Добавлена самостоятельная короткая игра во время прогулок.",
+    "Подключён отдельный атлас ухода без нарушения стандартного формата Codex."
   ],
   "behavior": {
     "clickState": "waving",
@@ -31,30 +36,92 @@
     ],
     "natural": {
       "nextWanderDelayMs": [
-        5200,
-        11500
+        8000,
+        16000
       ],
       "idleDurationMs": [
-        2000,
-        5000
+        1400,
+        3000
       ],
       "walkDurationMs": [
-        2400,
-        5400
+        1600,
+        3200
       ],
       "edgePauseMs": [
-        900,
-        2200
+        700,
+        1500
       ],
       "edgePauseStates": [
         "waiting",
         "review"
       ],
       "postDragState": "waiting",
-      "postDragMs": 900,
+      "postDragMs": 800,
       "clickReturnState": "idle",
       "doubleClickReturnState": "idle"
     }
   },
-  "spritesheetPath": "spritesheet.webp"
+  "spritesheetPath": "spritesheet.webp",
+  "care": {
+    "spritesheetPath": "care-spritesheet.webp",
+    "atlas": {
+      "width": 1536,
+      "height": 1040,
+      "columns": 8,
+      "rows": 5,
+      "cellWidth": 192,
+      "cellHeight": 208
+    },
+    "states": {
+      "sleep": {
+        "label": "😴 Сон",
+        "row": 0,
+        "frames": 6,
+        "fps": 2,
+        "loops": 20,
+        "durationMs": 60000,
+        "mirror": false
+      },
+      "eat": {
+        "label": "🍎 Еда",
+        "row": 1,
+        "frames": 6,
+        "fps": 3,
+        "loops": 12,
+        "durationMs": 24000,
+        "mirror": false
+      },
+      "wash": {
+        "label": "🫧 Мытьё",
+        "row": 2,
+        "frames": 6,
+        "fps": 3,
+        "loops": 12,
+        "durationMs": 24000,
+        "mirror": false
+      },
+      "play": {
+        "label": "🎾 Игра",
+        "row": 3,
+        "frames": 6,
+        "fps": 5,
+        "loops": 15,
+        "durationMs": 18000,
+        "mirror": false
+      },
+      "toilet": {
+        "label": "🚽 Туалет",
+        "row": 4,
+        "frames": 6,
+        "fps": 3,
+        "loops": 6,
+        "durationMs": 12000,
+        "mirror": false
+      }
+    },
+    "autonomousStates": [
+      "play"
+    ],
+    "autonomousChance": 0.15
+  }
 }

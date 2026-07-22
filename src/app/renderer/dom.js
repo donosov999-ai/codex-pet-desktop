@@ -7,6 +7,8 @@ export function getDomRefs() {
     closePanelButton: document.querySelector("#closePanelButton"),
     petSelect: document.querySelector("#petSelect"),
     stateSelect: document.querySelector("#stateSelect"),
+    careControlsEl: document.querySelector("#careControls"),
+    careActionsEl: document.querySelector("#careActions"),
     scaleRange: document.querySelector("#scaleRange"),
     directionLeftButton: document.querySelector("#directionLeftButton"),
     directionRightButton: document.querySelector("#directionRightButton"),

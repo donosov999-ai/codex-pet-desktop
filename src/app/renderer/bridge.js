@@ -66,3 +66,22 @@ export function resolveSpritesheetSource(pet, tauriConvertFileSrc) {
   }
   return appendRevision(pet.spritesheetUrl || "");
 }
+
+export function resolveCareSpritesheetSource(pet, tauriConvertFileSrc) {
+  const care = pet?.care;
+  if (!care) {
+    return "";
+  }
+  const revision = care.spritesheetRevision || pet.version || "";
+  const appendRevision = (source) => {
+    if (!source || !revision) {
+      return source;
+    }
+    const separator = source.includes("?") ? "&" : "?";
+    return `${source}${separator}spriteRevision=${encodeURIComponent(revision)}`;
+  };
+  if (typeof tauriConvertFileSrc === "function" && care.spritesheetPath) {
+    return appendRevision(tauriConvertFileSrc(care.spritesheetPath));
+  }
+  return appendRevision(care.spritesheetUrl || "");
+}

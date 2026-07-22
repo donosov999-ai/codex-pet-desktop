@@ -20,12 +20,12 @@ function clamp(value, min, max) {
 function normalizedScale(scale) {
   const value = Number(scale);
   if (!Number.isFinite(value) || value <= 0) {
-    return 0.6;
+    return 0.9;
   }
   return clamp(value, 0.4, 2.2);
 }
 
-export function desiredWindowSize({ scale = 0.6, hasPet = false, panelVisible = false } = {}) {
+export function desiredWindowSize({ scale = 0.9, hasPet = false, panelVisible = false } = {}) {
   if (panelVisible) {
     if (hasPet) {
       const safeScale = normalizedScale(scale);
@@ -82,7 +82,7 @@ export function createWindowLayout({ dom, petDesktop, state }) {
     }
     const visiblePanel = typeof panelVisibleOverride === "boolean" ? panelVisibleOverride : panelVisible();
     const size = desiredWindowSize({
-      scale: Number(dom.scaleRange.value) || state.preferences.scale || 0.6,
+      scale: Number(dom.scaleRange.value) || state.preferences.scale || 0.9,
       hasPet: hasPet(),
       panelVisible: visiblePanel
     });

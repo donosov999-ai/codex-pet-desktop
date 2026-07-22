@@ -89,6 +89,29 @@ try {
   );
   fs.writeFileSync(path.join(badMetadataDir, "spritesheet.webp"), makeVp8xWebp(1536, 1872));
 
+  const badCareDir = path.join(tempRoot, "bad-care");
+  fs.mkdirSync(badCareDir);
+  fs.writeFileSync(
+    path.join(badCareDir, "pet.json"),
+    JSON.stringify({
+      id: "bad-care",
+      displayName: "Bad Care",
+      spritesheetPath: "spritesheet.webp",
+      author: "Test",
+      license: "MIT",
+      minAppVersion: "0.2.30",
+      tags: ["test"],
+      changelog: ["test"],
+      care: {
+        spritesheetPath: "care-spritesheet.webp",
+        atlas: { width: 1536, height: 208, columns: 8, rows: 1, cellWidth: 192, cellHeight: 208 },
+        states: { play: { row: 0, frames: 6, fps: 5, loops: 0, durationMs: 500 } }
+      }
+    })
+  );
+  fs.writeFileSync(path.join(badCareDir, "spritesheet.webp"), makeVp8xWebp(1536, 1872));
+  fs.writeFileSync(path.join(badCareDir, "care-spritesheet.webp"), makeVp8xWebp(1536, 208));
+
   const negativeReport = validatePetResources(tempRoot);
   const negativeErrors = negativeReport.errors.flatMap((entry) => entry.errors);
   const requiredErrors = [
@@ -98,7 +121,9 @@ try {
     "license is required",
     "minAppVersion must be x.y.z",
     "tags must be an array",
-    "changelog must be an array"
+    "changelog must be an array",
+    "Invalid care loop count",
+    "Invalid care duration"
   ];
   const missingErrors = requiredErrors.filter((text) => !negativeErrors.some((error) => error.includes(text)));
   if (negativeReport.ok || missingErrors.length > 0) {

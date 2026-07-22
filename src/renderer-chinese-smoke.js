@@ -7,7 +7,7 @@ async function main() {
     petDesktop: {
       listPets: async () => ({ pets: [], errors: [] }),
       getAppInfo: async () => ({
-        version: "0.2.2",
+        version: "0.2.30",
         latestReleaseApi: "",
         downloadsUrl: "https://jieyangxchen.github.io/codex-pet-desktop/",
         petpackIndexUrl: ""
@@ -22,10 +22,13 @@ async function main() {
       revealPet: async () => {},
       openDownloads: async () => {},
       moveBy: async () => {},
+      resizeWindow: async () => {},
+      centerPosition: async () => {},
       setIgnoreMouseEvents: async () => {},
       resetPosition: async () => {},
       setAlwaysOnTop: async () => {},
       getWindowState: async () => ({ alwaysOnTop: true }),
+      updateTrayState: async () => {},
       quit: () => {}
     }
   });
@@ -40,20 +43,20 @@ async function main() {
   const pageText = `${htmlText} ${runtimeText}`;
 
   const expected = [
-    "还没有宠物",
-    "导入宠物包",
-    "宠物",
-    "动作",
-    "大小",
-    "自动散步",
-    "自然生命节奏",
-    "保持置顶",
-    "更新",
-    "资源库",
-    "导入本地宠物包",
-    "已安装宠物",
-    "退出",
-    "待机"
+    "Питомец не найден",
+    "Импортировать пакет",
+    "Питомец",
+    "Действие",
+    "Размер",
+    "Гулять по экрану",
+    "Самостоятельные действия",
+    "Поверх остальных окон",
+    "Обновления",
+    "Каталог",
+    "Импортировать пакет питомца",
+    "Установленные питомцы",
+    "Закрыть Бирюзика",
+    "Спокойно"
   ];
   const missing = expected.filter((text) => !pageText.includes(text));
   const englishLeaks = [
@@ -67,7 +70,7 @@ async function main() {
   ].filter((text) => pageText.includes(text));
 
   if (missing.length || englishLeaks.length) {
-    console.error(JSON.stringify({ ok: false, reason: "renderer text is not fully localized", missing, englishLeaks, pageText }));
+    console.error(JSON.stringify({ ok: false, reason: "renderer text is not fully localized", missing, englishLeaks }));
     process.exit(1);
   }
 

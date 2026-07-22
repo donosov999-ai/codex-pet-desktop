@@ -178,6 +178,86 @@ function validatePetResources(petsRoot, options = {}) {
           );
         }
       }
+
+      if (manifest.care !== undefined) {
+        const care = manifest.care;
+        if (!care || typeof care !== "object" || Array.isArray(care)) {
+          petReport.errors.push("care must be an object");
+        } else {
+          const careSheet = care.spritesheetPath;
+          const atlas = care.atlas && typeof care.atlas === "object" ? care.atlas : {};
+          const states = care.states && typeof care.states === "object" && !Array.isArray(care.states)
+            ? care.states
+            : {};
+          const columns = Number(atlas.columns);
+          const rows = Number(atlas.rows);
+          const cellWidth = Number(atlas.cellWidth);
+          const cellHeight = Number(atlas.cellHeight);
+          const expectedCareWidth = columns * cellWidth;
+          const expectedCareHeight = rows * cellHeight;
+          const careReport = {
+            spritesheet: careSheet || "",
+            width: 0,
+            height: 0,
+            stateCount: Object.keys(states).length
+          };
+          petReport.care = careReport;
+
+          if (!isRootFileName(careSheet)) {
+            petReport.errors.push("care.spritesheetPath must be a root-level file name");
+          } else if (!fs.existsSync(path.join(petDir, careSheet))) {
+            petReport.errors.push(`Missing care spritesheet: ${careSheet}`);
+          } else if (
+            ![columns, rows, cellWidth, cellHeight].every((value) => Number.isInteger(value) && value > 0)
+          ) {
+            petReport.errors.push("care.atlas dimensions must be positive integers");
+          } else {
+            const careSize = parseWebpSize(fs.readFileSync(path.join(petDir, careSheet)));
+            careReport.width = careSize.width;
+            careReport.height = careSize.height;
+            if (careSize.width !== expectedCareWidth || careSize.height !== expectedCareHeight) {
+              petReport.errors.push(
+                `Expected care spritesheet ${expectedCareWidth}x${expectedCareHeight}, got ${careSize.width}x${careSize.height}`
+              );
+            }
+          }
+
+          if (!Object.keys(states).length) {
+            petReport.errors.push("care.states must include at least one state");
+          }
+          for (const [stateId, state] of Object.entries(states)) {
+            const row = Number(state?.row);
+            const frames = Number(state?.frames);
+            const fps = Number(state?.fps);
+            const loops = state?.loops === undefined ? null : Number(state.loops);
+            const durationMs = state?.durationMs === undefined ? null : Number(state.durationMs);
+            if (!/^[a-z0-9][a-z0-9_-]*$/i.test(stateId)) {
+              petReport.errors.push(`Invalid care state id: ${stateId}`);
+            }
+            if (!Number.isInteger(row) || row < 0 || row >= rows) {
+              petReport.errors.push(`Invalid care row for ${stateId}: ${state?.row}`);
+            }
+            if (!Number.isInteger(frames) || frames < 1 || frames > columns) {
+              petReport.errors.push(`Invalid care frame count for ${stateId}: ${state?.frames}`);
+            }
+            if (!Number.isFinite(fps) || fps <= 0) {
+              petReport.errors.push(`Invalid care fps for ${stateId}: ${state?.fps}`);
+            }
+            if (loops !== null && (!Number.isInteger(loops) || loops < 1)) {
+              petReport.errors.push(`Invalid care loop count for ${stateId}: ${state?.loops}`);
+            }
+            if (durationMs !== null && (!Number.isFinite(durationMs) || durationMs < 1000)) {
+              petReport.errors.push(`Invalid care duration for ${stateId}: ${state?.durationMs}`);
+            }
+          }
+          if (
+            care.autonomousStates !== undefined &&
+            (!Array.isArray(care.autonomousStates) || care.autonomousStates.some((stateId) => !states[stateId]))
+          ) {
+            petReport.errors.push("care.autonomousStates must reference declared care states");
+          }
+        }
+      }
     } catch (error) {
       petReport.errors.push(error.message);
     }
