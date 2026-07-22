@@ -118,7 +118,11 @@ for (const id of listPets()) {
     sha256: sha256(outPath),
     previewAtlas,
     spritesheet,
-    sprite: SPRITE,
+    sprite: {
+      ...SPRITE,
+      height: qa.height || SPRITE.height,
+      rows: Math.round((qa.height || SPRITE.height) / SPRITE.cellHeight)
+    },
     qa: {
       ok: qa.ok === true,
       width: qa.width || 0,
