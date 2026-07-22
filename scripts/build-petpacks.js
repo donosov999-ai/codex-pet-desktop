@@ -109,6 +109,8 @@ for (const id of listPets()) {
   const previewAtlas = `previews/${id}-${manifest.version || "1.0.0"}-atlas.webp`;
   fs.copyFileSync(path.join(petDir, spritesheet), path.join(outDir, previewAtlas));
   const qa = qaReport.pets.find((pet) => pet.id === id) || {};
+  const expectedSpriteRows = qa.spriteVersionNumber >= 2 ? 11 : SPRITE.rows;
+  const expectedSpriteHeight = expectedSpriteRows * SPRITE.cellHeight;
   qa.previewAtlas = previewAtlas;
 
   index.push({
@@ -137,7 +139,7 @@ for (const id of listPets()) {
       width: qa.width || 0,
       height: qa.height || 0,
       expectedWidth: qaReport.expected.width,
-      expectedHeight: qaReport.expected.height,
+      expectedHeight: expectedSpriteHeight,
       previewAtlas
     }
   });
