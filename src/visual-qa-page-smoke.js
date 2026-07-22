@@ -54,7 +54,9 @@ for (const pet of index) {
   if (pet.spritesheet !== "spritesheet.webp") {
     failures.push(`${pet.id} has unexpected spritesheet ${pet.spritesheet}`);
   }
-  if (!pet.sprite || pet.sprite.columns !== 8 || pet.sprite.rows !== 9 || pet.sprite.cellWidth !== 192) {
+  if (!pet.sprite || pet.sprite.columns !== 8 || pet.sprite.cellWidth !== 192 ||
+      !(pet.sprite.rows >= 9 && pet.sprite.rows <= 12) ||
+      pet.sprite.height !== pet.sprite.rows * pet.sprite.cellHeight) {
     failures.push(`${pet.id} has invalid sprite grid metadata`);
   }
   if (!pet.qa || pet.qa.ok !== true || pet.qa.previewAtlas !== pet.previewAtlas) {
