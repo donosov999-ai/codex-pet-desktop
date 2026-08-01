@@ -69,9 +69,9 @@
     "spritesheetPath": "care-spritesheet.webp",
     "atlas": {
       "width": 1536,
-      "height": 2080,
+      "height": 2288,
       "columns": 8,
-      "rows": 10,
+      "rows": 11,
       "cellWidth": 192,
       "cellHeight": 208
     },
@@ -212,6 +212,15 @@
         "durationMs": 6000,
         "mirror": false,
         "label": "Celebrate"
+      },
+      "sad": {
+        "row": 10,
+        "frames": 8,
+        "fps": 2,
+        "loops": 3,
+        "durationMs": 12000,
+        "mirror": false,
+        "label": "Sad"
       }
     },
     "autonomousStates": [
