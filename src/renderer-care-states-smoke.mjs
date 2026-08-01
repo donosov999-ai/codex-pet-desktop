@@ -89,7 +89,10 @@ if (style.backgroundImage !== 'url("asset://standard")' || style.backgroundSize 
 if (!animation.setState("play")) {
   throw new Error("Care state was not registered");
 }
-if (style.backgroundImage !== 'url("asset://care")' || style.backgroundSize !== "1536px 1040px") {
+// Size comes from the manifest, not a constant: the care atlas grows whenever the pack gains
+// actions, and a hardcoded number would fail on a pack that is perfectly valid.
+const careAtlasSize = `${care.atlas.width}px ${care.atlas.height}px`;
+if (style.backgroundImage !== 'url("asset://care")' || style.backgroundSize !== careAtlasSize) {
   throw new Error(`Care atlas was not selected: ${JSON.stringify(style)}`);
 }
 animation.setState("sleep");

@@ -51,8 +51,13 @@ async function main() {
       callback(now);
     }
   }
-  if (careActions.children.length !== 5) {
-    throw new Error(`expected 5 care actions, found ${careActions.children.length}`);
+  // One button per care state declared by the pack: the pet gains actions over time, so counting
+  // against the manifest keeps the test about the wiring rather than about today's pack contents.
+  const expectedCareActions = Object.keys(biruzikManifest.care.states).length;
+  if (careActions.children.length !== expectedCareActions) {
+    throw new Error(
+      `expected ${expectedCareActions} care actions, found ${careActions.children.length}`
+    );
   }
 
   petElement.dispatch("pointerenter");
