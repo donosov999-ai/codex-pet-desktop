@@ -263,6 +263,9 @@ pub(crate) fn position_initial_window<R: Runtime>(app: &AppHandle<R>) -> Result<
     let _ = window.set_shadow(false);
     let _ = window.set_resizable(false);
     let _ = window.set_always_on_top(true);
+    // Питомец — десктоп-компаньон: должен жить поверх ВСЕХ, включая полноэкранные
+    // приложения и другие Spaces (иначе macOS прячет его, когда активно окно Codex/терминала).
+    let _ = window.set_visible_on_all_workspaces(true);
     let _ = window.set_background_color(Some(Color(0, 0, 0, 0)));
     let _ = window.set_size(Size::Logical(LogicalSize::new(320.0, 340.0)));
     reset_window_position(&window)?;
