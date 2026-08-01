@@ -239,6 +239,25 @@ async function loadRenderer(options = {}) {
   };
   globalThis.document = documentObject;
   globalThis.window = windowObject;
+  // The renderer measures a sprite atlas by loading it, because a pack's declared sprite version
+  // can disagree with the real image. Tests declare the sizes they want via options.imageSizes,
+  // keyed by url; anything unlisted stays 0x0, i.e. an image that never resolves a usable size.
+  const imageSizes = options.imageSizes || {};
+  globalThis.Image = class FakeImage {
+    constructor() {
+      this.naturalWidth = 0;
+      this.naturalHeight = 0;
+      this.onload = null;
+    }
+
+    set src(value) {
+      const [width, height] = imageSizes[value] || [0, 0];
+      this.naturalWidth = width;
+      this.naturalHeight = height;
+      queueMicrotask(() => this.onload?.());
+    }
+  };
+  windowObject.Image = globalThis.Image;
   if (fetch) {
     globalThis.fetch = fetch;
     windowObject.fetch = fetch;

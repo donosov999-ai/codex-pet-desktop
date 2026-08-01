@@ -186,7 +186,36 @@ export function createAnimation(dom) {
       standard: { url: standardSource, width: ATLAS_WIDTH, height: standardAtlasHeight || ATLAS_HEIGHT },
       care: { url: careSource, width: careConfig.atlas.width, height: careConfig.atlas.height }
     };
+    // The atlas file itself is the truth about its size, not spriteVersionNumber. A pack whose
+    // version number disagreed with the image (an 11-row atlas declared as version 1) was drawn
+    // 1872px tall instead of 2288: the sprite got squashed, the rows drifted, and a slice of the
+    // next row leaked in below, so the pet looked cut in two. Measure it and redraw the frame.
+    measureAtlas(standardSource, "standard");
+    measureAtlas(careSource, "care");
     renderStateOptions();
+  }
+
+  /// Load the atlas' real dimensions and redraw the frame when they differ from the declared ones.
+  function measureAtlas(url, key) {
+    if (!url || typeof Image === "undefined") {
+      return;
+    }
+    const probe = new Image();
+    probe.onload = () => {
+      const { naturalWidth: width, naturalHeight: height } = probe;
+      const source = sources[key];
+      // The pack may have changed while the image loaded: match the url so we never apply
+      // measurements that belong to a different atlas.
+      if (!width || !height || !source || source.url !== url) {
+        return;
+      }
+      if (source.width === width && source.height === height) {
+        return;
+      }
+      sources[key] = { url, width, height };
+      setFrame();
+    };
+    probe.src = url;
   }
 
   function getCareStates() {

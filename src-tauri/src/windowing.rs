@@ -3,6 +3,48 @@ use tauri::{
     window::Color, AppHandle, LogicalSize, Manager, PhysicalPosition, Runtime, Size, WebviewWindow,
 };
 
+/// macOS: raise the pet window above fullscreen apps and show it on every Space.
+///
+/// `set_always_on_top` only puts the window on the floating level (NSFloatingWindowLevel = 3), while
+/// a fullscreen app moves to its own Space and covers it, so the pet disappeared whenever a
+/// fullscreen Codex/browser window was active. Use the status-bar level (25) plus a collection
+/// behavior of `canJoinAllSpaces | fullScreenAuxiliary`: the pet floats over fullscreen without
+/// stealing focus.
+#[cfg(target_os = "macos")]
+fn raise_above_fullscreen<R: Runtime>(window: &WebviewWindow<R>) {
+    use objc2_app_kit::{NSWindow, NSWindowCollectionBehavior};
+
+    // NSStatusWindowLevel = 25: above fullscreen, below system alerts and the screen saver.
+    const NS_STATUS_WINDOW_LEVEL: isize = 25;
+
+    let Ok(handle) = window.ns_window() else {
+        return;
+    };
+    // SAFETY: ns_window() hands back this window's live NSWindow. AppKit calls are main-thread
+    // only, and position_initial_window runs from Tauri setup/commands, i.e. on that thread.
+    let ns_window = unsafe { &*(handle as *const NSWindow) };
+    ns_window.setLevel(NS_STATUS_WINDOW_LEVEL);
+    ns_window.setCollectionBehavior(
+        NSWindowCollectionBehavior::CanJoinAllSpaces
+            | NSWindowCollectionBehavior::FullScreenAuxiliary
+            | NSWindowCollectionBehavior::Stationary,
+    );
+    if std::env::var_os("BIRUZIK_DEBUG_WINDOW").is_some() {
+        let frame = ns_window.frame();
+        eprintln!(
+            "[window] level={} frame={},{} {}x{}",
+            ns_window.level(),
+            frame.origin.x,
+            frame.origin.y,
+            frame.size.width,
+            frame.size.height
+        );
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn raise_above_fullscreen<R: Runtime>(_window: &WebviewWindow<R>) {}
+
 const EDGE_VISIBILITY_PX: i32 = 48;
 const MIN_DYNAMIC_WINDOW_WIDTH: u32 = 160;
 const MIN_DYNAMIC_WINDOW_HEIGHT: u32 = 180;
@@ -263,13 +305,17 @@ pub(crate) fn position_initial_window<R: Runtime>(app: &AppHandle<R>) -> Result<
     let _ = window.set_shadow(false);
     let _ = window.set_resizable(false);
     let _ = window.set_always_on_top(true);
-    // Питомец — десктоп-компаньон: должен жить поверх ВСЕХ, включая полноэкранные
-    // приложения и другие Spaces (иначе macOS прячет его, когда активно окно Codex/терминала).
+    // The pet is a desktop companion: it must sit above everything, including fullscreen apps and
+    // other Spaces, otherwise macOS hides it whenever a Codex/terminal window is active.
     let _ = window.set_visible_on_all_workspaces(true);
     let _ = window.set_background_color(Some(Color(0, 0, 0, 0)));
     let _ = window.set_size(Size::Logical(LogicalSize::new(320.0, 340.0)));
     reset_window_position(&window)?;
     window.show().map_err(|error| error.to_string())?;
+    // set_always_on_top alone tops out at the floating level (3), which is BELOW fullscreen apps,
+    // so the pet vanished under a fullscreen Codex/browser. Raise the NSWindow directly instead.
+    // Do this last: showing the window resets its level, which would undo the raise.
+    raise_above_fullscreen(&window);
     Ok(())
 }
 

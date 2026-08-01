@@ -31,3 +31,9 @@ zip = { version = "2", default-features = false, features = ["deflate"] }
 
 [dev-dependencies]
 image = { version = "0.25", default-features = false, features = ["webp"] }
+
+# macOS: raise the pet window above fullscreen apps and show it on every Space.
+# Tauri's set_always_on_top only reaches the floating level (below fullscreen), so we touch NSWindow.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-app-kit = { version = "0.3", features = ["NSWindow", "NSResponder"] }

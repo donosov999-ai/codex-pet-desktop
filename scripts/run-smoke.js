@@ -24,6 +24,7 @@ const SMOKE_COMMANDS = [
   ["Renderer update failure smoke", "node", ["src/renderer-update-failure-smoke.js"]],
   ["Renderer update progress smoke", "node", ["src/renderer-update-progress-smoke.js"]],
   ["Renderer direction smoke", "node", ["src/renderer-direction-smoke.js"]],
+  ["Renderer atlas size smoke", "node", ["src/renderer-atlas-size-smoke.js"]],
   ["Renderer English smoke", "node", ["src/renderer-english-smoke.js"]],
   ["English-only repository smoke", "node", ["src/english-only-smoke.js"]],
   ["Renderer store smoke", "node", ["src/renderer-store-smoke.js"]],
