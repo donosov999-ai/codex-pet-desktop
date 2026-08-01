@@ -1,3 +1,4 @@
+use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use tauri::{
     window::Color, AppHandle, LogicalSize, Manager, PhysicalPosition, Runtime, Size, WebviewWindow,
@@ -10,8 +11,11 @@ use tauri::{
 /// fullscreen Codex/browser window was active. Use the status-bar level (25) plus a collection
 /// behavior of `canJoinAllSpaces | fullScreenAuxiliary`: the pet floats over fullscreen without
 /// stealing focus.
+///
+/// Re-apply this after every `set_always_on_top(true)`: that call rewrites the window level and
+/// would silently drop the pet back below fullscreen apps.
 #[cfg(target_os = "macos")]
-fn raise_above_fullscreen<R: Runtime>(window: &WebviewWindow<R>) {
+pub(crate) fn raise_above_fullscreen<R: Runtime>(window: &WebviewWindow<R>) {
     use objc2_app_kit::{NSWindow, NSWindowCollectionBehavior};
 
     // NSStatusWindowLevel = 25: above fullscreen, below system alerts and the screen saver.
@@ -43,7 +47,24 @@ fn raise_above_fullscreen<R: Runtime>(window: &WebviewWindow<R>) {
 }
 
 #[cfg(not(target_os = "macos"))]
-fn raise_above_fullscreen<R: Runtime>(_window: &WebviewWindow<R>) {}
+pub(crate) fn raise_above_fullscreen<R: Runtime>(_window: &WebviewWindow<R>) {}
+
+/// Re-assert the pet's window level after moving or resizing it.
+///
+/// Every geometry change goes through tao, which re-applies its own always-on-top level (the
+/// CoreGraphics floating level, 5) and silently undoes `raise_above_fullscreen`. Since the pet
+/// walks and resizes constantly, a one-shot raise at launch survives only until its first step.
+/// Skipped when the user turned always-on-top off, so their choice still wins.
+pub(crate) fn keep_pet_above_fullscreen<R: Runtime>(window: &WebviewWindow<R>) {
+    let always_on_top = window
+        .app_handle()
+        .try_state::<AppState>()
+        .and_then(|state| state.always_on_top.lock().ok().map(|value| *value))
+        .unwrap_or(true);
+    if always_on_top {
+        raise_above_fullscreen(window);
+    }
+}
 
 const EDGE_VISIBILITY_PX: i32 = 48;
 const MIN_DYNAMIC_WINDOW_WIDTH: u32 = 160;
@@ -254,6 +275,7 @@ pub(crate) fn reset_window_position<R: Runtime>(
     window
         .set_position(next)
         .map_err(|error| error.to_string())?;
+    keep_pet_above_fullscreen(window);
     Ok(WindowBounds {
         x: next.x,
         y: next.y,
@@ -290,6 +312,7 @@ pub(crate) fn center_window_position<R: Runtime>(
     window
         .set_position(next)
         .map_err(|error| error.to_string())?;
+    keep_pet_above_fullscreen(window);
     Ok(WindowBounds {
         x: next.x,
         y: next.y,
@@ -347,6 +370,7 @@ pub(crate) fn move_window_by<R: Runtime>(
     window
         .set_position(next)
         .map_err(|error| error.to_string())?;
+    keep_pet_above_fullscreen(window);
     Ok(WindowBounds {
         x: next.x,
         y: next.y,
@@ -389,6 +413,7 @@ pub(crate) fn resize_window<R: Runtime>(
     window
         .set_position(next_position)
         .map_err(|error| error.to_string())?;
+    keep_pet_above_fullscreen(window);
     Ok(WindowBounds {
         x: next_position.x,
         y: next_position.y,

@@ -501,6 +501,11 @@ fn set_always_on_top(
     window
         .set_always_on_top(value)
         .map_err(|error| error.to_string())?;
+    if value {
+        // set_always_on_top rewrites the window level, which drops the pet back below fullscreen
+        // apps. The frontend calls this on startup, so without re-raising the launch fix is lost.
+        windowing::raise_above_fullscreen(&window);
+    }
     *state
         .always_on_top
         .lock()
