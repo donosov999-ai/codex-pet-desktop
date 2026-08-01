@@ -45,13 +45,45 @@
   "bundle": {
     "active": true,
     "useLocalToolsDir": true,
-    "targets": ["nsis"],
+    "targets": [
+      "nsis"
+    ],
     "icon": [
       "icons/icon.png",
       "icons/icon.ico"
     ],
     "resources": {
-      "../resources/pets/biruzik": "pets/biruzik"
+      "../resources/pets/biruzik": "pets/biruzik",
+      "../resources/pets/grovi": "pets/grovi",
+      "../resources/pets/asibots": "pets/asibots",
+      "../resources/pets/fydao": "pets/fydao",
+      "../resources/pets/valya": "pets/valya",
+      "../resources/pets/typerighting": "pets/typerighting",
+      "../resources/pets/hydro-pump": "pets/hydro-pump",
+      "../resources/pets/hydro-scout": "pets/hydro-scout",
+      "../resources/pets/hydro-ovo": "pets/hydro-ovo",
+      "../resources/pets/hydro-droid": "pets/hydro-droid",
+      "../resources/pets/hydro-walker": "pets/hydro-walker",
+      "../resources/pets/fox": "pets/fox",
+      "../resources/pets/panda": "pets/panda",
+      "../resources/pets/bear": "pets/bear",
+      "../resources/pets/penguin": "pets/penguin",
+      "../resources/pets/owl": "pets/owl",
+      "../resources/pets/hedgehog": "pets/hedgehog",
+      "../resources/pets/hamster": "pets/hamster",
+      "../resources/pets/puppy": "pets/puppy",
+      "../resources/pets/wolf": "pets/wolf",
+      "../resources/pets/dragon": "pets/dragon",
+      "../resources/pets/unicorn": "pets/unicorn",
+      "../resources/pets/ghost": "pets/ghost",
+      "../resources/pets/slime": "pets/slime",
+      "../resources/pets/phoenix": "pets/phoenix",
+      "../resources/pets/axolotl": "pets/axolotl",
+      "../resources/pets/mushroom": "pets/mushroom",
+      "../resources/pets/alien": "pets/alien",
+      "../resources/pets/star": "pets/star",
+      "../resources/pets/crystal": "pets/crystal",
+      "../resources/pets/bug": "pets/bug"
     },
     "windows": {}
   }

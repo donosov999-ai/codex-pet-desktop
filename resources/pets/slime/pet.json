@@ -1,0 +1,55 @@
+{
+  "id": "slime",
+  "displayName": "Slime",
+  "description": "Slime - a skin from the ODV999 mascot deck.",
+  "version": "1.0.0",
+  "author": "Denis Onosov (ODV999)",
+  "license": "proprietary",
+  "minAppVersion": "0.2.32",
+  "spriteVersionNumber": 1,
+  "tags": [
+    "generic"
+  ],
+  "spritesheetPath": "spritesheet.webp",
+  "behavior": {
+    "clickState": "waving",
+    "doubleClickState": "jumping",
+    "idleStates": [
+      "idle",
+      "waiting",
+      "review"
+    ],
+    "wanderDirections": [
+      0
+    ],
+    "natural": {
+      "nextWanderDelayMs": [
+        8000,
+        16000
+      ],
+      "idleDurationMs": [
+        1400,
+        3000
+      ],
+      "walkDurationMs": [
+        1600,
+        3200
+      ],
+      "edgePauseMs": [
+        700,
+        1500
+      ],
+      "edgePauseStates": [
+        "waiting",
+        "review"
+      ],
+      "postDragState": "waiting",
+      "postDragMs": 800,
+      "clickReturnState": "idle",
+      "doubleClickReturnState": "idle"
+    }
+  },
+  "changelog": [
+    "Initial release of this ODV999 deck skin."
+  ]
+}

@@ -501,6 +501,9 @@ fn set_always_on_top(
     window
         .set_always_on_top(value)
         .map_err(|error| error.to_string())?;
+    if std::env::var_os("BIRUZIK_DEBUG_WINDOW").is_some() {
+        eprintln!("[window] set_always_on_top({value})");
+    }
     if value {
         // set_always_on_top rewrites the window level, which drops the pet back below fullscreen
         // apps. The frontend calls this on startup, so without re-raising the launch fix is lost.
