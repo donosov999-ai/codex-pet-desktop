@@ -17,6 +17,16 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
+/// How many care actions raise the pet from its smallest to its full size.
+export const CARE_ACTIONS_TO_FULL_SIZE = 40;
+
+/// The pet grows as it is cared for: 0.7 at the start, 1.3 when fully grown. Both the drawing and
+/// the window size depend on it, so it lives here rather than in either of them.
+export function growthFactor(careCount) {
+  const progress = Math.min(1, Math.max(0, Number(careCount) || 0) / CARE_ACTIONS_TO_FULL_SIZE);
+  return 0.7 + progress * 0.6;
+}
+
 function normalizedScale(scale) {
   const value = Number(scale);
   if (!Number.isFinite(value) || value <= 0) {
@@ -81,7 +91,12 @@ export function createWindowLayout({ dom, petDesktop, state }) {
       return;
     }
     const visiblePanel = typeof panelVisibleOverride === "boolean" ? panelVisibleOverride : panelVisible();
-    const scale = normalizedScale(Number(dom.scaleRange.value) || state.preferences.scale || 0.9);
+    // The window has to account for growth as well as the slider: a well-fed pet is drawn up to
+    // 1.3x its size, and a window sized for the slider alone would clip the top of his head off.
+    const growth = growthFactor(state.preferences.careCount);
+    const scale = normalizedScale(
+      (Number(dom.scaleRange.value) || state.preferences.scale || 0.9) * growth
+    );
     const size = desiredWindowSize({
       scale,
       hasPet: hasPet(),

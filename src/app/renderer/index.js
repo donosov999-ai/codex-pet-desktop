@@ -6,11 +6,12 @@ import { createInteractions } from "./interactions.js";
 import { createPetManager } from "./pet-manager.js";
 import { createStoreController } from "./store.js";
 import { createUpdateController } from "./updates.js";
-import { createWindowLayout } from "./window-layout.js";
+import { createWindowLayout, growthFactor } from "./window-layout.js";
 import { cleanVersion } from "./version.js";
 
 const dom = getDomRefs();
-const { petDesktop, tauriConvertFileSrc, listenTrayCommand, listenAppUpdateDownloadProgress } = createDesktopBridge();
+const { petDesktop, tauriConvertFileSrc, listenTrayCommand, listenAppUpdateDownloadProgress, listenTyping } =
+  createDesktopBridge();
 const state = {
   pets: [],
   activePet: null,
@@ -21,7 +22,8 @@ const state = {
     petDirection: "right",
     autoWander: true,
     naturalLife: true,
-    alwaysOnTop: true
+    alwaysOnTop: true,
+    careCount: 0
   },
   appInfo: {
     version: "0.0.0",
@@ -69,10 +71,27 @@ function syncTrayState() {
     ?.catch(() => {});
 }
 
+/// The pet grows as it is cared for. The formula lives in window-layout because the window size
+/// depends on it too — two copies would drift apart and clip the pet's head off.
+function applyGrowth(careCount) {
+  const growth = growthFactor(careCount);
+  document.documentElement.style.setProperty("--growth", growth.toFixed(3));
+  return growth;
+}
+
+/// One more act of care: remember it and let the pet grow a little. Called from interactions.
+function recordCare() {
+  const careCount = (Number(state.preferences.careCount) || 0) + 1;
+  state.preferences.careCount = careCount;
+  applyGrowth(careCount);
+  savePreferences({ careCount });
+}
+
 function applyPreferences(preferences) {
   state.preferences = { ...state.preferences, ...(preferences || {}) };
   dom.scaleRange.value = String(state.preferences.scale || 0.9);
   document.documentElement.style.setProperty("--scale", dom.scaleRange.value);
+  applyGrowth(state.preferences.careCount);
   applyPetDirection(state.preferences.petDirection);
   dom.wanderToggle.checked = state.preferences.autoWander !== false;
   dom.naturalLifeToggle.checked = state.preferences.naturalLife !== false;
@@ -104,9 +123,34 @@ function setPetDirection(direction) {
 
 const animation = createAnimation(dom);
 const windowLayout = createWindowLayout({ dom, petDesktop, state });
+/// The pet works alongside you: while you type anywhere on the desktop it types too, and it drops
+/// the act shortly after you stop. Only if the pack actually has the state — a mascot without a
+/// keyboard drawn would look like it was miming.
+function startWorkingAlongside() {
+  const WORK_STATE = "work-type";
+  const STOP_AFTER_MS = 2500;
+  let stopTimer = 0;
+  let working = false;
+
+  listenTyping?.(() => {
+    if (!animation.getCareState?.(WORK_STATE)) {
+      return;
+    }
+    if (!working) {
+      working = animation.setState(WORK_STATE);
+    }
+    clearTimeout(stopTimer);
+    stopTimer = setTimeout(() => {
+      working = false;
+      animation.setState("idle");
+    }, STOP_AFTER_MS);
+  });
+}
+
 const interactions = createInteractions({
   animation,
   dom,
+  onCare: recordCare,
   onLayoutChange: windowLayout.syncWindowLayout,
   petDesktop,
   state
@@ -273,3 +317,5 @@ async function init() {
 init().catch((error) => {
   dom.petEl.textContent = error.message;
 });
+
+startWorkingAlongside();

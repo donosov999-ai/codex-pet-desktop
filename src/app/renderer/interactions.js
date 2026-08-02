@@ -1,6 +1,13 @@
 import { activeBehavior, createLifeEngine } from "./life-engine.js";
 
-export function createInteractions({ animation, dom, onLayoutChange = () => {}, petDesktop, state }) {
+export function createInteractions({
+  animation,
+  dom,
+  onCare = () => {},
+  onLayoutChange = () => {},
+  petDesktop,
+  state
+}) {
   let dragging = false;
   let pointerInsideInteractiveArea = false;
   let dragLastScreenX = 0;
@@ -283,6 +290,7 @@ export function createInteractions({ animation, dom, onLayoutChange = () => {}, 
     wanderDirection = 0;
     edgePaused = false;
     activeCareState = stateName;
+    onCare?.();
     careUntil = performance.now() + Math.max(1000, Number(careState.durationMs) || Number(durationMs) || 6000);
     return true;
   }

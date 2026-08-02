@@ -12,6 +12,11 @@ function transformedPetTop(windowHeight, scale) {
   return layoutTop + CELL_HEIGHT * originY - CELL_HEIGHT * scale * originY;
 }
 
+// The pet is drawn at the slider scale MULTIPLIED by how much it has grown from care, so the
+// window has to fit that product. Reading the factor from the app instead of hardcoding it keeps
+// this check honest when the growth curve is tuned.
+const { growthFactor } = require("./app/renderer/window-layout.js");
+
 async function main() {
   const resizeCalls = [];
   const centerCalls = [];
@@ -69,7 +74,7 @@ async function main() {
     console.error(JSON.stringify({ ok: false, reason: "window did not grow with pet scale", resizeCalls }, null, 2));
     process.exit(1);
   }
-  const largePetTop = transformedPetTop(largePetWindow.height, 1.8);
+  const largePetTop = transformedPetTop(largePetWindow.height, 1.8 * growthFactor(0));
   if (largePetTop < 0) {
     console.error(
       JSON.stringify(
@@ -86,8 +91,9 @@ async function main() {
     );
     process.exit(1);
   }
-  const expectedCurrentBottom = initialPetWindow.height / 2 + (CELL_HEIGHT * 0.6) / 2;
-  const expectedNextBottom = largePetWindow.height / 2 + (CELL_HEIGHT * 1.8) / 2;
+  const drawn = (sliderScale) => sliderScale * growthFactor(0);
+  const expectedCurrentBottom = initialPetWindow.height / 2 + (CELL_HEIGHT * drawn(0.6)) / 2;
+  const expectedNextBottom = largePetWindow.height / 2 + (CELL_HEIGHT * drawn(1.8)) / 2;
   if (
     Math.abs(largePetWindow.anchor?.current?.y - expectedCurrentBottom) > 0.01 ||
     Math.abs(largePetWindow.anchor?.next?.y - expectedNextBottom) > 0.01

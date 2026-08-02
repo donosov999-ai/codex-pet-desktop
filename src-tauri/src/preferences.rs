@@ -12,6 +12,9 @@ pub(crate) struct UserPreferences {
     pub(crate) auto_wander: bool,
     pub(crate) natural_life: bool,
     pub(crate) always_on_top: bool,
+    /// How many care actions the pet has received. The pet grows with it, so this has to survive
+    /// a restart — a pet that shrank back every morning would make caring for it pointless.
+    pub(crate) care_count: u32,
 }
 
 impl Default for UserPreferences {
@@ -23,6 +26,7 @@ impl Default for UserPreferences {
             auto_wander: true,
             natural_life: true,
             always_on_top: true,
+            care_count: 0,
         }
     }
 }

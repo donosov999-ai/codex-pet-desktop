@@ -45,6 +45,12 @@ export function createDesktopBridge() {
       }
       return tauriListen("pet-desktop-app-update-download-progress", (event) => handler(event.payload));
     },
+    listenTyping: (handler) => {
+      if (typeof tauriListen !== "function") {
+        return Promise.resolve(() => {});
+      }
+      return tauriListen("pet-desktop-typing", () => handler());
+    },
     isTauriRuntime: Boolean(tauriInvoke)
   };
 }
