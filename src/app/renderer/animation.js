@@ -226,11 +226,35 @@ export function createAnimation(dom) {
     );
   }
 
+/// Per-pack timing for the standard states.
+///
+/// The built-in speeds were tuned for hand-drawn six-frame loops. Our 3D packs fill the same rows
+/// with frames sampled out of a longer cycle, so at the built-in ten frames a second the gaps
+/// between phases read as jitter rather than motion. A pack may therefore state its own pace, and
+/// packs that say nothing keep the built-in one.
+function stateTimingOverrides(raw) {
+  if (!raw || typeof raw !== "object") {
+    return {};
+  }
+  const overrides = {};
+  for (const [id, timing] of Object.entries(raw)) {
+    const base = STATES[id];
+    const fps = Number(timing?.fps);
+    // Below two frames a second motion turns into a slideshow, above twelve the eye cannot
+    // follow it - a pack asking for anything outside that is a mistake, not a style.
+    if (!base || !(fps >= 2 && fps <= 12)) {
+      continue;
+    }
+    overrides[id] = { ...base, fps };
+  }
+  return overrides;
+}
+
   function configurePet(pet, { standardSource = "", careSource = "" } = {}) {
     careConfig = normalizeCareConfig(careSource ? pet?.care : {});
     const spriteVersionNumber = positiveInteger(pet?.spriteVersionNumber, 1);
     const standardAtlasHeight = (spriteVersionNumber >= 2 ? 11 : 9) * CELL_HEIGHT;
-    states = { ...STATES, ...careConfig.states };
+    states = { ...STATES, ...stateTimingOverrides(pet?.stateTimings), ...careConfig.states };
     stateLabels = {
       ...STATE_LABELS,
       ...Object.fromEntries(Object.entries(careConfig.states).map(([id, state]) => [id, state.label]))

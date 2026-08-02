@@ -280,6 +280,51 @@ export function createInteractions({
     requestAnimationFrame(wanderLoop);
   }
 
+  /// Quick care menu: the short list of things you can do for the pet, right where you clicked.
+  ///
+  /// It deliberately carries only care actions. Settings, catalog and updates stay on the right
+  /// click — those are about the app, this is about the animal.
+  let careMenuEl = null;
+
+  function hideCareMenu() {
+    careMenuEl?.remove();
+    careMenuEl = null;
+  }
+
+  function showCareMenu() {
+    hideCareMenu();
+    const careStates = animation.getCareStates?.() || [];
+    if (!careStates.length) {
+      return;
+    }
+    careMenuEl = document.createElement("div");
+    careMenuEl.className = "care-menu";
+    careMenuEl.setAttribute("role", "menu");
+    careMenuEl.replaceChildren(
+      ...careStates.map((careState) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.setAttribute("role", "menuitem");
+        button.dataset.careState = careState.id;
+        button.textContent = careState.label;
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          hideCareMenu();
+          playCareAction(careState.id, careState.durationMs);
+        });
+        return button;
+      })
+    );
+    document.body.appendChild(careMenuEl);
+    // Sit above the pet when there is room, below it otherwise: the window is small and the menu
+    // must not hang off the screen.
+    const pet = dom.petEl.getBoundingClientRect();
+    const menu = careMenuEl.getBoundingClientRect();
+    const above = pet.top - menu.height - 8;
+    careMenuEl.style.left = `${Math.max(4, Math.min(pet.left + pet.width / 2 - menu.width / 2, window.innerWidth - menu.width - 4))}px`;
+    careMenuEl.style.top = `${above >= 4 ? above : Math.min(pet.bottom + 8, window.innerHeight - menu.height - 4)}px`;
+  }
+
   function playCareAction(stateName, durationMs) {
     stopWander();
     const careState = animation.getCareState?.(stateName);
@@ -438,14 +483,19 @@ export function createInteractions({
         suppressNextClick = false;
         return;
       }
-      if (!dragging && dom.panelEl.classList.contains("hidden")) {
-        cancelCareAction();
-        const behavior = refreshLifeEngine();
-        const plan = lifeEngine.planInteraction("click");
-        animation.setState(plan?.state || behavior.clickState, {
-          onceReturn: plan?.onceReturn || behavior.natural.clickReturnState
-        });
+      if (dragging || !dom.panelEl.classList.contains("hidden")) {
+        return;
       }
+      cancelCareAction();
+      const behavior = refreshLifeEngine();
+      const plan = lifeEngine.planInteraction("click");
+      animation.setState(plan?.state || behavior.clickState, {
+        onceReturn: plan?.onceReturn || behavior.natural.clickReturnState
+      });
+      // Left click is for looking after the pet, right click is for settings. Mixing both into one
+      // panel made every "let me feed it" go through a settings window, which is backwards for a
+      // creature you are supposed to care for.
+      showCareMenu();
     });
     dom.petEl.addEventListener("dblclick", () => {
       cancelCareAction();
@@ -461,6 +511,7 @@ export function createInteractions({
 
     document.addEventListener("contextmenu", (event) => {
       event.preventDefault();
+      hideCareMenu();   // right click means settings; the care menu has no place here
       if (!dom.panelEl.classList.contains("hidden")) {
         setPanelVisible(false);
         pointerInsideInteractiveArea = false;
@@ -473,6 +524,9 @@ export function createInteractions({
       togglePanel();
     });
     document.addEventListener("pointerdown", (event) => {
+      if (careMenuEl && !careMenuEl.contains(event.target) && event.target !== dom.petEl) {
+        hideCareMenu();
+      }
       if (!dragging && !dom.panelEl.classList.contains("hidden") && !isInteractiveTarget(event.target)) {
         setPanelVisible(false);
         pointerInsideInteractiveArea = false;
