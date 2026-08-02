@@ -69,9 +69,9 @@
     "spritesheetPath": "care-spritesheet.webp",
     "atlas": {
       "width": 1536,
-      "height": 2912,
+      "height": 3536,
       "columns": 8,
-      "rows": 14,
+      "rows": 17,
       "cellWidth": 192,
       "cellHeight": 208
     },
@@ -253,6 +253,31 @@
     "autonomousStates": [
       "play"
     ],
-    "autonomousChance": 0.15
+    "autonomousChance": 0.15,
+    "overlays": {
+      "hearts": {
+        "row": 14,
+        "frames": 5,
+        "fps": 6,
+        "layer": "above"
+      },
+      "confetti": {
+        "row": 15,
+        "frames": 5,
+        "fps": 8,
+        "layer": "above"
+      },
+      "steam": {
+        "row": 16,
+        "frames": 4,
+        "fps": 6,
+        "layer": "above"
+      }
+    },
+    "stateOverlays": {
+      "love": "hearts",
+      "celebrate": "confetti",
+      "angry": "steam"
+    }
   }
 }

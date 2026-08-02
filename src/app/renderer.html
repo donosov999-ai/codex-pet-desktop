@@ -8,7 +8,12 @@
   </head>
   <body>
     <main id="stage" aria-label="Biruzik">
+      <!-- Layers around the pet: a scene below (litter box, bowl, mat) and an effect above
+           (hearts, confetti, steam). Both read frames from the same care atlas the care states
+           use, so they need no extra file paths on the Rust side. -->
+      <div id="petBelow" class="pet-layer" aria-hidden="true"></div>
       <div id="pet" role="img" aria-label="Biruzik"></div>
+      <div id="petAbove" class="pet-layer" aria-hidden="true"></div>
       <section id="emptyState" class="empty-state hidden" aria-label="Add a pet">
         <strong>No pet found</strong>
         <span>Import a pet pack or install one from the catalog.</span>

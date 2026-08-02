@@ -55,6 +55,35 @@ html.panel-with-pet #stage {
   pointer-events: auto;
 }
 
+.pet-layer {
+  position: absolute;
+  width: var(--cell-width);
+  height: var(--cell-height);
+  transform: scale(var(--scale)) scaleX(var(--direction-scale));
+  transform-origin: center center;
+  background-repeat: no-repeat;
+  background-size: var(--care-atlas-width) var(--care-atlas-height);
+  pointer-events: none;
+  display: none;
+}
+
+.pet-layer.visible {
+  display: block;
+}
+
+#petBelow {
+  z-index: 0;
+}
+
+#petAbove {
+  z-index: 2;
+}
+
+#pet {
+  position: relative;
+  z-index: 1;
+}
+
 #pet.empty {
   display: none;
 }

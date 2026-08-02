@@ -1,6 +1,8 @@
 export function getDomRefs() {
   return {
     petEl: document.querySelector("#pet"),
+    petBelowEl: document.querySelector("#petBelow"),
+    petAboveEl: document.querySelector("#petAbove"),
     emptyStateEl: document.querySelector("#emptyState"),
     panelEl: document.querySelector("#panel"),
     panelBackdropEl: document.querySelector("#panelBackdrop"),

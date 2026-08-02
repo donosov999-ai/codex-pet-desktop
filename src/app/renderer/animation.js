@@ -55,6 +55,27 @@ export function normalizeCareConfig(care = {}) {
     width: positiveInteger(atlasSource.width, columns * cellWidth),
     height: positiveInteger(atlasSource.height, rows * cellHeight)
   };
+  // Layers around the pet: an effect above (hearts, confetti, steam) and a scene below (litter
+  // box, bowl, mat). They live as rows in this same atlas, so the config that already describes
+  // the care states is the right place to describe them too.
+  const overlays = {};
+  const rawOverlays = source.overlays && typeof source.overlays === "object" ? source.overlays : {};
+  for (const [id, raw] of Object.entries(rawOverlays)) {
+    if (!raw || typeof raw !== "object") continue;
+    overlays[id] = {
+      row: positiveInteger(raw.row, 0),
+      frames: positiveInteger(raw.frames, 1),
+      fps: Number(raw.fps) > 0 ? Number(raw.fps) : 6,
+      layer: raw.layer === "below" ? "below" : "above"
+    };
+  }
+  const stateOverlays = {};
+  const rawStateOverlays =
+    source.stateOverlays && typeof source.stateOverlays === "object" ? source.stateOverlays : {};
+  for (const [state, id] of Object.entries(rawStateOverlays)) {
+    if (overlays[id]) stateOverlays[state] = id;
+  }
+
   const states = {};
   const rawStates = source.states && typeof source.states === "object" ? source.states : {};
 
@@ -96,13 +117,14 @@ export function normalizeCareConfig(care = {}) {
     : [];
   const autonomousChance = Math.min(Math.max(finiteNumber(source.autonomousChance, 0), 0), 1);
 
-  return { atlas, states, autonomousStates, autonomousChance };
+  return { atlas, states, overlays, stateOverlays, autonomousStates, autonomousChance };
 }
 
 export function createAnimation(dom) {
   let states = { ...STATES };
   let stateLabels = { ...STATE_LABELS };
   let careConfig = normalizeCareConfig();
+  let overlayElapsedMs = 0;
   let sources = {
     standard: { url: "", width: ATLAS_WIDTH, height: ATLAS_HEIGHT },
     care: { url: "", width: 0, height: 0 }
@@ -139,6 +161,37 @@ export function createAnimation(dom) {
     dom.petEl.style.backgroundImage = source.url ? `url("${source.url}")` : "";
     dom.petEl.style.backgroundSize = `${source.width}px ${source.height}px`;
     dom.petEl.style.backgroundPosition = `${x}px ${y}px`;
+    setOverlayFrame();
+  }
+
+  /// The layer that belongs to the current state: hearts for love, confetti for celebrate. Frames
+  /// come from the same care atlas — a separate file would have meant new Rust-side paths for the
+  /// very same images. The layer runs at its own pace, independent of the pet's frames.
+  function setOverlayFrame() {
+    const above = dom.petAboveEl;
+    const below = dom.petBelowEl;
+    if (!above && !below) {
+      return;
+    }
+    const id = careConfig.stateOverlays?.[stateName];
+    const overlay = id ? careConfig.overlays[id] : null;
+    for (const element of [above, below]) {
+      if (element) element.classList.remove("visible");
+    }
+    if (!overlay) {
+      return;
+    }
+    const element = overlay.layer === "below" ? below : above;
+    if (!element) {
+      return;
+    }
+    const care = sources.care;
+    const { cellWidth, cellHeight } = careConfig.atlas;
+    const step = Math.floor(overlayElapsedMs / (1000 / overlay.fps)) % overlay.frames;
+    element.style.backgroundImage = care.url ? `url("${care.url}")` : "";
+    element.style.backgroundSize = `${care.width}px ${care.height}px`;
+    element.style.backgroundPosition = `${-step * cellWidth}px ${-overlay.row * cellHeight}px`;
+    element.classList.add("visible");
   }
 
   function setState(nextState, { onceReturn = "idle" } = {}) {
@@ -240,6 +293,9 @@ export function createAnimation(dom) {
   }
 
   function animationLoop(now) {
+    // the layer keeps its own tempo: hearts drift slower than the cat blinks
+    overlayElapsedMs = now;
+    setOverlayFrame();
     const state = states[stateName] || states.idle;
     if (state.timeline?.length) {
       if (!timelineStarted) {
