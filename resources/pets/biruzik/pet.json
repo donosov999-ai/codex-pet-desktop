@@ -69,9 +69,9 @@
     "spritesheetPath": "care-spritesheet.webp",
     "atlas": {
       "width": 1536,
-      "height": 2496,
+      "height": 2912,
       "columns": 8,
-      "rows": 12,
+      "rows": 14,
       "cellWidth": 192,
       "cellHeight": 208
     },
@@ -230,6 +230,24 @@
         "durationMs": 6000,
         "mirror": false,
         "label": "Angry"
+      },
+      "sick": {
+        "row": 12,
+        "frames": 8,
+        "fps": 2,
+        "loops": 3,
+        "durationMs": 12000,
+        "mirror": false,
+        "label": "Sick"
+      },
+      "think": {
+        "row": 13,
+        "frames": 8,
+        "fps": 2.5,
+        "loops": 3,
+        "durationMs": 9600,
+        "mirror": false,
+        "label": "Thinking"
       }
     },
     "autonomousStates": [
