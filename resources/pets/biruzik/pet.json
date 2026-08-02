@@ -163,8 +163,8 @@
         "label": "🚽 Toilet",
         "row": 4,
         "frames": 6,
-        "fps": 3,
-        "loops": 6,
+        "fps": 2,
+        "loops": 4,
         "durationMs": 12000,
         "mirror": false
       },
