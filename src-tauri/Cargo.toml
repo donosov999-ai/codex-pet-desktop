@@ -37,3 +37,8 @@ image = { version = "0.25", default-features = false, features = ["webp"] }
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = "0.6"
 objc2-app-kit = { version = "0.3", features = ["NSWindow", "NSResponder"] }
+# Typing watch. rdev used to do this, but its listener resolves every key through
+# TSMGetInputSourceProperty, which asserts it runs on the main queue and killed the app with
+# SIGTRAP. A raw event tap reads key codes and touches no text-input services.
+core-graphics = "0.24"
+core-foundation = "0.10"
