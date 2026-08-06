@@ -30,7 +30,10 @@ const state = {
     platform: "",
     downloadsUrl: "https://donosov999-ai.github.io/codex-pet-desktop/",
     latestReleaseApi: "https://api.github.com/repos/donosov999-ai/codex-pet-desktop/releases/latest",
-    petpackIndexUrl: "https://donosov999-ai.github.io/codex-pet-desktop/petpacks/petpacks.json"
+    // Packs come from the shared channel, the same domain the web engine uses. Art now reaches
+    // the user without a rebuild: publish to the channel and the store picks it up. GitHub Pages
+    // stays reachable but is no longer the source — one domain, one place to publish.
+    petpackIndexUrl: "https://mascot.asibots.pro/desktop/petpacks.json"
   }
 };
 
