@@ -7,10 +7,42 @@
   "license": "proprietary",
   "minAppVersion": "0.2.32",
   "spriteVersionNumber": 1,
+  "changelog": [
+    "Initial release of this ODV999 deck skin."
+  ],
   "tags": [
     "generic"
   ],
   "spritesheetPath": "spritesheet.webp",
+  "stateTimings": {
+    "idle": {
+      "fps": 4
+    },
+    "running-right": {
+      "fps": 6
+    },
+    "running-left": {
+      "fps": 6
+    },
+    "running": {
+      "fps": 6
+    },
+    "waiting": {
+      "fps": 4
+    },
+    "review": {
+      "fps": 4
+    },
+    "waving": {
+      "fps": 5
+    },
+    "jumping": {
+      "fps": 6
+    },
+    "failed": {
+      "fps": 5
+    }
+  },
   "behavior": {
     "clickState": "waving",
     "doubleClickState": "jumping",
@@ -49,38 +81,6 @@
       "postDragMs": 800,
       "clickReturnState": "idle",
       "doubleClickReturnState": "idle"
-    }
-  },
-  "changelog": [
-    "Initial release of this ODV999 deck skin."
-  ],
-  "stateTimings": {
-    "idle": {
-      "fps": 4
-    },
-    "running-right": {
-      "fps": 6
-    },
-    "running-left": {
-      "fps": 6
-    },
-    "running": {
-      "fps": 6
-    },
-    "waiting": {
-      "fps": 4
-    },
-    "review": {
-      "fps": 4
-    },
-    "waving": {
-      "fps": 5
-    },
-    "jumping": {
-      "fps": 6
-    },
-    "failed": {
-      "fps": 5
     }
   }
 }
