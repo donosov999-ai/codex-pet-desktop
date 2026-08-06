@@ -76,12 +76,13 @@ mod tests {
     fn saves_and_loads_user_preferences() {
         let root = temp_root();
         let preferences = UserPreferences {
-            selected_pet_id: "mi-fen".to_string(),
+            selected_pet_id: "biruzik".to_string(),
             scale: 1.2,
             pet_direction: "left".to_string(),
             auto_wander: false,
             natural_life: false,
             always_on_top: false,
+            care_count: 7,
         };
 
         save_preferences(&root, &preferences).expect("save preferences");
@@ -110,13 +111,13 @@ mod tests {
         std::fs::create_dir_all(&root).expect("create temp root");
         std::fs::write(
             root.join("preferences.json"),
-            br#"{"selectedPetId":"mi-fen","scale":1.1,"autoWander":false,"alwaysOnTop":true}"#,
+            br#"{"selectedPetId":"biruzik","scale":1.1,"autoWander":false,"alwaysOnTop":true}"#,
         )
         .expect("write old preferences");
 
         let loaded = load_preferences(&root).expect("load preferences");
 
-        assert_eq!(loaded.selected_pet_id, "mi-fen");
+        assert_eq!(loaded.selected_pet_id, "biruzik");
         assert_eq!(loaded.scale, 1.1);
         assert_eq!(loaded.pet_direction, "right");
         assert!(!loaded.auto_wander);

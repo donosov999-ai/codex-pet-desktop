@@ -319,10 +319,18 @@ export function createInteractions({
     // Sit above the pet when there is room, below it otherwise: the window is small and the menu
     // must not hang off the screen.
     const pet = dom.petEl.getBoundingClientRect();
+    // The window is 320x340 and the menu can hold fourteen care states, so it does not always fit.
+    // Cap it to the window and let it scroll; measure only AFTER capping, otherwise the height used
+    // for placement is the uncapped one and the maths below is off by however much overflowed.
+    careMenuEl.style.maxHeight = `${Math.max(96, window.innerHeight - 8)}px`;
+    careMenuEl.style.overflowY = "auto";
     const menu = careMenuEl.getBoundingClientRect();
     const above = pet.top - menu.height - 8;
     careMenuEl.style.left = `${Math.max(4, Math.min(pet.left + pet.width / 2 - menu.width / 2, window.innerWidth - menu.width - 4))}px`;
-    careMenuEl.style.top = `${above >= 4 ? above : Math.min(pet.bottom + 8, window.innerHeight - menu.height - 4)}px`;
+    // Math.max(4, ...) on the vertical too. Without it a menu taller than the window got a
+    // NEGATIVE top and its first rows were cut off above the window edge. The horizontal axis
+    // had this clamp from the start, the vertical one did not, and that asymmetry was the bug.
+    careMenuEl.style.top = `${Math.max(4, above >= 4 ? above : Math.min(pet.bottom + 8, window.innerHeight - menu.height - 4))}px`;
   }
 
   function playCareAction(stateName, durationMs) {

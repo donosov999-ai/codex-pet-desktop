@@ -50,7 +50,15 @@ const pagesSource = fs.readFileSync(path.join(root, ".github/workflows/pages.yml
 if (!/push:[\s\S]*branches:[\s\S]*-\s+main/.test(releaseSource)) {
   failures.push("release workflow must run quality/cache warmup on main pushes.");
 }
-for (const ignoredPath of ["README.md", "docs/**", "resources/pets/**"]) {
+// Policy changed on 2026-08-06 by Denis: "resources/pets/**" is no longer ignored. Pet packs are
+// bundled into the binary, so ignoring them meant a new pet never reached a shipped app — the
+// expectation "I updated the pets, so the app has them" silently did not hold. Cutting a release
+// per art change is the cost, and it was accepted knowingly.
+//
+// The better long-term fix is architectural, not a workflow flag: let the app pull packs from the
+// same channel the web engine uses (mascot.asibots.pro), so art ships without touching the binary
+// at all. Until that exists, pets trigger a build.
+for (const ignoredPath of ["README.md", "docs/**"]) {
   if (!new RegExp(`paths-ignore:[\\s\\S]*-\\s+"?${ignoredPath.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"?`).test(releaseSource)) {
     failures.push(`release workflow must ignore non-app main pushes for ${ignoredPath}.`);
   }

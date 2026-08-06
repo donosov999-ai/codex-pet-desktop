@@ -95,8 +95,12 @@ mod tests {
     }
 
     #[test]
-    fn mi_fen_click_action_keeps_idle_body_proportions() {
-        let path = repo_root().join("resources/pets/mi-fen/spritesheet.webp");
+    /// Moved off the native pack: mi-fen was dropped together with the other native skins.
+    /// The check itself still matters — a click-reaction frame must not be noticeably shorter
+    /// than idle and must not be blown up, or the pet appears to crouch or swell on click,
+    /// which reads as a glitch rather than a gesture.
+    fn click_action_keeps_idle_body_proportions() {
+        let path = repo_root().join("resources/pets/grovi/spritesheet.webp");
         let image = image::open(&path)
             .unwrap_or_else(|error| panic!("open {}: {error}", path.display()))
             .to_rgba8();
@@ -107,13 +111,17 @@ mod tests {
             let waving = alpha_bounds(&image, 3, col);
             assert!(
                 waving.height * 100 >= idle.height * 85,
-                "mi-fen click frame {col} is too short: {:?}, idle {:?}",
+                "click frame {col} is too short: {:?}, idle {:?}",
                 waving,
                 idle
             );
+            // Not "no wider than idle" but "not blown up". The old bound came from the native
+            // pack, whose wave never moved an arm out. A real wave widens the silhouette — that
+            // IS the gesture; what we must catch is a swollen frame, not a raised paw.
+            // Measured on grovi: wave 166 against idle 165, one pixel.
             assert!(
-                waving.width <= idle.width,
-                "mi-fen click frame {col} is wider than idle: {:?}, idle {:?}",
+                waving.width * 100 <= idle.width * 115,
+                "click frame {col} is blown up: {:?}, idle {:?}",
                 waving,
                 idle
             );

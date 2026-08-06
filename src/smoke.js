@@ -5,12 +5,16 @@ const projectRoot = path.resolve(__dirname, "..");
 const roots = [path.join(projectRoot, "resources", "pets")];
 const report = validatePetResources(roots[0]);
 const bundledPets = new Map(report.pets.map((pet) => [pet.id, pet]));
-const requiredPets = ["lingling", "mi-fen", "mi-jiu", "tigris-whippet"];
+// Packs that must ship. This used to list four native skins; they were dropped from the deck
+// on 2026-08-06. Replaced with our anchors: biruzik is the flagship with the care block, grovi
+// and asibots run on live customer sites. The list is deliberately SHORT — it catches "the
+// bundle fell apart", it does not describe the whole deck, otherwise every new mascot would
+// require editing this test.
+const requiredPets = ["biruzik", "grovi", "asibots"];
 const requiredDisplayNames = {
-  "lingling": "Lingling",
-  "mi-fen": "Mi Fen",
-  "mi-jiu": "Mi Jiu",
-  "tigris-whippet": "Hong Tang"
+  "biruzik": "Biruzik",
+  "grovi": "Grovi",
+  "asibots": "ASI Robot"
 };
 const missingPets = requiredPets.filter((id) => !bundledPets.has(id));
 

@@ -6,10 +6,10 @@ on:
       - main
     tags:
       - "v*"
-    # ⚠️ resources/pets ЗДЕСЬ БОЛЬШЕ НЕТ, и это осознанно. Паки бандлятся в бинарник на этапе
-    # сборки, поэтому новый питомец без пересборки в приложение не попадает. Пока паки были
-    # статичным артом, исключение экономило сборки; теперь колода меняется постоянно, и оно
-    # тихо ломало главное ожидание: «обновил питомцев — приложение обновилось».
+    # NOTE: resources/pets is deliberately NOT ignored here. Pet packs are bundled into the
+    # binary at build time, so a new pet never reaches the app without a rebuild. While packs
+    # were static art the exclusion saved builds; now the deck changes daily and it silently
+    # broke the one expectation that matters: "I updated the pets, so the app has them".
     paths-ignore:
       - "README.md"
       - "docs/**"
