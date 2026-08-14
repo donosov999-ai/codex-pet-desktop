@@ -1,3 +1,23 @@
+This repository contains material under TWO different licenses.
+Read both sections before using anything from it.
+
+Данный репозиторий содержит материалы под ДВУМЯ разными лицензиями.
+Прочитайте оба раздела, прежде чем что-либо использовать.
+
+================================================================================
+PART 1 — UPSTREAM CODE (MIT)
+ЧАСТЬ 1 — ИСХОДНЫЙ ПРОЕКТ (MIT)
+================================================================================
+
+This project is a fork. The original desktop-pet application was created by
+Andy Chen and released under the MIT license. That grant is irrevocable and
+continues to apply to the original author's code, wherever it appears in this
+repository.
+
+Проект является форком. Исходное приложение написано Andy Chen и выпущено под
+лицензией MIT. Этот разрешительный акт безотзывен и продолжает действовать в
+отношении кода первоначального автора везде, где он присутствует в репозитории.
+
 MIT License
 
 Copyright (c) 2026 jieyangxchen
@@ -19,3 +39,81 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+================================================================================
+PART 2 — CONTRIBUTIONS AND ASSETS BY DENIS ONOSOV — ALL RIGHTS RESERVED
+ЧАСТЬ 2 — ВКЛАД И МАТЕРИАЛЫ DENIS ONOSOV — ВСЕ ПРАВА ЗАЩИЩЕНЫ
+================================================================================
+
+Copyright (c) 2026 Denis Onosov (ODV999). All rights reserved.
+
+Everything added to this repository after the fork is NOT covered by the MIT
+license above. This includes, without limitation:
+
+  * every mascot and pet character, in any form: sprite sheets, frame images,
+    reference images, animation data, thumbnails and preview material;
+  * every .petpack file and its contents, and the pack manifest format;
+  * the mascot channel and its distribution manifests;
+  * all code, scripts, configuration and documentation authored after the fork.
+
+Всё, что добавлено в репозиторий после форка, НЕ подпадает под лицензию MIT
+выше. В том числе, но не ограничиваясь: все маскоты и персонажи-питомцы в любом
+виде (спрайт-листы, кадры, эталонные изображения, данные анимации, миниатюры и
+превью); все файлы .petpack и их содержимое, а также формат манифеста пака;
+канал раздачи маскотов и его манифесты; весь код, скрипты, конфигурация и
+документация, созданные после форка.
+
+TERMS / УСЛОВИЯ
+
+1. No licence is granted. No permission is given to use, copy, modify, merge,
+   publish, distribute, sublicense or sell this material, in whole or in part,
+   for any purpose, commercial or non-commercial.
+
+   Лицензия не предоставляется. Не даётся разрешения использовать, копировать,
+   изменять, объединять, публиковать, распространять, сублицензировать или
+   продавать эти материалы полностью или частично, в любых целях — как
+   коммерческих, так и некоммерческих.
+
+2. All commercial rights belong to the copyright holder. Any use requires a
+   prior written agreement with Denis Onosov. Free or gratis use is not
+   permitted without his explicit written consent.
+
+   Все коммерческие права принадлежат правообладателю. Любое использование
+   требует предварительного письменного договора с Denis Onosov. Безвозмездное
+   использование без его явного письменного согласия не допускается.
+
+3. Being able to view this material does not grant any right to use it. Public
+   visibility on a hosting platform is not a licence, and neither is the
+   platform's own terms of service.
+
+   Возможность просмотра этих материалов не даёт права на их использование.
+   Публичная видимость на хостинговой площадке лицензией не является, равно как
+   и пользовательское соглашение самой площадки.
+
+4. This material is provided without warranty of any kind.
+
+   Материалы предоставляются без каких-либо гарантий.
+
+5. To request permission, contact the copyright holder.
+
+   За разрешением обращайтесь к правообладателю.
+
+================================================================================
+WHICH PART APPLIES / КАКАЯ ЧАСТЬ ПРИМЕНЯЕТСЯ
+================================================================================
+
+If you are unsure whether a given file falls under Part 1 or Part 2, treat it
+as Part 2 and ask before using it. The repository history identifies the author
+of every file and every line.
+
+Если неясно, к какой части относится конкретный файл, считайте его частью 2 и
+спросите перед использованием. История репозитория показывает автора каждого
+файла и каждой строки.
+
+Individual pet packs may additionally declare their own licence in the
+"license" field of their pet.json. Where a pack declares its own licence, that
+declaration governs THAT pack.
+
+Отдельные паки питомцев могут дополнительно объявлять собственную лицензию в
+поле "license" своего pet.json. Если пак объявляет собственную лицензию, для
+ЭТОГО пака действует она.

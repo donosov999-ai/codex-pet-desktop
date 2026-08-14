@@ -15,7 +15,7 @@
   <a href="https://github.com/donosov999-ai/codex-pet-desktop/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/donosov999-ai/codex-pet-desktop?label=release"></a>
   <a href="https://github.com/donosov999-ai/codex-pet-desktop/actions/workflows/release.yml"><img alt="Release workflow" src="https://github.com/donosov999-ai/codex-pet-desktop/actions/workflows/release.yml/badge.svg"></a>
   <a href="https://github.com/donosov999-ai/codex-pet-desktop/actions/workflows/pages.yml"><img alt="Pages workflow" src="https://github.com/donosov999-ai/codex-pet-desktop/actions/workflows/pages.yml/badge.svg"></a>
-  <a href="./LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue"></a>
+  <a href="./LICENSE"><img alt="Dual license" src="https://img.shields.io/badge/license-MIT%20fork%20%2B%20all%20rights%20reserved-red"></a>
 </p>
 
 > This is a community project, not an official OpenAI or Codex application. It supports Codex-style `pet.json` and `spritesheet.webp` resources, but it runs independently from Codex.
@@ -163,4 +163,16 @@ Forked from [jieyangxchen/codex-pet-desktop](https://github.com/jieyangxchen/cod
 
 ## License
 
-MIT. Individual pet packs retain the license declared in their manifest.
+**Two licences — read [LICENSE](./LICENSE) before using anything.**
+
+This project is a fork. The original desktop-pet application by Andy Chen stays under the MIT
+licence, and that grant is irrevocable.
+
+Everything added after the fork — every mascot and pet character, every `.petpack` and its
+contents, the mascot channel, and all code and documentation authored since — is
+**Copyright (c) 2026 Denis Onosov (ODV999), all rights reserved**. No licence is granted for it.
+All commercial rights belong to the copyright holder; any use, commercial or not, requires a
+prior written agreement with him. Being able to see this repository is not permission to use it.
+
+Individual pet packs may declare their own licence in the `license` field of their `pet.json`;
+where they do, that declaration governs that pack.
