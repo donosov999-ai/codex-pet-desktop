@@ -85,11 +85,19 @@ function styles() {
                                 transparent 0);
       -webkit-mask:radial-gradient(circle,transparent 61%,#000 62%);
       mask:radial-gradient(circle,transparent 61%,#000 62%);opacity:.75;transition:opacity .3s}
-    .growth-card{position:absolute;left:50%;top:-8%;transform:translate(-50%,-100%);
-      pointer-events:none;white-space:nowrap;padding:5px 11px;border-radius:999px;
+    /* 🔴 THE CARD LIVES OUTSIDE THE PET, and that is not a detail.
+       It used to be a child of #pet, which carries the size transform — so the notice scaled with
+       the sprite: 222px wide and unreadable-small at the other end of the slider, text stretched
+       by a transform meant for a drawing. Worse, it was positioned above the pet's box, and the
+       window only keeps 38px clear above the head: measured at slider 1.8 its top sat 42px ABOVE
+       the frame, so the one moment growth has something to say was invisible.
+       Anchored to the stage instead: fixed type size at any pet size, always inside the window. */
+    .growth-card{position:absolute;left:50%;top:8px;transform:translateX(-50%) translateY(-6px);
+      z-index:5;pointer-events:none;max-width:calc(100% - 16px);overflow:hidden;
+      text-overflow:ellipsis;white-space:nowrap;padding:5px 11px;border-radius:999px;
       font:500 12px/1.2 system-ui,sans-serif;color:#fff;background:rgba(28,26,38,.92);
       box-shadow:0 4px 14px rgba(0,0,0,.28);opacity:0;transition:opacity .35s,transform .35s}
-    .growth-card.show{opacity:1;transform:translate(-50%,-115%)}`;
+    .growth-card.show{opacity:1;transform:translateX(-50%) translateY(0)}`;
   document.head.appendChild(css);
 }
 
@@ -110,11 +118,14 @@ export async function attachGrowth({ host, pet } = {}) {
   const forms = api.FORMS?.[archetypeOf(pet)] || api.FORMS?.beast || [];
   styles();
 
+  // The ring belongs to the pet and scales with it — it is meant to hug the sprite. The card is
+  // a notice for the person, so it goes on the stage, outside the transform.
   const ring = document.createElement("div");
   ring.className = "growth-ring";
+  host.append(ring);
   const card = document.createElement("div");
   card.className = "growth-card";
-  host.append(ring, card);
+  (host.parentElement || host).append(card);
 
   let shownTier = null;
 

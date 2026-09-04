@@ -43,3 +43,21 @@ Vertical layout after the bottom anchor (biruzik, transitions frozen):
 
 Before the anchor the same four rows read 205px of dead space under the feet at 1.8 and the head
 cut off entirely once the height formula was simple. Both are gone.
+
+Ring and card, checked on the same bench (transitions frozen, progress forced to 0.62):
+
+| slider | window  | ring          | margin to frame | card       | card top |
+|--------|---------|---------------|-----------------|------------|----------|
+| 0.6    | 188×201 | 129×140       | 27–31           | 123×24     | 8        |
+| 0.9    | 245×264 | 194×210       | 26–28           | 123×24     | 8        |
+| 1.4    | 341×368 | 301×326       | 20–21           | 123×24     | 8        |
+| 1.8    | 418×451 | 387×419       | 15–16           | 123×24     | 8        |
+
+The ring hugs the pet and scales with it, which is what it is for. The card does not: it is a
+notice for the person, so it sits on the stage at a fixed type size. As a child of #pet it was
+222px wide at 1.8 and its top sat 42px above the window — the one moment growth has something to
+say was the one moment it could not be read.
+
+⚠️ The bench force-reloads the renderer's modules before each mount. Query strings on the tags in
+renderer.html do not reach modules those files import by relative path, and a run measuring the
+old growth layer against the new CSS reads as a fix that did not work.

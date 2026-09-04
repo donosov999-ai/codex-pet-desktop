@@ -89,7 +89,26 @@ clipped in the real app.</p>
     info.textContent = `window ${size.width}×${size.height}`;
   });
 
+  /// Force the browser to re-fetch the renderer's modules before mounting.
+  ///
+  /// Adding ?v= to the tags in renderer.html is not enough: those modules import each other by
+  /// bare relative paths, and those inner URLs stay cached. A run on 2026-09-05 measured the OLD
+  /// growth layer while the CSS and the window maths were new — the card was still a child of the
+  /// pet and the fix looked like it had not worked. `cache: "reload"` revalidates the entry, so
+  /// the module load that follows gets the file from disk.
+  async function refreshModules() {
+    const listing = await fetch("../renderer/").then((r) => (r.ok ? r.text() : "")).catch(() => "");
+    const names = [...listing.matchAll(/href="([^"]+\.js)"/g)].map((m) => m[1]);
+    await Promise.all(
+      names.map((name) =>
+        fetch(new URL(name, new URL("../renderer/", location.href)), { cache: "reload" }).catch(() => {})
+      )
+    );
+    return names.length;
+  }
+
   async function mount(scale) {
+    await refreshModules();
     frame.innerHTML = "";
     const markup = await fetch("../renderer.html").then((response) => response.text());
     // ⚠️ BUST THE STYLESHEET CACHE TOO, not just the module.
