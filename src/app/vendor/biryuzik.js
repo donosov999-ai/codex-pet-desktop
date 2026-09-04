@@ -1,3 +1,4 @@
+/* biryuzik · VER 1.1.10 · 19.08.2026 */
 /*!
  * biryuzik.js — гуляющий питомец-маскот (V0), движок mascot-engine
  * Vanilla, без зависимостей. Один скрипт-тег.
@@ -10,7 +11,8 @@
 (function (global) {
   'use strict';
 
-  var VERSION = '1.1.9';
+
+  var VERSION = '1.1.10';
   var reduceMotion = false;
   try {
     reduceMotion = global.matchMedia && global.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1257,6 +1259,45 @@
     if (!reduceMotion) raf = requestAnimationFrame(frame);
     else { place(); say(lines[0], 4000); }
 
+    /**
+     * Изменить реальный размер уже смонтированного питомца.
+     *
+     * Loader пересчитывает мобильную раскладку при повороте экрана и переходе через
+     * breakpoint. Раньше он уменьшал только внешний #mascot-host, а движок продолжал
+     * рисовать старый квадрат: картинка и hitbox вылезали из контейнера и за viewport.
+     * Размер храним в одной переменной, поэтому вместе обновляются геометрия движения,
+     * текущий скин и необязательные слои сцены/эффекта.
+     */
+    function applySize(nextSize) {
+      var n = Number(nextSize);
+      if (!isFinite(n) || n <= 0) return false;
+      n = Math.max(1, Math.round(n));
+      if (n === size) return true;
+
+      size = n;
+      pet.style.width = size + 'px';
+      if (skin) {
+        skin.style.width = size + 'px';
+        skin.style.height = size + 'px';
+      }
+      if (sceneEl) {
+        sceneEl.style.width = size + 'px';
+        sceneEl.style.height = size + 'px';
+      }
+      if (effectEl) {
+        effectEl.style.width = size + 'px';
+        effectEl.style.height = size + 'px';
+      }
+
+      // После уменьшения старая цель может оказаться за новой границей движения.
+      x = Math.max(0, Math.min(maxX(), x));
+      target = Math.max(0, Math.min(maxX(), target));
+      y = Math.max(0, Math.min(maxY(), y));
+      targetY = Math.max(0, Math.min(maxY(), targetY));
+      place();
+      return true;
+    }
+
     var api = {
       version: VERSION,
       el: host,
@@ -1320,6 +1361,12 @@
       sound: function (on) { soundOn = on !== false; return api; },
       isTyping: function () { return mode === 'type'; },
       isDragging: function () { return !!(drag && drag.moved); },
+      // Без аргумента — текущий размер. С числом — синхронно меняет визуал и hitbox.
+      resize: function (nextSize) {
+        if (nextSize == null) return size;
+        if (!applySize(nextSize)) return false;
+        return api;
+      },
 
       // ── петля заботы
       setStats: function (patch) {

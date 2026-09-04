@@ -1,4 +1,5 @@
 import { createAnimation } from "./animation.js";
+import { attachGrowth } from "./growth-layer.js";
 import { createDesktopBridge } from "./bridge.js";
 import { getDomRefs, setElementText } from "./dom.js";
 import { createImportFlow } from "./import-flow.js";
@@ -76,17 +77,26 @@ function syncTrayState() {
 
 /// The pet grows as it is cared for. The formula lives in window-layout because the window size
 /// depends on it too — two copies would drift apart and clip the pet's head off.
-function applyGrowth(careCount) {
-  const growth = growthFactor(careCount);
-  document.documentElement.style.setProperty("--growth", growth.toFixed(3));
-  return growth;
+/// Growth is a change of FORM, not of size.
+///
+/// This used to scale the pet from 0.7x to 1.3x as care actions piled up, and the owner rejected
+/// that model on 2026-08-16: the same drawing getting bigger reads as a zoom, not as progress.
+/// The shared model (levels, named forms, a ring around the pet, a card when the form changes)
+/// lives in growth-layer.js. `--growth` is pinned to 1 so the sprite keeps its intended size;
+/// the variable itself stays because renderer.css multiplies by it in two places.
+let growthLayer = null;
+
+function applyGrowth() {
+  document.documentElement.style.setProperty("--growth", "1");
+  return 1;
 }
 
 /// One more act of care: remember it and let the pet grow a little. Called from interactions.
 function recordCare() {
   const careCount = (Number(state.preferences.careCount) || 0) + 1;
   state.preferences.careCount = careCount;
-  applyGrowth(careCount);
+  applyGrowth();
+  growthLayer?.record();          // no layer (engine missing) → care still counts, just no ring
   savePreferences({ careCount });
 }
 
@@ -94,7 +104,7 @@ function applyPreferences(preferences) {
   state.preferences = { ...state.preferences, ...(preferences || {}) };
   dom.scaleRange.value = String(state.preferences.scale || 0.9);
   document.documentElement.style.setProperty("--scale", dom.scaleRange.value);
-  applyGrowth(state.preferences.careCount);
+  applyGrowth();
   applyPetDirection(state.preferences.petDirection);
   dom.wanderToggle.checked = state.preferences.autoWander !== false;
   dom.naturalLifeToggle.checked = state.preferences.naturalLife !== false;
@@ -254,6 +264,22 @@ async function init() {
   }
   petManager.refreshPetList(await petDesktop.listPets(), state.preferences.selectedPetId);
   interactions.setMousePassthrough(true);
+
+  // Growth attaches AFTER the pack is chosen: the archetype decides which set of form names the
+  // pet uses, and that comes from the pack. Awaited but never fatal — a missing engine returns a
+  // no-op layer and the app runs exactly as before.
+  // ⚠️ ONLY WHEN A PET IS ACTUALLY INSTALLED. Attaching to the empty pet element put the ring
+  // and the card inside it, and the first-run import preview stopped showing — caught by
+  // "Renderer empty smoke", which is green on a clean tree and red with the layer attached
+  // unconditionally. With no pet there is nothing to grow anyway.
+  if (state.activePet) {
+    // NOT awaited: growth is decoration and must never delay a working pet. Boot continues, the
+    // layer wires itself in when the engine has loaded, and `growthLayer?.record()` is a no-op
+    // until then — an act of care during those milliseconds is still counted and saved.
+    attachGrowth({ host: dom.petEl, pet: state.activePet })
+      .then((layer) => { growthLayer = layer; })
+      .catch(() => { growthLayer = null; });
+  }
 
   interactions.bind({ pickPet: petManager.pickPet });
   importFlow.bind();
