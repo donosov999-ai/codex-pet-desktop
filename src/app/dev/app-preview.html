@@ -1,0 +1,117 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>app preview</title>
+<!--
+  The real renderer with a stubbed desktop bridge.
+
+  Everything below the shell is genuine: renderer.html's markup, renderer.css, the animation
+  module, the window layout maths and the growth layer. Only Tauri is faked, because a native
+  window cannot be inspected from here and a Rust build takes minutes to answer a question about
+  geometry. The stub records every resizeWindow call, so the frame the app WOULD ask for is drawn
+  as a dashed outline around the pet — which is exactly how you see whether the head is clipped.
+
+  Serve statically from src/app and open /dev/app-preview.html.
+-->
+<style>
+  body{margin:0;font:13px system-ui;background:#e9e6df;color:#1a1a18;padding:16px}
+  #frame{position:relative;margin:12px 0;background:#fff;box-shadow:0 6px 24px rgba(0,0,0,.14);
+         outline:2px dashed #d05a4a;outline-offset:0;overflow:hidden}
+  #frame iframe{border:0;width:100%;height:100%;display:block}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  button,select{font:13px system-ui;padding:6px 12px;border-radius:8px;border:1px solid #c9c7bd;background:#fff;cursor:pointer}
+  code{background:#fff;padding:2px 6px;border-radius:5px}
+</style>
+<div class="row">
+  <label>Slider size
+    <select id="size">
+      <option value="0.6">0.6 (min)</option>
+      <option value="0.9" selected>0.9 (default)</option>
+      <option value="1.4">1.4</option>
+      <option value="1.8">1.8 (max)</option>
+    </select>
+  </label>
+  <button id="care">One act of care</button>
+  <span id="info">-</span>
+</div>
+<p>The dashed outline is the window the app asks the shell for. Anything of the pet outside it is
+clipped in the real app.</p>
+<div id="frame"></div>
+
+<script type="module">
+  const frame = document.getElementById("frame");
+  const info = document.getElementById("info");
+  let win = null;
+
+  function petStub() {
+    return {
+      id: "biruzik",
+      displayName: "Biruzik",
+      version: "1.0.3",
+      sourceKind: "managed",
+      // Without Tauri's convertFileSrc the renderer falls back to the *Url fields, so the stub
+      // has to speak that half of the contract — a path alone leaves the sprite blank.
+      spritesheetUrl: "/resources/pets/biruzik/spritesheet.webp",
+      care: { spritesheetUrl: "/resources/pets/biruzik/care-spritesheet.webp" },
+      spriteVersionNumber: 2,
+      behavior: { clickState: "waving", idleStates: ["idle"], wanderDirections: [0] }
+    };
+  }
+
+  function bridge(onResize) {
+    return {
+      getAppInfo: async () => ({ version: "0.0.0-preview" }),
+      getPreferences: async () => ({ scale: 0.9, autoWander: false, naturalLife: false, alwaysOnTop: false }),
+      savePreferences: async () => {},
+      listPets: async () => ({ pets: [petStub()], errors: [] }),
+      getWindowState: async () => ({ alwaysOnTop: false }),
+      setAlwaysOnTop: async () => {},
+      setIgnoreMouseEvents: async () => {},
+      // Three positional arguments, not an object: the first run recorded undefined x undefined.
+      resizeWindow: async (width, height) => { onResize({ width, height }); },
+      moveBy: async () => {},
+      resetPosition: async () => {},
+      centerPosition: async () => {},
+      updateTrayState: async () => {},
+      openDownloads: async () => {},
+      openDataDir: async () => {}
+    };
+  }
+
+  // The bridge has to exist BEFORE the renderer's module runs. Pointing the iframe at
+  // renderer.html and assigning afterwards is too late — the app boots on load, finds no bridge
+  // and stops at "Desktop bridge is not available", which is what the first run of this page
+  // showed. So the document is built here: the real markup, a <base> so its relative paths still
+  // resolve, and one line that takes the stub from this window before anything else executes.
+  window.__mkBridge = () => bridge((size) => {
+    frame.style.width = `${size.width}px`;
+    frame.style.height = `${size.height}px`;
+    info.textContent = `window ${size.width}×${size.height}`;
+  });
+
+  async function mount(scale) {
+    frame.innerHTML = "";
+    const markup = await fetch("../renderer.html").then((response) => response.text());
+    const prepared = markup.replace(
+      /<head([^>]*)>/i,
+      `<head$1><base href="/src/app/"><script>window.petDesktop = parent.__mkBridge();<\/script>`
+    );
+    const iframe = document.createElement("iframe");
+    frame.append(iframe);
+    await new Promise((resolve) => {
+      iframe.onload = resolve;
+      iframe.srcdoc = prepared;
+    });
+    win = iframe.contentWindow;
+    await new Promise((r) => setTimeout(r, 900));
+    const range = win.document.getElementById("scaleRange");
+    if (range) { range.value = String(scale); range.dispatchEvent(new win.Event("input")); }
+    await new Promise((r) => setTimeout(r, 500));
+  }
+
+  document.getElementById("size").onchange = (event) => mount(Number(event.target.value));
+  document.getElementById("care").onclick = () => {
+    win?.document.getElementById("pet")?.click();
+  };
+  window.__preview = { mount, get win() { return win; } };
+  mount(0.9);
+</script>
