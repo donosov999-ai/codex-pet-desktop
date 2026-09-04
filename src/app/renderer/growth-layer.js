@@ -20,7 +20,12 @@
  * the reason a pet stops appearing.
  */
 
-const ENGINE = "./vendor/biryuzik.js";
+// ⚠️ RESOLVED AGAINST THIS MODULE, NOT THE PAGE. A plain "./vendor/biryuzik.js" is resolved
+// relative to the document that loaded the script, so it worked from src/app/index.html and
+// broke the moment the same module was opened from src/app/dev/ — the layer silently reported
+// "unavailable" and the pet lost its growth with no error anywhere. The engine sits next to this
+// file's folder, and that relationship holds wherever the page lives.
+const ENGINE = new URL("../vendor/biryuzik.js", import.meta.url).href;
 
 /** Archetype decides which set of form names a pack uses. Packs may declare it; otherwise guess. */
 function archetypeOf(pet) {
