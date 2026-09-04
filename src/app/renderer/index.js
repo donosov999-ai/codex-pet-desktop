@@ -7,7 +7,7 @@ import { createInteractions } from "./interactions.js";
 import { createPetManager } from "./pet-manager.js";
 import { createStoreController } from "./store.js";
 import { createUpdateController } from "./updates.js";
-import { createWindowLayout, growthFactor } from "./window-layout.js";
+import { createWindowLayout } from "./window-layout.js";
 import { cleanVersion } from "./version.js";
 
 const dom = getDomRefs();

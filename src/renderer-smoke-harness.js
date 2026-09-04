@@ -120,6 +120,26 @@ async function flush() {
   }
 }
 
+/// Flush until a condition holds, instead of assuming six rounds are enough.
+///
+/// `flush()` runs a FIXED number of rounds, so a renderer that needs one more await than that is
+/// simply not ready when the assertion runs — and the test reports whatever it found, usually an
+/// empty state, as if the product were broken. That is not theoretical: on 2026-09-05
+/// "Renderer life integration smoke" failed 4 runs out of 10 on an untouched tree, always with
+/// state:"" at a click. A gate that cries wolf four times in ten stops being read, and it cost an
+/// hour here separating it from a real regression.
+///
+/// Bounded on purpose: a condition that never becomes true must fail the test, not hang it.
+async function waitFor(predicate, { rounds = 40 } = {}) {
+  for (let index = 0; index < rounds; index += 1) {
+    if (predicate()) {
+      return true;
+    }
+    await flush();
+  }
+  return Boolean(predicate());
+}
+
 async function loadRenderer(options = {}) {
   const selectors = [
     "#pet",
@@ -279,6 +299,7 @@ module.exports = {
   createFakeElement,
   findByText,
   flush,
+  waitFor,
   loadRenderer,
   textOf
 };

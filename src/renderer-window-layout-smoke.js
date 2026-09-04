@@ -15,7 +15,8 @@ function transformedPetTop(windowHeight, scale) {
 // The pet is drawn at the slider scale MULTIPLIED by how much it has grown from care, so the
 // window has to fit that product. Reading the factor from the app instead of hardcoding it keeps
 // this check honest when the growth curve is tuned.
-const { growthFactor } = require("./app/renderer/window-layout.js");
+// The drawn scale is the slider, full stop. This used to multiply by growthFactor(0)
+// = 0.7 because care made the sprite bigger; that model is gone (growth-layer.js).
 
 async function main() {
   const resizeCalls = [];
@@ -74,7 +75,7 @@ async function main() {
     console.error(JSON.stringify({ ok: false, reason: "window did not grow with pet scale", resizeCalls }, null, 2));
     process.exit(1);
   }
-  const largePetTop = transformedPetTop(largePetWindow.height, 1.8 * growthFactor(0));
+  const largePetTop = transformedPetTop(largePetWindow.height, 1.8);
   if (largePetTop < 0) {
     console.error(
       JSON.stringify(
@@ -91,7 +92,7 @@ async function main() {
     );
     process.exit(1);
   }
-  const drawn = (sliderScale) => sliderScale * growthFactor(0);
+  const drawn = (sliderScale) => sliderScale;
   const expectedCurrentBottom = initialPetWindow.height / 2 + (CELL_HEIGHT * drawn(0.6)) / 2;
   const expectedNextBottom = largePetWindow.height / 2 + (CELL_HEIGHT * drawn(1.8)) / 2;
   if (

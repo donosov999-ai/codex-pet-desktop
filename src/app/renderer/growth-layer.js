@@ -50,18 +50,25 @@ function loadEngine() {
     // layer with an `await` made "Renderer import cache smoke" hang at boot, so the import flow
     // never bound and the suite reported 0 inspect calls. The same happens to a real user behind
     // a blocked file or a stalled disk. A decoration must never be able to hold up startup.
+    // ⚠️ NO TIMER HERE, ON PURPOSE. The first version capped the wait with setTimeout, and that
+    // timer became part of the app's timer surface: "Renderer life integration smoke" fires the
+    // LAST registered timeout, so it started firing this one instead of the autonomous-movement
+    // timer it meant to, and the pet was never configured when the test clicked it. A flaky test
+    // (2 failures in 10 before this layer existed) turned into a certain one.
+    // The cap is not needed any more either: nothing awaits this promise — boot moved on the
+    // moment attachGrowth was called — so a script that never settles costs a pending promise and
+    // a pet without growth, which is exactly the intended soft failure. A decoration must not put
+    // anything on a timer queue that the product's own logic reasons about.
     let settled = false;
     const done = (value) => { if (!settled) { settled = true; resolve(value); } };
-    const timer = setTimeout(() => done(false), 4000);
     const element = document.createElement("script");
     element.src = ENGINE;
     element.async = true;
-    element.onload = () => { clearTimeout(timer); done(Boolean(window.__ODVMASCOT?.growth)); };
-    element.onerror = () => { clearTimeout(timer); done(false); };
+    element.onload = () => done(Boolean(window.__ODVMASCOT?.growth));
+    element.onerror = () => done(false);
     try {
       document.head.appendChild(element);
     } catch {
-      clearTimeout(timer);
       done(false);
     }
   });

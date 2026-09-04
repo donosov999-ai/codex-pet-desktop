@@ -5,26 +5,33 @@
   body{margin:0;font:14px system-ui;background:#f6f4ef;color:#1a1a18;display:flex;gap:32px;
        padding:90px 28px 28px;align-items:flex-start}
   #stage{position:relative;width:180px;height:180px;flex:none}
-  /* Заглушка вместо спрайта: цвет и два глаза. Раздельными свойствами — сокращённая запись
-     с цветом и двумя градиентами не работает, и на первом снимке питомца просто не было. */
+  /* Stand-in for a real sprite: a colour and two eyes. Written as separate properties on
+     purpose — the shorthand with a colour and two gradients does not apply, and the first run
+     of this bench showed a ring floating around an invisible pet. */
   #pet{position:relative;width:180px;height:180px;border-radius:50%;background-color:#b9a8f0;
        background-image:radial-gradient(circle at 38% 36%,#fff 7px,transparent 8px),
                         radial-gradient(circle at 62% 36%,#fff 7px,transparent 8px)}
-  button{font:14px system-ui;padding:8px 14px;border-radius:8px;border:1px solid #c9c7bd;background:#fff;cursor:pointer}
+  button{font:14px system-ui;padding:8px 14px;border-radius:8px;border:1px solid #c9c7bd;
+         background:#fff;cursor:pointer}
   pre{background:#fff;padding:12px;border-radius:8px;min-width:320px}
 </style>
 <div id="stage"><div id="pet"></div></div>
 <div>
-  <button id="care">Одна забота (+5)</button>
-  <button id="reset">Сброс</button>
-  <pre id="out">—</pre>
+  <button id="care">One act of care (+5)</button>
+  <button id="reset">Reset</button>
+  <pre id="out">-</pre>
 </div>
 <script type="module">
-  // Обход кэша: стенд правится часто, а браузер держит модуль по URL.
+  // Cache-busting import: this bench is edited often and the browser keys modules by URL.
   const { attachGrowth } = await import(`../renderer/growth-layer.js?v=${Date.now()}`);
   const out = document.getElementById("out");
   const layer = await attachGrowth({ host: document.getElementById("pet"), pet: { id: "beast-test" } });
-  const show = (s) => { out.textContent = JSON.stringify({ движок: !!window.__ODVMASCOT?.growth, слой: layer.available, ...(s || layer.state() || {}) }, null, 2); };
+  const show = (next) => {
+    out.textContent = JSON.stringify(
+      { engine: Boolean(window.__ODVMASCOT?.growth), layer: layer.available, ...(next || layer.state() || {}) },
+      null, 2
+    );
+  };
   document.getElementById("care").onclick = () => show(layer.record());
   document.getElementById("reset").onclick = () => { window.__ODVMASCOT?.reset?.(); show(); };
   window.__check = { layer, show };

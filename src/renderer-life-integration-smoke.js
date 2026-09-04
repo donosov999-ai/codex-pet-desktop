@@ -1,4 +1,4 @@
-const { loadRenderer } = require("./renderer-smoke-harness");
+const { loadRenderer, waitFor } = require("./renderer-smoke-harness");
 
 function createPetDesktop({ pet, moveCalls = [], preferences }) {
   return {
@@ -220,6 +220,11 @@ async function assertAutoWanderGateKeepsClickActive() {
     })
   });
 
+  // Wait for the renderer to actually have a pet before poking it. Firing the last timeout and
+  // flushing a fixed six rounds was a race: when init needed one more round the click below
+  // landed on an unconfigured pet and the failure read "click was blocked", which is not what
+  // happened at all.
+  await waitFor(() => elements.get("#stateSelect").value !== "");
   timeouts.at(-1)?.();
   await flush();
   if (elements.get("#stateSelect").value === "running-right" || moveCalls.length) {
