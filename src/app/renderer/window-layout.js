@@ -3,10 +3,16 @@ import { CELL_HEIGHT, CELL_WIDTH } from "./constants.js";
 const MIN_PET_WINDOW_WIDTH = 180;
 const MIN_PET_WINDOW_HEIGHT = 200;
 const MAX_PET_WINDOW_WIDTH = 460;
-// Fits the slider's maximum (1.8) under the formula below: 208 * 2.6 + 76 = 617.
-const MAX_PET_WINDOW_HEIGHT = 620;
+const MAX_PET_WINDOW_HEIGHT = 520;
 const PET_PADDING_X = 72;
 const PET_PADDING_Y = 76;
+/// How far the pet's feet sit above the bottom of its window.
+///
+/// The pet box is anchored to the bottom of the stage (see #stage in renderer.css) and the sprite
+/// scales from its bottom edge, so this one number fixes the whole vertical layout: the feet are
+/// always FLOOR_GAP from the frame, and whatever the scale adds goes upward into the window.
+/// Half of PET_PADDING_Y below, the other half stays as clear space above the head.
+export const FLOOR_GAP = PET_PADDING_Y / 2;
 const PANEL_WIDTH = 300;
 const PANEL_GAP = 20;
 const PANEL_PADDING_X = 48;
@@ -59,15 +65,16 @@ export function desiredWindowSize({ scale = 0.9, hasPet = false, panelVisible = 
   const safeScale = normalizedScale(scale);
   return {
     width: clamp(Math.ceil(CELL_WIDTH * safeScale + PET_PADDING_X), MIN_PET_WINDOW_WIDTH, MAX_PET_WINDOW_WIDTH),
-    // 🔴 THE PET GROWS UPWARDS, AND THE HEIGHT HAS TO SAY SO.
-    // #pet has `transform-origin: center bottom`, so scaling keeps the feet on their line and
-    // pushes the head up. The box itself is centred in the window, so the head leaves the window
-    // long before the total height runs out: at the slider's maximum of 1.8 the top sat 45px
-    // ABOVE the frame and was cut off. Height must cover the centred box plus everything the
-    // scale adds above it, which is CELL_HEIGHT * (2 * scale - 1), not CELL_HEIGHT * scale.
-    // This was masked until now: care growth started every pet at 0.7 of the slider, so nobody
-    // reached a scale where the clipping showed. With size-based growth gone the mask went too.
-    height: clamp(Math.ceil(CELL_HEIGHT * (2 * safeScale - 1) + PET_PADDING_Y), MIN_PET_WINDOW_HEIGHT, MAX_PET_WINDOW_HEIGHT)
+    // Height is the drawn sprite plus its margins, because the pet is anchored to the bottom of
+    // the stage: the feet stay FLOOR_GAP above the frame and everything the scale adds goes up
+    // into the window, leaving the same clear space above the head at every size.
+    // ⚠️ This only holds WITH the bottom anchor. While the box was centred and the sprite scaled
+    // from its bottom edge, the same formula cut the head off at large sizes — the room was there
+    // in total but half of it sat under the feet. Widening the height to cover that
+    // (CELL_HEIGHT * (2 * scale - 1)) removed the clipping and left 205px of dead space below the
+    // pet at the slider's maximum, measured on the dev preview. Anchoring fixes both, so the
+    // formula can stay simple; if the anchor ever goes back to centred, this must change with it.
+    height: clamp(Math.ceil(CELL_HEIGHT * safeScale + PET_PADDING_Y), MIN_PET_WINDOW_HEIGHT, MAX_PET_WINDOW_HEIGHT)
   };
 }
 
@@ -87,9 +94,14 @@ export function createWindowLayout({ dom, petDesktop, state }) {
     if (!hasPet()) {
       return null;
     }
+    // The baseline the shell keeps still while the window resizes: the pet's feet. With the box
+    // anchored to the bottom of the stage that is simply the frame minus the floor gap, at any
+    // scale. The previous formula derived it from a centred box and then added half the SCALED
+    // height, which describes neither the old layout (the bottom did not move with scale, the
+    // origin is bottom) nor the new one.
     return {
       x: size.width / 2 + (visiblePanel ? (PANEL_WIDTH + PANEL_GAP) / 2 : 0),
-      y: size.height / 2 + (CELL_HEIGHT * normalizedScale(scale)) / 2
+      y: size.height - FLOOR_GAP
     };
   }
 

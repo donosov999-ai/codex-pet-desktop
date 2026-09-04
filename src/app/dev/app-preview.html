@@ -31,6 +31,7 @@
     </select>
   </label>
   <button id="care">One act of care</button>
+  <button id="freeze">Freeze transitions</button>
   <span id="info">-</span>
 </div>
 <p>The dashed outline is the window the app asks the shell for. Anything of the pet outside it is
@@ -91,10 +92,19 @@ clipped in the real app.</p>
   async function mount(scale) {
     frame.innerHTML = "";
     const markup = await fetch("../renderer.html").then((response) => response.text());
-    const prepared = markup.replace(
-      /<head([^>]*)>/i,
-      `<head$1><base href="/src/app/"><script>window.petDesktop = parent.__mkBridge();<\/script>`
-    );
+    // ⚠️ BUST THE STYLESHEET CACHE TOO, not just the module.
+    // The browser keys CSS by URL, so a live edit to renderer.css goes unseen while the scripts
+    // reload — and a run then reports the OLD layout with the NEW maths. That happened here: the
+    // window height was already the new formula while the stage was still centring the pet, and
+    // the numbers looked like a failed fix rather than a stale file.
+    const bust = Date.now();
+    const prepared = markup
+      .replace(
+        /<head([^>]*)>/i,
+        `<head$1><base href="/src/app/"><script>window.petDesktop = parent.__mkBridge();<\/script>`
+      )
+      .replace(/(<link[^>]+href=")([^"]+\.css)(")/gi, `$1$2?v=${bust}$3`)
+      .replace(/(<script[^>]+src=")([^"]+\.js)(")/gi, `$1$2?v=${bust}$3`);
     const iframe = document.createElement("iframe");
     frame.append(iframe);
     await new Promise((resolve) => {
@@ -109,6 +119,18 @@ clipped in the real app.</p>
   }
 
   document.getElementById("size").onchange = (event) => mount(Number(event.target.value));
+  // ⚠️ MEASURE WITH TRANSITIONS FROZEN.
+  // #pet transitions its transform over 600ms, and inside this iframe that CSSTransition stays in
+  // "running" for good — getComputedStyle keeps handing back the value the pet started from. A run
+  // on 2026-09-05 read every size as 0.9 and made a correct layout look broken; the tell is a
+  // measured scale that does not match the slider. Freeze first, then measure.
+  document.getElementById("freeze").onclick = () => {
+    const doc = win?.document;
+    if (!doc) return;
+    const style = doc.createElement("style");
+    style.textContent = "*{transition:none !important;animation:none !important}";
+    doc.head.append(style);
+  };
   document.getElementById("care").onclick = () => {
     win?.document.getElementById("pet")?.click();
   };

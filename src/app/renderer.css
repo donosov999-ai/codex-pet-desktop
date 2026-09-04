@@ -29,13 +29,32 @@ body {
   height: 100vh;
   position: relative;
   display: grid;
-  place-items: center;
+  /* The pet stands on a floor, it does not float in the middle. #pet scales from its bottom edge,
+     so with a centred box every extra pixel of size pushed the head up and out of the window
+     while an equal number of pixels went to waste under the feet — 205 of them at the largest
+     size, measured on the dev preview. Anchored to the bottom, growth goes where it is drawn. */
+  /* `unsafe` on purpose. The pet box is always CELL_HEIGHT tall in layout — the size comes from a
+     transform — so at the smallest slider value it is taller than the stage's content area. Grid
+     then applies its default safe alignment, quietly falls back towards the start and the feet
+     end up past the frame: measured at slider 0.6 as 7px of the pet below the window. Safe
+     alignment protects content from being cut off at the START edge; here the overflow is at the
+     top and is exactly what we want, since the head has clear space above it. */
+  align-items: unsafe end;
+  justify-items: center;
+  /* And the TRACK has to sit at the bottom too. align-items places the item inside its row;
+     when the row is taller than the stage — which is exactly the small-slider case, since the
+     box keeps its full CELL_HEIGHT in layout — the row itself still started at the top and the
+     feet stayed 7px past the frame however the item was aligned inside it. */
+  align-content: unsafe end;
+  padding-bottom: 38px;
+  box-sizing: border-box;
   background: transparent;
 }
 
 html.panel-with-pet #stage {
   display: flex;
-  align-items: center;
+  /* Same floor with the panel open, otherwise the pet jumps when settings are shown. */
+  align-items: flex-end;
   justify-content: center;
   gap: 20px;
   padding: 12px;

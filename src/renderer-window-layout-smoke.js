@@ -8,7 +8,11 @@ function transformedPetTop(windowHeight, scale) {
   const css = fs.readFileSync(path.join(__dirname, "app", "renderer.css"), "utf8");
   const origin = css.match(/#pet\s*\{[\s\S]*?transform-origin:\s*([^;]+);/)?.[1]?.trim() || "center center";
   const originY = /\bbottom\b/.test(origin) ? 1 : 0.5;
-  const layoutTop = (windowHeight - CELL_HEIGHT) / 2;
+  // The box is anchored to the bottom of #stage, not centred: its bottom edge sits FLOOR_GAP
+  // above the frame. This used to read (windowHeight - CELL_HEIGHT) / 2, which described the old
+  // centred layout and, together with a bottom-origin scale, is what let the head leave the
+  // window unnoticed at large sizes.
+  const layoutTop = windowHeight - FLOOR_GAP - CELL_HEIGHT;
   return layoutTop + CELL_HEIGHT * originY - CELL_HEIGHT * scale * originY;
 }
 
@@ -17,6 +21,7 @@ function transformedPetTop(windowHeight, scale) {
 // this check honest when the growth curve is tuned.
 // The drawn scale is the slider, full stop. This used to multiply by growthFactor(0)
 // = 0.7 because care made the sprite bigger; that model is gone (growth-layer.js).
+const { FLOOR_GAP } = require("./app/renderer/window-layout.js");
 
 async function main() {
   const resizeCalls = [];
@@ -92,9 +97,10 @@ async function main() {
     );
     process.exit(1);
   }
-  const drawn = (sliderScale) => sliderScale;
-  const expectedCurrentBottom = initialPetWindow.height / 2 + (CELL_HEIGHT * drawn(0.6)) / 2;
-  const expectedNextBottom = largePetWindow.height / 2 + (CELL_HEIGHT * drawn(1.8)) / 2;
+  // The baseline the shell holds still is the pet's feet, and with the bottom anchor that is the
+  // frame minus the floor gap — the same at every scale, which is the point of a baseline.
+  const expectedCurrentBottom = initialPetWindow.height - FLOOR_GAP;
+  const expectedNextBottom = largePetWindow.height - FLOOR_GAP;
   if (
     Math.abs(largePetWindow.anchor?.current?.y - expectedCurrentBottom) > 0.01 ||
     Math.abs(largePetWindow.anchor?.next?.y - expectedNextBottom) > 0.01
