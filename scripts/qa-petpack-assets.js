@@ -123,6 +123,9 @@ function validatePetResources(petsRoot, options = {}) {
       petReport.spriteVersionNumber = Number.isInteger(Number(manifest.spriteVersionNumber))
         ? Number(manifest.spriteVersionNumber)
         : 1;
+      // The pack's own atlas geometry, so the size check below can measure it against what the
+      // pack declares instead of against a constant the art had to be cropped to fit.
+      petReport.atlas = manifest.atlas;
       if (!petReport.id) {
         petReport.errors.push("pet.json id is required");
       } else if (petReport.id !== entry.name) {
@@ -172,12 +175,29 @@ function validatePetResources(petsRoot, options = {}) {
         petReport.width = size.width;
         petReport.height = size.height;
         const rowsFromHeight = size.height / 208;
+        // 🔴 THE WIDTH IS THE PACK'S OWN BUSINESS NOW.
+        // This used to demand exactly 1536px, which is 8 columns of 192. That constant is the
+        // reason the four-legged packs were cropped: a wolf in profile needs 314px of cell and a
+        // fox 297, and the art was cut down to 192 to satisfy this check. A pack that declares
+        // `atlas: {cellWidth, cellHeight, columns}` is now measured against what it declares —
+        // the app reads the same field — and a pack that declares nothing is held to the old
+        // 1536 as before, so nothing existing is let off the hook.
+        const declared = petReport.atlas && typeof petReport.atlas === "object" ? petReport.atlas : null;
+        const declaredWidth =
+          declared &&
+          Number.isInteger(Number(declared.columns)) &&
+          Number.isInteger(Number(declared.cellWidth)) &&
+          Number(declared.columns) > 0 &&
+          Number(declared.cellWidth) > 0
+            ? Number(declared.columns) * Number(declared.cellWidth)
+            : null;
+        const wantWidth = declaredWidth || expectedWidth;
         const heightOk =
           size.height === expectedHeight ||
           (size.height % 208 === 0 && rowsFromHeight >= 9 && rowsFromHeight <= 12);
-        if (size.width !== expectedWidth || !heightOk) {
+        if (size.width !== wantWidth || !heightOk) {
           petReport.errors.push(
-            `Expected spritesheet ${expectedWidth}x${expectedHeight} (or 1536 x 208*rows, 9-12 rows), got ${size.width}x${size.height}`
+            `Expected spritesheet ${wantWidth}x${expectedHeight} (or ${wantWidth} x 208*rows, 9-12 rows), got ${size.width}x${size.height}`
           );
         }
         const requiredRows = petReport.spriteVersionNumber >= 2 ? 11 : 9;
