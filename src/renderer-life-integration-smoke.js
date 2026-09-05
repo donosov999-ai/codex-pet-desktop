@@ -84,6 +84,7 @@ async function assertNaturalLifeUsesPhasePlan() {
     })
   });
 
+  await waitFor(() => timeouts.length > 0);
   if (timeouts.at(-1)?.delay !== 250) {
     console.error(
       JSON.stringify({
@@ -143,6 +144,7 @@ async function assertLegacyDelayWhenNaturalLifeDisabled() {
     })
   });
 
+  await waitFor(() => timeouts.length > 0);
   if (timeouts.at(-1)?.delay !== 400) {
     console.error(
       JSON.stringify({
@@ -184,6 +186,7 @@ async function assertLegacyDragFeedbackKeepsDefaultOnceReturn() {
     screenY: 100
   });
 
+  await waitFor(() => elements.get("#stateSelect").value === "jumping" && timeouts.length > 0);
   if (elements.get("#stateSelect").value !== "jumping" || timeouts.at(-1)?.delay !== 333) {
     console.error(
       JSON.stringify({
@@ -220,11 +223,20 @@ async function assertAutoWanderGateKeepsClickActive() {
     })
   });
 
-  // Wait for the renderer to actually have a pet before poking it. Firing the last timeout and
-  // flushing a fixed six rounds was a race: when init needed one more round the click below
-  // landed on an unconfigured pet and the failure read "click was blocked", which is not what
-  // happened at all.
-  await waitFor(() => elements.get("#stateSelect").value !== "");
+  // Wait for the renderer to have a pet AND to have scheduled its tick. Waiting on the state
+  // alone was not enough: probing the failing runs showed the timeout list still EMPTY at this
+  // point, so firing "the last timeout" fired nothing, the pet was never driven, and the click
+  // below reported "click was blocked" — a diagnosis of something that had not happened.
+  // Wait for the renderer to be genuinely ready: a state chosen, its tick scheduled, and the
+  // state LIST populated. The last one is what kept failing. Probing the bad runs showed the
+  // timeout list empty at this point on some, and on others the click set a state the select did
+  // not yet contain, so its value fell back to "" — reported as "click was blocked", which is a
+  // diagnosis of something that never happened. The click state of this fixture is "waving".
+  await waitFor(() =>
+    elements.get("#stateSelect").value !== "" &&
+    timeouts.length > 0 &&
+    (elements.get("#stateSelect").children || []).length > 0
+  );
   timeouts.at(-1)?.();
   await flush();
   if (elements.get("#stateSelect").value === "running-right" || moveCalls.length) {
