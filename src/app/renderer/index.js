@@ -135,7 +135,7 @@ function setPetDirection(direction) {
 }
 
 const animation = createAnimation(dom);
-const windowLayout = createWindowLayout({ dom, petDesktop, state });
+const windowLayout = createWindowLayout({ dom, petDesktop, state, animation });
 /// The pet works alongside you: while you type anywhere on the desktop it types too, and it drops
 /// the act shortly after you stop. Only if the pack actually has the state — a mascot without a
 /// keyboard drawn would look like it was miming.

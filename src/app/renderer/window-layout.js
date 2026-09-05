@@ -40,7 +40,8 @@ function normalizedScale(scale) {
   return clamp(value, 0.4, 2.2);
 }
 
-export function desiredWindowSize({ scale = 0.9, hasPet = false, panelVisible = false } = {}) {
+export function desiredWindowSize({ scale = 0.9, hasPet = false, panelVisible = false,
+                                    cellW = CELL_WIDTH, cellH = CELL_HEIGHT } = {}) {
   if (panelVisible) {
     if (hasPet) {
       const safeScale = normalizedScale(scale);
@@ -64,7 +65,7 @@ export function desiredWindowSize({ scale = 0.9, hasPet = false, panelVisible = 
   }
   const safeScale = normalizedScale(scale);
   return {
-    width: clamp(Math.ceil(CELL_WIDTH * safeScale + PET_PADDING_X), MIN_PET_WINDOW_WIDTH, MAX_PET_WINDOW_WIDTH),
+    width: clamp(Math.ceil(cellW * safeScale + PET_PADDING_X), MIN_PET_WINDOW_WIDTH, MAX_PET_WINDOW_WIDTH),
     // Height is the drawn sprite plus its margins, because the pet is anchored to the bottom of
     // the stage: the feet stay FLOOR_GAP above the frame and everything the scale adds goes up
     // into the window, leaving the same clear space above the head at every size.
@@ -74,11 +75,22 @@ export function desiredWindowSize({ scale = 0.9, hasPet = false, panelVisible = 
     // (CELL_HEIGHT * (2 * scale - 1)) removed the clipping and left 205px of dead space below the
     // pet at the slider's maximum, measured on the dev preview. Anchoring fixes both, so the
     // formula can stay simple; if the anchor ever goes back to centred, this must change with it.
-    height: clamp(Math.ceil(CELL_HEIGHT * safeScale + PET_PADDING_Y), MIN_PET_WINDOW_HEIGHT, MAX_PET_WINDOW_HEIGHT)
+    height: clamp(Math.ceil(cellH * safeScale + PET_PADDING_Y), MIN_PET_WINDOW_HEIGHT, MAX_PET_WINDOW_HEIGHT)
   };
 }
 
-export function createWindowLayout({ dom, petDesktop, state }) {
+export function createWindowLayout({ dom, petDesktop, state, animation }) {
+  /// The active pack's cell, falling back to the app-wide constant for packs that do not declare
+  /// one. Sizing the window from the constant while the pack draws in a wider cell is how a
+  /// picture ends up cropped by its own frame.
+  const cell = () => {
+    const g = animation?.geometry?.();
+    return {
+      width: Number(g?.cellWidth) > 0 ? Number(g.cellWidth) : CELL_WIDTH,
+      height: Number(g?.cellHeight) > 0 ? Number(g.cellHeight) : CELL_HEIGHT
+    };
+  };
+
   let lastSignature = "";
   let lastPetAnchor = null;
 
@@ -117,10 +129,13 @@ export function createWindowLayout({ dom, petDesktop, state }) {
     // around a pet that never grew into it — empty space appearing for no visible reason, and
     // the longer someone cared for the pet the worse it got.
     const scale = normalizedScale(Number(dom.scaleRange.value) || state.preferences.scale || 0.9);
+    const { width: cellW, height: cellH } = cell();
     const size = desiredWindowSize({
       scale,
       hasPet: hasPet(),
-      panelVisible: visiblePanel
+      panelVisible: visiblePanel,
+      cellW,
+      cellH
     });
     const hasActivePet = hasPet();
     const nextPetAnchor = petAnchor(size, visiblePanel, scale);

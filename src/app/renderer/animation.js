@@ -124,6 +124,7 @@ export function createAnimation(dom) {
   let states = { ...STATES };
   let stateLabels = { ...STATE_LABELS };
   let careConfig = normalizeCareConfig();
+  let geometry = { cellWidth: CELL_WIDTH, cellHeight: CELL_HEIGHT, columns: 8 };
   let overlayElapsedMs = 0;
   let sources = {
     standard: { url: "", width: ATLAS_WIDTH, height: ATLAS_HEIGHT },
@@ -154,8 +155,8 @@ export function createAnimation(dom) {
   function setFrame() {
     const state = states[stateName] || states.idle;
     const source = sources[state.atlas || "standard"] || sources.standard;
-    const cellWidth = state.atlas === "care" ? careConfig.atlas.cellWidth : CELL_WIDTH;
-    const cellHeight = state.atlas === "care" ? careConfig.atlas.cellHeight : CELL_HEIGHT;
+    const cellWidth = state.atlas === "care" ? careConfig.atlas.cellWidth : geometry.cellWidth;
+    const cellHeight = state.atlas === "care" ? careConfig.atlas.cellHeight : geometry.cellHeight;
     const x = -(frame % state.frames) * cellWidth;
     const y = -state.row * cellHeight;
     dom.petEl.style.backgroundImage = source.url ? `url("${source.url}")` : "";
@@ -232,29 +233,56 @@ export function createAnimation(dom) {
 /// with frames sampled out of a longer cycle, so at the built-in ten frames a second the gaps
 /// between phases read as jitter rather than motion. A pack may therefore state its own pace, and
 /// packs that say nothing keep the built-in one.
-function stateTimingOverrides(raw) {
+function stateTimingOverrides(raw, columns) {
   if (!raw || typeof raw !== "object") {
     return {};
   }
   const overrides = {};
   for (const [id, timing] of Object.entries(raw)) {
     const base = STATES[id];
+    if (!base) {
+      continue;
+    }
+    const next = { ...base };
     const fps = Number(timing?.fps);
     // Below two frames a second motion turns into a slideshow, above twelve the eye cannot
     // follow it - a pack asking for anything outside that is a mistake, not a style.
-    if (!base || !(fps >= 2 && fps <= 12)) {
-      continue;
+    if (fps >= 2 && fps <= 12) {
+      next.fps = fps;
     }
-    overrides[id] = { ...base, fps };
+    // 🔴 A PACK MAY NOW SAY HOW MANY FRAMES ITS ROW HOLDS, and that is the point of this change.
+    // The counts used to be fixed in constants.js at what an 8-column atlas could carry: idle 6,
+    // walk 8, wave 4. The drawn animations have 16, 18 and 16, so building a pack threw away
+    // 56-75% of the motion and what reached the screen was every third frame. That is the jerk
+    // the owner sees; it is not a cutting defect, it is thinning.
+    const frames = Number(timing?.frames);
+    if (Number.isInteger(frames) && frames >= 1 && frames <= columns) {
+      next.frames = frames;
+    }
+    if (next.fps !== base.fps || next.frames !== base.frames) {
+      overrides[id] = next;
+    }
   }
   return overrides;
 }
 
   function configurePet(pet, { standardSource = "", careSource = "" } = {}) {
     careConfig = normalizeCareConfig(careSource ? pet?.care : {});
+    // 🔴 THE CELL IS A PROPERTY OF THE PACK, NOT A CONSTANT OF THE APP.
+    // A square-ish 192x208 cell cannot hold a four-legged animal in profile: measured against the
+    // reference deck, fox needs 242px of width for its drawn height and hedgehog 241, so both lose
+    // a fifth of the picture at the edges. The web side solved this a month ago by letting the
+    // cell be as wide as the pose needs; here the width was frozen in constants.js and the art was
+    // cropped to fit it. Packs that say nothing keep the old geometry, so nothing existing moves.
+    const declared = pet?.atlas && typeof pet.atlas === "object" ? pet.atlas : {};
+    geometry = {
+      cellWidth: positiveInteger(declared.cellWidth, CELL_WIDTH),
+      cellHeight: positiveInteger(declared.cellHeight, CELL_HEIGHT),
+      columns: positiveInteger(declared.columns, 8)
+    };
     const spriteVersionNumber = positiveInteger(pet?.spriteVersionNumber, 1);
     const standardAtlasHeight = (spriteVersionNumber >= 2 ? 11 : 9) * CELL_HEIGHT;
-    states = { ...STATES, ...stateTimingOverrides(pet?.stateTimings), ...careConfig.states };
+    states = { ...STATES, ...stateTimingOverrides(pet?.stateTimings, geometry.columns), ...careConfig.states };
     stateLabels = {
       ...STATE_LABELS,
       ...Object.fromEntries(Object.entries(careConfig.states).map(([id, state]) => [id, state.label]))
@@ -369,6 +397,9 @@ function stateTimingOverrides(raw) {
   return {
     animationLoop,
     configurePet,
+    /// The cell the ACTIVE pack draws in. The window must be sized from this and not from the
+    /// app-wide constant: a pack with a wider cell would otherwise be cropped by its own frame.
+    geometry: () => ({ ...geometry }),
     getCareState,
     getCareStates,
     planAutonomousCare,
