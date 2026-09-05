@@ -51,7 +51,9 @@ clipped in the real app.</p>
   /// what Tauri would have supplied — convertFileSrc is what normally turns the packed paths into
   /// loadable URLs, and without it the renderer falls back to the *Url fields.
   async function realPet() {
-    const meta = await fetch("/resources/pets/biruzik/pet.json").then((r) => r.json());
+    // cache: "reload" — the pack is edited between runs too (anchors were added to it), and a
+    // cached pet.json makes a fresh field look like it was never written.
+    const meta = await fetch("/resources/pets/biruzik/pet.json", { cache: "reload" }).then((r) => r.json());
     return {
       ...meta,
       sourceKind: "managed",

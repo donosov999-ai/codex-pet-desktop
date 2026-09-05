@@ -75,3 +75,19 @@ clear local storage and mount):
 The count is the truth and the engine's tally is a cache of it, so a cleared profile costs nothing.
 The card stays silent on a restore — it announces a form the pet has just reached, not one it
 already had.
+
+Earned things, checked with 40 acts of care (level 5, all three rules met):
+
+| item      | anchor    | placed at   | width |
+|-----------|-----------|-------------|-------|
+| scarf     | neck      | 50.8 / 52.4 | 30%   |
+| glasses   | eyes      | 51.9 / 24.2 | 38%   |
+| party_hat | head_top  | 51.9 / 6.7  | 44%   |
+
+All three land on the cat. Only packs with an `anchors` field wear anything, and today that is
+biruzik, panda and typerighting — the three whose measured points were checked by eye. The rest
+stay bare on purpose: a guessed position puts a scarf across the face.
+
+⚠️ The bench re-fetches `pet.json` with `cache: "reload"` as well as the modules. Anchors were
+written into the pack and the first run still reported none, because the browser served the file
+it already had.

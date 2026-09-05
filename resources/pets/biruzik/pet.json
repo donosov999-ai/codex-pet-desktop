@@ -279,5 +279,25 @@
       "celebrate": "confetti",
       "angry": "steam"
     }
+  },
+  "anchors": {
+    "head_top": {
+      "x": 51.88,
+      "y": 6.73,
+      "scale": 1,
+      "rotate": 0
+    },
+    "eyes": {
+      "x": 51.87,
+      "y": 24.18,
+      "scale": 1,
+      "rotate": 0
+    },
+    "neck": {
+      "x": 50.77,
+      "y": 52.4,
+      "scale": 1,
+      "rotate": 0
+    }
   }
 }

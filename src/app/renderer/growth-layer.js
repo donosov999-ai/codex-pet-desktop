@@ -31,6 +31,10 @@ const ENGINE = new URL("../vendor/biryuzik.js", import.meta.url).href;
 /// 460, 620], so at five apiece the last form arrives after 124 acts.
 const XP_PER_CARE = 5;
 
+/// Where the earned things come from. Same store the websites use, so an item drawn once is the
+/// same item everywhere and nothing has to be bundled per pack.
+const GEAR = "https://mascot.asibots.pro/accessories/";
+
 /** Archetype decides which set of form names a pack uses. Packs may declare it; otherwise guess. */
 function archetypeOf(pet) {
   const declared = pet?.look || pet?.archetype || pet?.growth?.style;
@@ -78,6 +82,14 @@ function loadEngine() {
   });
 }
 
+/// The engine's own ladder of rewards, mirrored here for the case where it is not exposed.
+/// Kept in step with DEFAULT_UNLOCKS in the vendored engine.
+const DEFAULT_GEAR = [
+  { level: 2, item: "scarf", anchor: "neck", size: 0.30 },
+  { level: 3, item: "glasses", anchor: "eyes", size: 0.38 },
+  { level: 5, item: "party_hat", anchor: "head_top", size: 0.44 }
+];
+
 function styles() {
   if (document.getElementById("growth-layer-style")) return;
   const css = document.createElement("style");
@@ -96,6 +108,8 @@ function styles() {
        window only keeps 38px clear above the head: measured at slider 1.8 its top sat 42px ABOVE
        the frame, so the one moment growth has something to say was invisible.
        Anchored to the stage instead: fixed type size at any pet size, always inside the window. */
+    .growth-gear{position:absolute;transform:translate(-50%,-50%);pointer-events:none;z-index:2;
+      image-rendering:auto}
     .growth-card{position:absolute;left:50%;top:8px;transform:translateX(-50%) translateY(-6px);
       z-index:5;pointer-events:none;max-width:calc(100% - 16px);overflow:hidden;
       text-overflow:ellipsis;white-space:nowrap;padding:5px 11px;border-radius:999px;
@@ -149,6 +163,43 @@ export async function attachGrowth({ host, pet, careCount = 0 } = {}) {
   const ring = document.createElement("div");
   ring.className = "growth-ring";
   host.append(ring);
+
+  /// Put on what the level has earned.
+  ///
+  /// 🔴 UNTIL NOW NOTHING WORE ANYTHING. The engine's own dresser walks its PETS list and this app
+  /// never calls Biryuzik.init — it borrows the growth model and draws the pet itself — so that
+  /// list is empty and _wear had nobody to dress. growth().worn filled up with scarves and
+  /// glasses while the pet stayed bare: the reward existed as a number and never as a picture.
+  ///
+  /// Needs anchors on the pack. A pack without them simply wears nothing, which is honest; the
+  /// alternative, guessing a position, puts a scarf across the face. Anchors are per pack and
+  /// measured from its own atlas — the web pack's numbers do not transfer, the cells differ.
+  const gear = new Map();
+  function dress(level) {
+    const anchors = pet?.anchors;
+    if (!anchors) return [];
+    const rules = (api.unlocks || DEFAULT_GEAR).filter((rule) => level >= rule.level);
+    const wanted = new Set(rules.map((rule) => rule.item));
+    for (const [item, node] of gear) {
+      if (!wanted.has(item)) { node.remove(); gear.delete(item); }
+    }
+    for (const rule of rules) {
+      const point = anchors[rule.anchor];
+      if (!point || gear.has(rule.item)) continue;
+      const img = document.createElement("img");
+      img.className = "growth-gear";
+      img.alt = "";
+      img.src = `${GEAR}${rule.item}.png`;
+      img.style.left = `${point.x}%`;
+      img.style.top = `${point.y}%`;
+      img.style.width = `${rule.size * 100 * (point.scale || 1)}%`;
+      // A missing file must not leave a broken-image glyph on the pet.
+      img.onerror = () => { img.remove(); gear.delete(rule.item); };
+      host.append(img);
+      gear.set(rule.item, img);
+    }
+    return [...gear.keys()];
+  }
   const card = document.createElement("div");
   card.className = "growth-card";
   (host.parentElement || host).append(card);
@@ -180,7 +231,8 @@ export async function attachGrowth({ host, pet, careCount = 0 } = {}) {
       setTimeout(() => card.classList.remove("show"), 4000);
     }
     shownTier = tier;
-    return { level, tier, form: forms[tier] || null, xp: growth.xp, share };
+    const worn = dress(level);
+    return { level, tier, form: forms[tier] || null, xp: growth.xp, share, worn };
   }
 
   paint(false);
