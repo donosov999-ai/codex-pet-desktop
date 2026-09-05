@@ -2,7 +2,27 @@ import { CELL_HEIGHT, CELL_WIDTH } from "./constants.js";
 
 const MIN_PET_WINDOW_WIDTH = 180;
 const MIN_PET_WINDOW_HEIGHT = 200;
-const MAX_PET_WINDOW_WIDTH = 460;
+const MAX_SCALE = 2.2;
+/// 🔴 THE CAP HAS TO KNOW HOW WIDE THE PACK'S CELL IS.
+///
+/// 460 was written when every cell was 192 wide: 192 * 1.8 + 72 = 418, so the cap never bit and
+/// nobody noticed it was a constant. Cells are a pack property now and the widest is 322 (axolotl),
+/// which needs 652px at the top of the slider - the window stopped at 460 and cut the animal off at
+/// both sides from scale 1.2 upward. That is the "cut off when it moves sideways" the owner
+/// reported, and it lived here, not in the atlas: measured across all 32 packs, not one walk frame
+/// touches its cell edge.
+///
+/// The cap still exists to keep the window off the whole screen, so it is a floor under the widest
+/// the pack can legitimately need, not a ceiling below it.
+const BASE_MAX_PET_WINDOW_WIDTH = 460;
+
+function maxPetWindowWidth(cellW) {
+  return Math.max(BASE_MAX_PET_WINDOW_WIDTH, Math.ceil(cellW * MAX_SCALE + PET_PADDING_X));
+}
+
+function maxPetWindowHeight(cellH) {
+  return Math.max(MAX_PET_WINDOW_HEIGHT, Math.ceil(cellH * MAX_SCALE + PET_PADDING_Y));
+}
 const MAX_PET_WINDOW_HEIGHT = 520;
 const PET_PADDING_X = 72;
 const PET_PADDING_Y = 76;
@@ -46,15 +66,18 @@ export function desiredWindowSize({ scale = 0.9, hasPet = false, panelVisible = 
     if (hasPet) {
       const safeScale = normalizedScale(scale);
       return {
+        // The panel branch used the app-wide constants while the pet branch used the pack's cell,
+        // so opening settings re-cropped a wide animal to the width of a 192px cell.
         width: clamp(
-          Math.ceil(PANEL_WIDTH + PANEL_GAP + CELL_WIDTH * safeScale + PANEL_PADDING_X),
+          Math.ceil(PANEL_WIDTH + PANEL_GAP + cellW * safeScale + PANEL_PADDING_X),
           520,
-          MAX_PANEL_WITH_PET_WINDOW_WIDTH
+          Math.max(MAX_PANEL_WITH_PET_WINDOW_WIDTH,
+                   Math.ceil(PANEL_WIDTH + PANEL_GAP + cellW * MAX_SCALE + PANEL_PADDING_X))
         ),
         height: clamp(
-          Math.ceil(Math.max(PANEL_WINDOW.height, CELL_HEIGHT * safeScale + PET_PADDING_Y)),
+          Math.ceil(Math.max(PANEL_WINDOW.height, cellH * safeScale + PET_PADDING_Y)),
           PANEL_WINDOW.height,
-          MAX_PET_WINDOW_HEIGHT
+          maxPetWindowHeight(cellH)
         )
       };
     }
@@ -65,7 +88,7 @@ export function desiredWindowSize({ scale = 0.9, hasPet = false, panelVisible = 
   }
   const safeScale = normalizedScale(scale);
   return {
-    width: clamp(Math.ceil(cellW * safeScale + PET_PADDING_X), MIN_PET_WINDOW_WIDTH, MAX_PET_WINDOW_WIDTH),
+    width: clamp(Math.ceil(cellW * safeScale + PET_PADDING_X), MIN_PET_WINDOW_WIDTH, maxPetWindowWidth(cellW)),
     // Height is the drawn sprite plus its margins, because the pet is anchored to the bottom of
     // the stage: the feet stay FLOOR_GAP above the frame and everything the scale adds goes up
     // into the window, leaving the same clear space above the head at every size.
@@ -75,7 +98,7 @@ export function desiredWindowSize({ scale = 0.9, hasPet = false, panelVisible = 
     // (CELL_HEIGHT * (2 * scale - 1)) removed the clipping and left 205px of dead space below the
     // pet at the slider's maximum, measured on the dev preview. Anchoring fixes both, so the
     // formula can stay simple; if the anchor ever goes back to centred, this must change with it.
-    height: clamp(Math.ceil(cellH * safeScale + PET_PADDING_Y), MIN_PET_WINDOW_HEIGHT, MAX_PET_WINDOW_HEIGHT)
+    height: clamp(Math.ceil(cellH * safeScale + PET_PADDING_Y), MIN_PET_WINDOW_HEIGHT, maxPetWindowHeight(cellH))
   };
 }
 

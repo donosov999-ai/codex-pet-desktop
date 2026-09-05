@@ -58,7 +58,7 @@
     "idleStates": [
       "idle",
       "waiting",
-      "review"
+      "failed"
     ],
     "wanderDirections": [
       -1,

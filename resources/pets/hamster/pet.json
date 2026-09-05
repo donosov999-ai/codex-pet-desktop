@@ -48,7 +48,6 @@
     "doubleClickState": "jumping",
     "idleStates": [
       "idle",
-      "waiting",
       "review"
     ],
     "wanderDirections": [
