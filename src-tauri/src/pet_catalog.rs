@@ -129,6 +129,24 @@ pub(crate) struct PetPackage {
     tags: Vec<String>,
     changelog: Vec<String>,
     behavior: PetBehavior,
+    /// 🔴 THE GEOMETRY A PACK DECLARES HAS TO REACH THE INTERFACE.
+    ///
+    /// These three were missing, and it turned out to be the most expensive defect of the day. The
+    /// renderer reads the cell from `pet.atlas`, frame counts and rate from `pet.stateTimings` and
+    /// accessory points from `pet.anchors` — and this catalogue serialised none of them, so every
+    /// pack was drawn at the old default of 192x208 over 8 columns while the deck holds cells of
+    /// 208 to 322 and 16 to 18 frames. The owner saw frames drifting apart and animals cut off at
+    /// the edge; every fix to the packs changed nothing on screen, because the numbers never
+    /// reached the code that draws. It could only be seen in the real app: the dev bench reads
+    /// pet.json straight off disk, so the field never goes missing there.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    atlas: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    state_timings: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    anchors: Option<Value>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    sprite_version_number: Option<Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     care: Option<PetCare>,
     manifest_path: String,
@@ -169,6 +187,15 @@ struct PetManifest {
     changelog: Option<Vec<String>>,
     behavior: Option<PetBehaviorManifest>,
     care: Option<PetCareManifest>,
+    // Passed through to the interface as they are: there is nothing to parse here, and a field a
+    // pack builder adds later would otherwise be dropped in silence — which is exactly how atlas
+    // and stateTimings went missing.
+    atlas: Option<Value>,
+    #[serde(rename = "stateTimings")]
+    state_timings: Option<Value>,
+    anchors: Option<Value>,
+    #[serde(rename = "spriteVersionNumber")]
+    sprite_version_number: Option<Value>,
     #[serde(rename = "spritesheetPath")]
     spritesheet_path: Option<String>,
 }
@@ -385,6 +412,10 @@ fn normalize_pet_package(dir: &Path, source_kind: PetSourceKind) -> Result<PetPa
     )
     .unwrap_or_else(|| manifest.changelog.unwrap_or_default());
     let behavior = manifest.behavior.map(Into::into).unwrap_or_default();
+    let atlas = manifest.atlas;
+    let state_timings = manifest.state_timings;
+    let anchors = manifest.anchors;
+    let sprite_version_number = manifest.sprite_version_number;
     let care = match manifest.care {
         Some(care) => {
             let resolved = resolve_optional_asset(dir, &care.spritesheet_path, "care spritesheet")?;
@@ -422,6 +453,10 @@ fn normalize_pet_package(dir: &Path, source_kind: PetSourceKind) -> Result<PetPa
         tags,
         changelog,
         behavior,
+        atlas,
+        state_timings,
+        anchors,
+        sprite_version_number,
         care,
         manifest_path: manifest_path.display().to_string(),
         root: dir.display().to_string(),
@@ -773,6 +808,57 @@ mod tests {
         assert_eq!(behavior["natural"]["postDragState"], "review");
         assert_eq!(behavior["life"]["phases"][0]["id"], "active");
         assert_eq!(behavior["life"]["phases"][0]["from"], 10);
+    }
+
+    /// The geometry a pack declares must survive the trip to the interface.
+    ///
+    /// It did not, and that was the most expensive defect of the day. The renderer reads the cell
+    /// from `pet.atlas`, frame counts and rate from `pet.stateTimings`, accessory points from
+    /// `pet.anchors` — and this catalogue serialised none of them, so every pack was drawn at the
+    /// old default of 192x208 over 8 columns while the deck actually holds cells of 208 to 322 and
+    /// 16 to 18 frames. The owner saw frames drifting apart and animals cut off at the edge; each
+    /// fix to the packs changed nothing, because the numbers never reached the code that draws.
+    ///
+    /// A field silently dropped in the middle of a pipeline looks exactly like a field that was
+    /// never set, which is why this is a test and not a comment.
+    #[test]
+    fn geometry_reaches_the_interface() {
+        let root = temp_root().join("wide");
+        fs::create_dir_all(&root).expect("pet dir");
+        fs::write(
+            root.join("pet.json"),
+            br#"{"id":"wide","displayName":"Wide","spritesheetPath":"spritesheet.webp",
+                 "atlas":{"cellWidth":322,"cellHeight":208,"columns":18},
+                 "stateTimings":{"running-right":{"frames":18,"fps":22,"source":"walk"}},
+                 "anchors":{"head_top":{"x":50,"y":12,"scale":1,"rotate":0}},
+                 "spriteVersionNumber":1}"#,
+        )
+        .expect("manifest");
+        fs::write(root.join("spritesheet.webp"), b"not really an image").expect("sheet");
+
+        let pet = normalize_pet_package(&root, PetSourceKind::Bundled).expect("pet");
+        let value = serde_json::to_value(&pet).expect("serialise");
+
+        assert_eq!(
+            value["atlas"]["cellWidth"], 322,
+            "cell width must reach the interface"
+        );
+        assert_eq!(
+            value["atlas"]["columns"], 18,
+            "column count must reach the interface"
+        );
+        assert_eq!(
+            value["stateTimings"]["running-right"]["frames"], 18,
+            "declared frame count must reach the interface"
+        );
+        assert_eq!(
+            value["stateTimings"]["running-right"]["fps"], 22,
+            "declared frame rate must reach the interface"
+        );
+        assert_eq!(
+            value["anchors"]["head_top"]["y"], 12,
+            "accessory anchors must reach the interface"
+        );
     }
 
     #[test]
