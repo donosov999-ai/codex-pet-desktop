@@ -43,27 +43,34 @@ clipped in the real app.</p>
   const info = document.getElementById("info");
   let win = null;
 
-  function petStub() {
+  /// The REAL pack, not a hand-written stand-in.
+  ///
+  /// A stub only describes what its author remembered, and a forgotten field looks exactly like a
+  /// broken app: the first version of this page omitted the care config, #careActions came up
+  /// empty, and the care loop simply could not be exercised. Read pet.json off disk and add only
+  /// what Tauri would have supplied — convertFileSrc is what normally turns the packed paths into
+  /// loadable URLs, and without it the renderer falls back to the *Url fields.
+  async function realPet() {
+    const meta = await fetch("/resources/pets/biruzik/pet.json").then((r) => r.json());
     return {
-      id: "biruzik",
-      displayName: "Biruzik",
-      version: "1.0.3",
+      ...meta,
       sourceKind: "managed",
-      // Without Tauri's convertFileSrc the renderer falls back to the *Url fields, so the stub
-      // has to speak that half of the contract — a path alone leaves the sprite blank.
       spritesheetUrl: "/resources/pets/biruzik/spritesheet.webp",
-      care: { spritesheetUrl: "/resources/pets/biruzik/care-spritesheet.webp" },
-      spriteVersionNumber: 2,
-      behavior: { clickState: "waving", idleStates: ["idle"], wanderDirections: [0] }
+      care: { ...(meta.care || {}), spritesheetUrl: "/resources/pets/biruzik/care-spritesheet.webp" }
     };
   }
 
   function bridge(onResize) {
     return {
       getAppInfo: async () => ({ version: "0.0.0-preview" }),
-      getPreferences: async () => ({ scale: 0.9, autoWander: false, naturalLife: false, alwaysOnTop: false }),
+      // careCount is settable from the page so the restore path can be exercised: wipe local
+      // storage, say the pet was cared for N times, mount, and see what form comes back.
+      getPreferences: async () => ({
+        scale: 0.9, autoWander: false, naturalLife: false, alwaysOnTop: false,
+        careCount: Number(window.__careCount) || 0
+      }),
       savePreferences: async () => {},
-      listPets: async () => ({ pets: [petStub()], errors: [] }),
+      listPets: async () => ({ pets: [await realPet()], errors: [] }),
       getWindowState: async () => ({ alwaysOnTop: false }),
       setAlwaysOnTop: async () => {},
       setIgnoreMouseEvents: async () => {},

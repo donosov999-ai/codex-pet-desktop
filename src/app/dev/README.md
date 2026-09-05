@@ -61,3 +61,17 @@ say was the one moment it could not be read.
 ⚠️ The bench force-reloads the renderer's modules before each mount. Query strings on the tags in
 renderer.html do not reach modules those files import by relative path, and a run measuring the
 old growth layer against the new CSS reads as a fix that did not work.
+
+Restore after the webview's storage is wiped (`window.__careCount` sets the saved count, then
+clear local storage and mount):
+
+| acts of care | experience | level | promotion card |
+|--------------|------------|-------|----------------|
+| 0            | 0          | 1     | silent         |
+| 12           | 60         | 3     | silent         |
+| 40           | 200        | 5     | silent         |
+| 124          | 620        | 9     | silent         |
+
+The count is the truth and the engine's tally is a cache of it, so a cleared profile costs nothing.
+The card stays silent on a restore — it announces a form the pet has just reached, not one it
+already had.

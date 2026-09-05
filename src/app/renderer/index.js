@@ -276,7 +276,7 @@ async function init() {
     // NOT awaited: growth is decoration and must never delay a working pet. Boot continues, the
     // layer wires itself in when the engine has loaded, and `growthLayer?.record()` is a no-op
     // until then — an act of care during those milliseconds is still counted and saved.
-    attachGrowth({ host: dom.petEl, pet: state.activePet })
+    attachGrowth({ host: dom.petEl, pet: state.activePet, careCount: state.preferences.careCount })
       .then((layer) => { growthLayer = layer; })
       .catch(() => { growthLayer = null; });
   }

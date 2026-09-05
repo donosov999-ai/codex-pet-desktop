@@ -27,6 +27,10 @@
 // file's folder, and that relationship holds wherever the page lives.
 const ENGINE = new URL("../vendor/biryuzik.js", import.meta.url).href;
 
+/// Experience for one act of care. The ladder in the engine is [0, 20, 50, 90, 150, 230, 330,
+/// 460, 620], so at five apiece the last form arrives after 124 acts.
+const XP_PER_CARE = 5;
+
 /** Archetype decides which set of form names a pack uses. Packs may declare it; otherwise guess. */
 function archetypeOf(pet) {
   const declared = pet?.look || pet?.archetype || pet?.growth?.style;
@@ -107,7 +111,7 @@ function styles() {
  * `host` is the element the pet is drawn in. `pet` is the installed pack (for the archetype).
  * Returns `record()` — call it wherever an act of care happens — and `state()` for the settings UI.
  */
-export async function attachGrowth({ host, pet } = {}) {
+export async function attachGrowth({ host, pet, careCount = 0 } = {}) {
   const noop = { record: () => null, state: () => null, available: false };
   if (!host) return noop;
 
@@ -115,6 +119,28 @@ export async function attachGrowth({ host, pet } = {}) {
   if (!ready) return noop;
 
   const api = window.__ODVMASCOT;
+
+  // 🔴 THE COUNT OF CARE IS THE SINGLE SOURCE OF TRUTH, and the engine's tally is a cache of it.
+  //
+  // They live in different places: careCount is saved through the desktop bridge, the engine keeps
+  // its experience in the webview's local storage. Two stores drift. Clear the webview's data — a
+  // reinstall, a wiped profile, a different data directory — and the count survives while the
+  // experience resets, so someone who cared for the pet a hundred times is told he is a Wild one
+  // again. That is the kind of loss a person notices and cannot undo.
+  //
+  // So on attach the engine is brought in line with the count rather than trusted. Silent by
+  // construction: paint() is called with announce = false below, so a restore never fires the
+  // promotion card.
+  const expected = Math.max(0, Number(careCount) || 0) * XP_PER_CARE;
+  try {
+    const current = api.growth()?.xp || 0;
+    if (current !== expected) {
+      api.reset();
+      if (expected > 0) api.addXP(expected, "care");
+    }
+  } catch {
+    /* an engine that cannot report its own state is one we simply do not sync */
+  }
   const forms = api.FORMS?.[archetypeOf(pet)] || api.FORMS?.beast || [];
   styles();
 
@@ -162,7 +188,7 @@ export async function attachGrowth({ host, pet } = {}) {
   return {
     available: true,
     /** One act of care. Returns the new growth state, or null if the engine went away. */
-    record(amount = 5) {
+    record(amount = XP_PER_CARE) {
       try {
         api.addXP(amount, "care");
       } catch {
