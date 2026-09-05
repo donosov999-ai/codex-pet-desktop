@@ -56,8 +56,8 @@
     ],
     "natural": {
       "nextWanderDelayMs": [
-        8000,
-        16000
+        3000,
+        7000
       ],
       "idleDurationMs": [
         1400,

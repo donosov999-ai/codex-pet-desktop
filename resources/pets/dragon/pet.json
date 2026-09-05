@@ -52,12 +52,14 @@
       "review"
     ],
     "wanderDirections": [
+      -1,
+      1,
       0
     ],
     "natural": {
       "nextWanderDelayMs": [
-        8000,
-        16000
+        3000,
+        7000
       ],
       "idleDurationMs": [
         1400,
