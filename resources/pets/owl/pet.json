@@ -103,5 +103,25 @@
     "cellWidth": 204,
     "cellHeight": 208,
     "columns": 16
+  },
+  "anchors": {
+    "head_top": {
+      "x": 50.63,
+      "y": 30.05,
+      "scale": 1,
+      "rotate": 0
+    },
+    "eyes": {
+      "x": 48.86,
+      "y": 42.8,
+      "scale": 1,
+      "rotate": 0
+    },
+    "neck": {
+      "x": 49.94,
+      "y": 43.03,
+      "scale": 1,
+      "rotate": 0
+    }
   }
 }
