@@ -229,9 +229,10 @@ mod tests {
                     .and_then(serde_json::Value::as_u64)
                     .map_or(*default_frames, |value| value as u32);
                 for col in 0..frames {
-                    let bounds = visible_ink_bounds(&image, *row, col, cell_width).unwrap_or_else(|| {
-                        panic!("{pet_id} {state} frame {col} is visually blank")
-                    });
+                    let bounds =
+                        visible_ink_bounds(&image, *row, col, cell_width).unwrap_or_else(|| {
+                            panic!("{pet_id} {state} frame {col} is visually blank")
+                        });
                     assert!(
                         bounds.width >= 16 && bounds.height >= 16,
                         "{pet_id} {state} frame {col} is too small: {:?}",
