@@ -130,12 +130,19 @@ async function flush() {
 /// hour here separating it from a real regression.
 ///
 /// Bounded on purpose: a condition that never becomes true must fail the test, not hang it.
-async function waitFor(predicate, { rounds = 40 } = {}) {
+async function waitFor(predicate, { rounds = 60 } = {}) {
   for (let index = 0; index < rounds; index += 1) {
     if (predicate()) {
       return true;
     }
     await flush();
+    // ⚠️ AND REAL TIME, not just drained microtasks. flush() advances promises and immediates; it
+    // cannot advance anything waiting on the clock or on I/O. That difference is invisible on an
+    // idle machine and decisive under load: this test failed once in twenty on its own and twice
+    // in five inside the full suite, where forty node processes run back to back. The renderer's
+    // own timers are captured by the harness, so a real sleep here does not skip them — it only
+    // gives the runtime the room the assertions were assuming.
+    await new Promise((resolve) => setTimeout(resolve, 2));
   }
   return Boolean(predicate());
 }

@@ -251,7 +251,16 @@ async function assertAutoWanderGateKeepsClickActive() {
     process.exit(1);
   }
 
-  elements.get("#pet").click();
+  // The click is retried, not fired once. What is being asserted is that autoWander=false does
+  // not BLOCK a direct click — not that the click handler happens to be bound by the sixth flush.
+  // Binding order here is not deterministic, and a click landing before it produced state "",
+  // which the message below then reported as a blocked click: a diagnosis of something that had
+  // not happened. A click that is genuinely blocked never succeeds however often it is retried,
+  // so the assertion keeps its teeth.
+  await waitFor(() => {
+    elements.get("#pet").click();
+    return elements.get("#stateSelect").value === "waving";
+  });
   if (elements.get("#stateSelect").value !== "waving") {
     console.error(
       JSON.stringify({
