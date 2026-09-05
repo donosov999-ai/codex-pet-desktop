@@ -16,31 +16,40 @@
   "spritesheetPath": "spritesheet.webp",
   "stateTimings": {
     "idle": {
-      "fps": 4
+      "fps": 4,
+      "frames": 12
     },
     "running-right": {
-      "fps": 6
+      "fps": 6,
+      "frames": 18
     },
     "running-left": {
-      "fps": 6
+      "fps": 6,
+      "frames": 18
     },
     "running": {
-      "fps": 6
+      "fps": 6,
+      "frames": 18
     },
     "waiting": {
-      "fps": 4
+      "fps": 4,
+      "frames": 12
     },
     "review": {
-      "fps": 4
+      "fps": 4,
+      "frames": 12
     },
     "waving": {
-      "fps": 5
+      "fps": 5,
+      "frames": 16
     },
     "jumping": {
-      "fps": 6
+      "fps": 6,
+      "frames": 16
     },
     "failed": {
-      "fps": 5
+      "fps": 5,
+      "frames": 12
     }
   },
   "behavior": {
@@ -102,5 +111,10 @@
       "scale": 1,
       "rotate": 0
     }
+  },
+  "atlas": {
+    "cellWidth": 199,
+    "cellHeight": 208,
+    "columns": 18
   }
 }

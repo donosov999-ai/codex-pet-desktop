@@ -19,13 +19,16 @@
       "fps": 4
     },
     "running-right": {
-      "fps": 6
+      "fps": 6,
+      "frames": 18
     },
     "running-left": {
-      "fps": 6
+      "fps": 6,
+      "frames": 18
     },
     "running": {
-      "fps": 6
+      "fps": 6,
+      "frames": 18
     },
     "waiting": {
       "fps": 4
@@ -82,5 +85,10 @@
       "clickReturnState": "idle",
       "doubleClickReturnState": "idle"
     }
+  },
+  "atlas": {
+    "cellWidth": 192,
+    "cellHeight": 208,
+    "columns": 18
   }
 }
