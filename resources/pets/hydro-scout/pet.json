@@ -17,39 +17,48 @@
   "stateTimings": {
     "idle": {
       "fps": 10,
-      "frames": 12
+      "frames": 12,
+      "source": "drive"
     },
     "running-right": {
       "fps": 15,
-      "frames": 12
+      "frames": 12,
+      "source": "drive"
     },
     "running-left": {
       "fps": 15,
-      "frames": 12
+      "frames": 12,
+      "source": "drive"
     },
     "running": {
       "fps": 14,
-      "frames": 12
+      "frames": 12,
+      "source": "drive"
     },
     "waiting": {
       "fps": 10,
-      "frames": 12
+      "frames": 12,
+      "source": ""
     },
     "review": {
       "fps": 12,
-      "frames": 12
+      "frames": 12,
+      "source": ""
     },
     "waving": {
       "fps": 18,
-      "frames": 12
+      "frames": 12,
+      "source": ""
     },
     "jumping": {
       "fps": 19,
-      "frames": 12
+      "frames": 12,
+      "source": ""
     },
     "failed": {
       "fps": 9,
-      "frames": 12
+      "frames": 12,
+      "source": ""
     }
   },
   "behavior": {
@@ -111,7 +120,7 @@
     }
   },
   "atlas": {
-    "cellWidth": 219,
+    "cellWidth": 209,
     "cellHeight": 208,
     "columns": 12
   }
