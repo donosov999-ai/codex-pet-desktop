@@ -447,6 +447,14 @@ function stateTimingOverrides(raw, columns, missing = new Set()) {
     /// The cell the ACTIVE pack draws in. The window must be sized from this and not from the
     /// app-wide constant: a pack with a wider cell would otherwise be cropped by its own frame.
     geometry: () => ({ ...geometry }),
+    /// How long one walk cycle lasts for the active pack, in seconds.
+    ///
+    /// The wander loop needs it to move the pet at the speed its own legs are moving. Falls back to
+    /// the walk defaults when the pack declares nothing.
+    walkCycleSeconds: () => {
+      const walk = states["running-right"] || STATES["running-right"];
+      return Math.max(0.2, (walk.frames || 8) / (walk.fps || 10));
+    },
     getCareState,
     getCareStates,
     planAutonomousCare,

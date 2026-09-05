@@ -16,7 +16,7 @@
   "spritesheetPath": "spritesheet.webp",
   "stateTimings": {
     "idle": {
-      "fps": 5,
+      "fps": 2,
       "frames": 6,
       "source": "idle"
     },
@@ -36,27 +36,27 @@
       "source": ""
     },
     "waiting": {
-      "fps": 5,
+      "fps": 2,
       "frames": 6,
       "source": "idle"
     },
     "review": {
-      "fps": 6,
+      "fps": 3,
       "frames": 6,
       "source": "idle"
     },
     "waving": {
-      "fps": 24,
+      "fps": 13,
       "frames": 16,
       "source": "wave"
     },
     "jumping": {
-      "fps": 10,
+      "fps": 7,
       "frames": 6,
       "source": "idle"
     },
     "failed": {
-      "fps": 5,
+      "fps": 3,
       "frames": 6,
       "source": "idle"
     }

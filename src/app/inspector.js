@@ -24,7 +24,12 @@ const CELL_H = 208;
 const ALPHA = 16;
 
 const invoke = window.__TAURI__?.core?.invoke;
-const emit = window.__TAURI__?.event?.emit;
+/// Orders go through an app command, not through the event bus.
+///
+/// Emitting an event straight from this page did nothing at all: an app command is always callable,
+/// while emitting from a webview needs a permission this app never granted, and it fails without a
+/// word. Rust relays the order to the window the pet lives in.
+const order = (payload) => invoke?.("send_pet_order", { order: payload })?.catch?.(() => {});
 const convertFileSrc = window.__TAURI__?.core?.convertFileSrc;
 
 const el = {
@@ -306,7 +311,7 @@ function renderPack(report) {
       ${RU.lifeStates} <b>${(pet.behavior?.idleStates || []).map((id) => RU.stateName[id] || id).join(", ") || RU.none}</b></div>`;
   el.body.append(head);
   head.querySelector("#makeActive")?.addEventListener("click", () => {
-    emit?.("inspector:select-pet", { petId: pet.id });
+    order({ kind: "select", petId: pet.id });
     el.status.textContent = `${pet.displayName || pet.id}: ${RU.ordered}`;
   });
 
@@ -336,8 +341,8 @@ function renderPack(report) {
       order.textContent = RU.showOnPet;
       order.style.marginTop = "6px";
       order.addEventListener("click", () => {
-        emit?.("inspector:select-pet", { petId: pet.id });
-        emit?.("inspector:play-state", { state: entry.id, holdMs: 8000 });
+        order({ kind: "select", petId: pet.id });
+        order({ kind: "play", state: entry.id, holdMs: 8000 });
         el.status.textContent = `${RU.stateName[entry.id] || entry.id}: ${RU.ordered}`;
       });
       name.append(order);

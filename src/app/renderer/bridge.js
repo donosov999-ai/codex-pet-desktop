@@ -34,6 +34,12 @@ export function createDesktopBridge() {
   return {
     petDesktop,
     tauriConvertFileSrc,
+    listenInspectorOrder: (handler) => {
+      if (typeof tauriListen !== "function") {
+        return Promise.resolve(() => {});
+      }
+      return tauriListen("pet-desktop-inspector-order", (event) => handler(event.payload));
+    },
     listenTrayCommand: (handler) => {
       if (typeof tauriListen !== "function") {
         return Promise.resolve(() => {});

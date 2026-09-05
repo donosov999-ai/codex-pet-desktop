@@ -564,6 +564,20 @@ fn open_inspector(app: AppHandle<Wry>) -> Result<(), String> {
         .map_err(|error| error.to_string())
 }
 
+/// Carry an order from the pose inspector to the window the pet lives in.
+///
+/// The inspector first emitted the event straight from its own page, and nothing happened: an app
+/// command like this one is always callable, while emitting an event from a webview needs a
+/// permission this app never granted, and the failure is silent. Listening was never the problem —
+/// the tray already reaches the renderer the same way, from Rust. So the order takes that route:
+/// the inspector invokes a command, Rust emits to the main window, the renderer hears it as it
+/// hears everything else.
+#[tauri::command]
+fn send_pet_order(app: AppHandle<Wry>, order: serde_json::Value) -> Result<(), String> {
+    app.emit_to("main", "pet-desktop-inspector-order", order)
+        .map_err(|error| error.to_string())
+}
+
 #[tauri::command]
 fn quit(app: AppHandle<Wry>) {
     app.exit(0);
@@ -591,6 +605,7 @@ pub(crate) fn handler() -> impl Fn(tauri::ipc::Invoke<Wry>) -> bool + Send + Syn
         get_window_state,
         update_tray_state,
         open_inspector,
+        send_pet_order,
         quit
     ]
 }

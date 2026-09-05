@@ -16,47 +16,47 @@
   "spritesheetPath": "spritesheet.webp",
   "stateTimings": {
     "idle": {
-      "fps": 10,
+      "fps": 5,
       "frames": 12,
       "source": "drive"
     },
     "running-right": {
-      "fps": 15,
+      "fps": 10,
       "frames": 12,
       "source": "drive"
     },
     "running-left": {
-      "fps": 15,
+      "fps": 10,
       "frames": 12,
       "source": "drive"
     },
     "running": {
-      "fps": 14,
+      "fps": 8,
       "frames": 12,
       "source": "drive"
     },
     "waiting": {
-      "fps": 10,
+      "fps": 5,
       "frames": 12,
       "source": ""
     },
     "review": {
-      "fps": 12,
+      "fps": 5,
       "frames": 12,
       "source": ""
     },
     "waving": {
-      "fps": 18,
+      "fps": 10,
       "frames": 12,
       "source": ""
     },
     "jumping": {
-      "fps": 19,
+      "fps": 13,
       "frames": 12,
       "source": ""
     },
     "failed": {
-      "fps": 9,
+      "fps": 5,
       "frames": 12,
       "source": ""
     }

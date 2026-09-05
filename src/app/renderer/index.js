@@ -332,27 +332,25 @@ async function init() {
 
   /// Orders from the pose inspector.
   ///
-  /// The inspector is a second window, so it cannot call into this one directly; Tauri events are
-  /// the only channel. Two orders exist: switch to a pack, and hold a named state. Holding matters
-  /// more than it sounds — a state that lasts one wander tick cannot be examined, so the wander
-  /// loop is pushed out of the way for as long as the inspector asks.
-  const tauriEvent = window.__TAURI__?.event;
-  tauriEvent?.listen?.("inspector:select-pet", (message) => {
-    const id = message?.payload?.petId;
-    if (!id) return;
-    dom.petSelect.value = id;
-    petManager.pickPet(id);
-    savePreferences({ selectedPetId: id });
-  });
-  tauriEvent?.listen?.("inspector:play-state", (message) => {
-    const name = message?.payload?.state;
-    if (!name) return;
-    const heldForMs = Number(message?.payload?.holdMs) || 6000;
-    if (animation.setState(name)) {
-      interactions.holdState?.(heldForMs);
-      dom.stateSelect.value = name;
+  /// The inspector is a second window, so it cannot call into this one directly. It invokes an app
+  /// command and Rust emits here — the same road the tray already uses, and the only one that
+  /// works: emitting an event from the inspector's own page needs a permission this app does not
+  /// grant, and that failure is silent. Two orders exist: switch to a pack, and hold a named state.
+  /// Holding matters more than it sounds — a state that lasts one wander tick cannot be examined,
+  /// so the wander loop is pushed out of the way for as long as the inspector asks.
+  petDesktop?.listenInspectorOrder?.((payload) => {
+    if (payload?.kind === "select" && payload.petId) {
+      dom.petSelect.value = payload.petId;
+      petManager.pickPet(payload.petId);
+      savePreferences({ selectedPetId: payload.petId });
+      return;
+    }
+    if (payload?.kind === "play" && payload.state && animation.setState(payload.state)) {
+      interactions.holdState?.(Number(payload.holdMs) || 6000);
+      dom.stateSelect.value = payload.state;
     }
   });
+
   listenTrayCommand?.((payload) => {
     handleTrayCommand(payload).catch((error) => setPetStatus(error.message));
   });

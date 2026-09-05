@@ -24,6 +24,11 @@ export function createInteractions({
   let preferredNextDirection = 0;
   let mousePassthrough = null;
   let moveInFlight = false;
+  let lastMoveAt = 0;
+  let moveRemainder = 0;
+  // Share of its own width the pet covers in one walk cycle. Lower and it minces on the spot,
+  // higher and it skates. 0.55 was chosen by eye on the packs that have a real walk drawn.
+  const STRIDE_SHARE = 0.55;
   let panelVisibilityRevision = 0;
   const lifeEngine = createLifeEngine({
     behavior: state.activePet?.behavior,
@@ -261,7 +266,29 @@ export function createInteractions({
       !moveInFlight
     ) {
       moveInFlight = true;
-      Promise.resolve(petDesktop?.moveBy(wanderDirection, 0))
+      // 🔴 STEP BY TIME, NOT BY CALL.
+      //
+      // This was moveBy(direction, 0): exactly one pixel per round trip to the window, so the pet's
+      // speed was set by how fast the bridge answers rather than by how fast its legs move. On a
+      // quick machine that is a sprint, on a loaded one a crawl, and either way the feet live
+      // apart from the ground. The speed now comes from the pack's own walk cycle: one cycle
+      // carries the figure a fixed share of its width, so the planted foot looks planted. The
+      // fractional remainder is carried over, otherwise a sub-pixel step always rounds to zero and
+      // the pet never moves at all.
+      const nowMs = performance.now();
+      const seconds = lastMoveAt ? Math.min(0.12, (nowMs - lastMoveAt) / 1000) : 0.016;
+      lastMoveAt = nowMs;
+      const cell = animation.geometry?.() || {};
+      const bodyWidth = (cell.cellWidth || 192) * (Number(dom.scaleRange?.value) || 0.9);
+      const speed = (bodyWidth * STRIDE_SHARE) / animation.walkCycleSeconds();
+      moveRemainder += speed * seconds * wanderDirection;
+      const step = Math.trunc(moveRemainder);
+      moveRemainder -= step;
+      // ⚠️ NO EARLY RETURN HERE. The next frame is requested at the very end of this function, so a
+      // `return` on this branch would mean requestAnimationFrame is never called again: the pet
+      // freezes for good, and only on fast machines, where the step is most often below a pixel.
+      // A zero step therefore skips the move, it does not leave the loop.
+      Promise.resolve(step ? petDesktop?.moveBy(step, 0) : null)
         .then((bounds) => {
           if (bounds?.hitEdge === "left") {
             const behavior = refreshLifeEngine();
