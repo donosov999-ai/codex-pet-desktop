@@ -67,7 +67,8 @@
     "idleStates": [
       "idle",
       "waiting",
-      "failed"
+      "failed",
+      "running"
     ],
     "wanderDirections": [
       0

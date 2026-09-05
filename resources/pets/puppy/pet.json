@@ -31,9 +31,9 @@
       "source": "walk"
     },
     "running": {
-      "fps": 11,
-      "frames": 18,
-      "source": "walk"
+      "fps": 10,
+      "frames": 16,
+      "source": "play"
     },
     "waiting": {
       "fps": 6,
@@ -66,7 +66,8 @@
     "doubleClickState": "jumping",
     "idleStates": [
       "idle",
-      "jumping"
+      "jumping",
+      "running"
     ],
     "wanderDirections": [
       -1,

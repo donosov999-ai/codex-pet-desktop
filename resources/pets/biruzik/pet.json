@@ -32,7 +32,8 @@
       "waiting",
       "review",
       "failed",
-      "jumping"
+      "jumping",
+      "running"
     ],
     "wanderDirections": [
       -1,

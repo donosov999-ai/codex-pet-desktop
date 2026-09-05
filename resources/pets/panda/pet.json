@@ -31,9 +31,9 @@
       "source": "walk"
     },
     "running": {
-      "fps": 11,
-      "frames": 18,
-      "source": "walk"
+      "fps": 10,
+      "frames": 16,
+      "source": "eat"
     },
     "waiting": {
       "fps": 6,
@@ -68,7 +68,8 @@
       "idle",
       "waiting",
       "review",
-      "failed"
+      "failed",
+      "running"
     ],
     "wanderDirections": [
       -1,
@@ -110,8 +111,8 @@
       "rotate": 0
     },
     "eyes": {
-      "x": 48.94,
-      "y": 21.19,
+      "x": 48.93,
+      "y": 21.17,
       "scale": 1,
       "rotate": 0
     },

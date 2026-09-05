@@ -65,7 +65,8 @@
     "clickState": "waving",
     "doubleClickState": "jumping",
     "idleStates": [
-      "idle"
+      "idle",
+      "running"
     ],
     "wanderDirections": [
       -1,

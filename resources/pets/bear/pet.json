@@ -31,19 +31,19 @@
       "source": "walk"
     },
     "running": {
-      "fps": 11,
-      "frames": 18,
-      "source": "walk"
+      "fps": 6,
+      "frames": 9,
+      "source": "eat"
     },
     "waiting": {
-      "fps": 6,
-      "frames": 16,
-      "source": "sleep"
+      "fps": 3,
+      "frames": 9,
+      "source": "think"
     },
     "review": {
-      "fps": 7,
-      "frames": 15,
-      "source": "idle"
+      "fps": 3,
+      "frames": 7,
+      "source": "look"
     },
     "waving": {
       "fps": 13,
@@ -51,14 +51,14 @@
       "source": "wave"
     },
     "jumping": {
-      "fps": 17,
-      "frames": 15,
-      "source": "idle"
+      "fps": 8,
+      "frames": 7,
+      "source": "celebrate"
     },
     "failed": {
-      "fps": 7,
-      "frames": 16,
-      "source": "sleep"
+      "fps": 3,
+      "frames": 7,
+      "source": "sad"
     }
   },
   "behavior": {
@@ -67,7 +67,10 @@
     "idleStates": [
       "idle",
       "waiting",
-      "failed"
+      "review",
+      "failed",
+      "jumping",
+      "running"
     ],
     "wanderDirections": [
       -1,
@@ -103,26 +106,26 @@
   },
   "anchors": {
     "head_top": {
-      "x": 49.83,
-      "y": 12.74,
+      "x": 49.9,
+      "y": 14.66,
       "scale": 1,
       "rotate": 0
     },
     "eyes": {
-      "x": 49.44,
-      "y": 23.5,
+      "x": 49.38,
+      "y": 25.06,
       "scale": 1,
       "rotate": 0
     },
     "neck": {
-      "x": 49.62,
-      "y": 57.45,
+      "x": 49.59,
+      "y": 58.17,
       "scale": 1,
       "rotate": 0
     }
   },
   "atlas": {
-    "cellWidth": 202,
+    "cellWidth": 198,
     "cellHeight": 208,
     "columns": 18
   }
