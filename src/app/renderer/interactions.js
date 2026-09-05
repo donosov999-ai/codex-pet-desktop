@@ -129,7 +129,21 @@ export function createInteractions({
   }
 
   function setMousePassthrough(ignored) {
-    const nextIgnored = isWindowsRuntime() ? false : Boolean(ignored);
+    // 🔴 CLICK-THROUGH IS A ONE-WAY DOOR AND IS THEREFORE NOT ENTERED.
+    //
+    // set_ignore_cursor_events(true) makes the OS route every pointer event to whatever is behind
+    // the window, so the webview stops receiving mouse events entirely. The only code that turns
+    // it back off is updateMousePassthrough, which is driven by `document` mousemove — an event
+    // that can no longer arrive. index.js called setMousePassthrough(true) during boot, so on
+    // macOS the pet became unclickable and undraggable the moment the app started, for good.
+    // Windows was already exempted here; the exemption was the accident that kept it usable.
+    //
+    // Until the position of the cursor can be polled from Rust — the only source that works while
+    // the window is transparent to the pointer — the honest behaviour is the one Windows has: the
+    // window keeps its events, and the cost is that its rectangle catches clicks. A pet you cannot
+    // touch is worse than a small rectangle that catches them.
+    void ignored;
+    const nextIgnored = false;
     if (mousePassthrough === nextIgnored) {
       return;
     }
