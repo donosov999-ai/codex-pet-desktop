@@ -64,7 +64,7 @@ export const RU = {
     jumping: "прыжок",
     failed: "огорчение",
     waiting: "ожидание",
-    running: "бег",
+    running: "еда",
     review: "разглядывание"
   }
 };

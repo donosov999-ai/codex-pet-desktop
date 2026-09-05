@@ -23,6 +23,10 @@ export const STATE_LABELS = {
   jumping: "Jumping",
   failed: "Upset",
   waiting: "Waiting",
-  running: "Playing",
+  // Row 7 carries the eating animation now: as a movement state it was unreachable — wandering
+  // uses rows 1 and 2 — so it sat unused in every atlas, 11% of the sheet that never reached the
+  // screen. The row id stays for compatibility with packs already published; only what it shows
+  // has changed.
+  running: "Eating",
   review: "Watching"
 };
