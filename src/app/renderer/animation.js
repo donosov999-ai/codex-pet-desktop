@@ -233,6 +233,15 @@ export function createAnimation(dom) {
 /// with frames sampled out of a longer cycle, so at the built-in ten frames a second the gaps
 /// between phases read as jitter rather than motion. A pack may therefore state its own pace, and
 /// packs that say nothing keep the built-in one.
+function applyCellVariables({ cellWidth, cellHeight }) {
+  const root = typeof document === "undefined" ? null : document.documentElement;
+  if (!root?.style?.setProperty) {
+    return;
+  }
+  root.style.setProperty("--cell-width", `${cellWidth}px`);
+  root.style.setProperty("--cell-height", `${cellHeight}px`);
+}
+
 function stateTimingOverrides(raw, columns, missing = new Set()) {
   if (!raw || typeof raw !== "object") {
     return {};
@@ -245,9 +254,13 @@ function stateTimingOverrides(raw, columns, missing = new Set()) {
     }
     const next = { ...base };
     const fps = Number(timing?.fps);
-    // Below two frames a second motion turns into a slideshow, above twelve the eye cannot
-    // follow it - a pack asking for anything outside that is a mistake, not a style.
-    if (fps >= 2 && fps <= 12) {
+    // Below two frames a second motion turns into a slideshow. The upper bound used to be twelve,
+    // on the reasoning that the eye cannot follow more - which is false for animation (film runs
+    // at twenty-four) and was really a bound on THINNED art: at six frames per cycle, playing them
+    // faster only makes the gaps arrive sooner. With the full sixteen to eighteen frames the pack
+    // needs the higher rate to hold its cycle duration, and capping at twelve stretched a 0.8s
+    // walk to 1.5s - legs moving at half the speed the pet slides across the desk.
+    if (fps >= 2 && fps <= 24) {
       next.fps = fps;
     }
     // 🔴 A PACK MAY NOW SAY HOW MANY FRAMES ITS ROW HOLDS, and that is the point of this change.
@@ -290,6 +303,15 @@ function stateTimingOverrides(raw, columns, missing = new Set()) {
       cellHeight: positiveInteger(declared.cellHeight, CELL_HEIGHT),
       columns: positiveInteger(declared.columns, 8)
     };
+    // 🔴 THE CSS HAS TO LEARN THE CELL TOO, or the window is the only thing that grows.
+    //
+    // #pet is sized by --cell-width / --cell-height, and those were literals in renderer.css. The
+    // sheet was already being scaled correctly for a wide pack - background-size measured
+    // 5652x1872 for the wolf's 18 columns of 314 - but the element showing it stayed 192 wide, so
+    // every frame was cropped to its left 192 pixels. That is the "cut off sideways" complaint,
+    // and widening the window alone does not touch it: measured in the dev bench at slider 1.8,
+    // window 638 and pet still 192.
+    applyCellVariables(geometry);
     const spriteVersionNumber = positiveInteger(pet?.spriteVersionNumber, 1);
     const standardAtlasHeight = (spriteVersionNumber >= 2 ? 11 : 9) * CELL_HEIGHT;
     const missingStates = new Set();
