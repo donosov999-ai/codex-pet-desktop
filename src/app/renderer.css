@@ -557,3 +557,13 @@ button:disabled {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* The inspector button sits on the first panel tab on purpose.
+   It was first placed under "Updates", which is a different tab: the owner opened the panel, saw
+   Pet / Action / Size / Direction and reported there was no button at all. A debugging tool the
+   owner reaches for constantly belongs where the eye already is, not two tabs away. */
+.inspector-button {
+  width: 100%;
+  margin: 2px 0 6px;
+  font-weight: 600;
+}

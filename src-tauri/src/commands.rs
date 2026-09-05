@@ -543,14 +543,18 @@ fn update_tray_state(app: AppHandle<Wry>, state: TrayState) -> Result<(), String
 fn open_inspector(app: AppHandle<Wry>) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("inspector") {
         window.show().map_err(|error| error.to_string())?;
+        window.maximize().map_err(|error| error.to_string())?;
         window.set_focus().map_err(|error| error.to_string())?;
         return Ok(());
     }
     WebviewWindowBuilder::new(&app, "inspector", WebviewUrl::App("inspector.html".into()))
         .title("Biruzik — pose inspector")
-        .inner_size(1180.0, 840.0)
+        .inner_size(1440.0, 900.0)
         .min_inner_size(720.0, 480.0)
         .resizable(true)
+        // Opens maximised: the point of this window is to look at many rows of many packs at once,
+        // and a small default sends the owner straight to the zoom corner every single time.
+        .maximized(true)
         .decorations(true)
         .transparent(false)
         .always_on_top(false)
