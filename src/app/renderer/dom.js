@@ -39,6 +39,7 @@ export function getDomRefs() {
     checkPetpackUpdatesButton: document.querySelector("#checkPetpackUpdatesButton"),
     openDownloadsButton: document.querySelector("#openDownloadsButton"),
     openStoreButton: document.querySelector("#openStoreButton"),
+    openInspectorButton: document.querySelector("#openInspectorButton"),
     updateStatusEl: document.querySelector("#updateStatus"),
     appUpdateProgressEl: document.querySelector("#appUpdateProgress"),
     petStoreEl: document.querySelector("#storeSection"),

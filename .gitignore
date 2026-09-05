@@ -26,3 +26,6 @@ src-tauri/tauri.*.conf.json
 
 # graphify analysis output: a local artefact, not part of the app
 graphify-out/
+
+# generated debug bench for the inspector: a copy of inspector.html with a stubbed bridge
+src/app/dev/inspector-bench.html

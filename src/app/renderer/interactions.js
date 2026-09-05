@@ -619,9 +619,23 @@ export function createInteractions({
     });
   }
 
+  /// Keep the current state on screen for a while, for the pose inspector.
+  ///
+  /// Without this the inspector's order is overwritten by the next wander tick, often within a
+  /// second: the state does change, and the observer sees nothing. Pushing wanderUntil forward is
+  /// enough - the loop treats the pet as busy and leaves it alone until the hold expires.
+  function holdState(durationMs = 6000) {
+    wanderDirection = 0;
+    edgePaused = false;
+    activeCareState = "";
+    careUntil = 0;
+    wanderUntil = performance.now() + Math.max(500, durationMs);
+  }
+
   return {
     bind,
     hasActivePet,
+    holdState,
     playCareAction,
     scheduleWander,
     refreshLifeEngine,

@@ -21,29 +21,29 @@
       "source": "idle"
     },
     "running-right": {
-      "fps": 6,
-      "frames": 0,
-      "source": ""
+      "fps": 9,
+      "frames": 7,
+      "source": "walk"
     },
     "running-left": {
-      "fps": 6,
-      "frames": 0,
-      "source": ""
+      "fps": 9,
+      "frames": 7,
+      "source": "walk"
     },
     "running": {
-      "fps": 6,
-      "frames": 0,
-      "source": ""
+      "fps": 8,
+      "frames": 7,
+      "source": "walk"
     },
     "waiting": {
-      "fps": 15,
-      "frames": 18,
-      "source": "idle"
+      "fps": 6,
+      "frames": 7,
+      "source": "sleep"
     },
     "review": {
-      "fps": 18,
-      "frames": 18,
-      "source": "idle"
+      "fps": 7,
+      "frames": 7,
+      "source": "look"
     },
     "waving": {
       "fps": 24,
@@ -51,23 +51,29 @@
       "source": "wave"
     },
     "jumping": {
-      "fps": 24,
-      "frames": 18,
-      "source": "idle"
+      "fps": 11,
+      "frames": 7,
+      "source": "celebrate"
     },
     "failed": {
-      "fps": 14,
-      "frames": 18,
-      "source": "idle"
+      "fps": 5,
+      "frames": 7,
+      "source": "sad"
     }
   },
   "behavior": {
     "clickState": "waving",
     "doubleClickState": "jumping",
     "idleStates": [
-      "idle"
+      "idle",
+      "waiting",
+      "review",
+      "failed",
+      "jumping"
     ],
     "wanderDirections": [
+      -1,
+      1,
       0
     ],
     "natural": {

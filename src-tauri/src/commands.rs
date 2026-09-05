@@ -1,7 +1,7 @@
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use serde::Serialize;
 use std::{fs, path::Path, time::Duration};
-use tauri::{AppHandle, Emitter, Wry};
+use tauri::{AppHandle, Emitter, Manager, WebviewUrl, WebviewWindowBuilder, Wry};
 use tauri_plugin_opener::OpenerExt;
 
 use crate::{
@@ -532,6 +532,34 @@ fn update_tray_state(app: AppHandle<Wry>, state: TrayState) -> Result<(), String
         .map_err(|error| error.to_string())
 }
 
+/// Open the pose inspector in its own window.
+///
+/// The pet lives in a 250px transparent frame with no chrome, which is the worst place to judge an
+/// animation: rows the app rarely enters are never seen, a frame clipped at the cell edge looks
+/// like art, and a walk row secretly filled with idle frames looks like a pet that simply does not
+/// walk. Every defect found in this deck so far was found by opening the atlas. This gives that
+/// view a window of its own, so it can be done without leaving the app.
+#[tauri::command]
+fn open_inspector(app: AppHandle<Wry>) -> Result<(), String> {
+    if let Some(window) = app.get_webview_window("inspector") {
+        window.show().map_err(|error| error.to_string())?;
+        window.set_focus().map_err(|error| error.to_string())?;
+        return Ok(());
+    }
+    WebviewWindowBuilder::new(&app, "inspector", WebviewUrl::App("inspector.html".into()))
+        .title("Biruzik — pose inspector")
+        .inner_size(1180.0, 840.0)
+        .min_inner_size(720.0, 480.0)
+        .resizable(true)
+        .decorations(true)
+        .transparent(false)
+        .always_on_top(false)
+        .skip_taskbar(false)
+        .build()
+        .map(|_| ())
+        .map_err(|error| error.to_string())
+}
+
 #[tauri::command]
 fn quit(app: AppHandle<Wry>) {
     app.exit(0);
@@ -558,6 +586,7 @@ pub(crate) fn handler() -> impl Fn(tauri::ipc::Invoke<Wry>) -> bool + Send + Syn
         set_always_on_top,
         get_window_state,
         update_tray_state,
+        open_inspector,
         quit
     ]
 }

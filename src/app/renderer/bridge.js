@@ -12,6 +12,7 @@ export function createDesktopBridge() {
           savePreferences: (preferences) => tauriInvoke("save_preferences", { preferences }),
           downloadAndInstallAppUpdate: (url, fileName) => tauriInvoke("download_and_install_app_update", { url, fileName }),
           openDownloads: () => tauriInvoke("open_downloads"),
+          openInspector: () => tauriInvoke("open_inspector"),
           openDataDir: () => tauriInvoke("open_data_dir"),
           inspectPetpack: (data) => tauriInvoke("inspect_petpack", { data }),
           importPetpack: (data) => tauriInvoke("import_petpack", { data }),

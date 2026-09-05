@@ -17,6 +17,13 @@ const legalDocuments = new Set(["LICENSE"]);
 // Rewriting them here would make the copy differ from its source, which is exactly what a
 // vendored copy must never do. Changes go upstream; this directory only receives them.
 const vendorPrefix = "src/app/vendor/";
+// The pose inspector's UI strings are exempt for the same kind of reason the licence is: the rule
+// is about CODE and PRODUCT text. This repository is public, so comments, docs and anything a user
+// of the app reads must be readable by anyone. The inspector is neither — it is the owner's private
+// workbench for judging pet packs, used by one person, in that person's language. Its code,
+// comments and identifiers stay English; only the labels live in this one file, named so that the
+// exemption cannot quietly widen.
+const debugStrings = new Set(["src/app/inspector.strings.ru.js", "src/app/inspector.html"]);
 const nonEnglish = /[\u0400-\u04ff\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]/gu;
 const files = execFileSync("git", ["ls-files", "-z"], { cwd: root })
   .toString("utf8")
@@ -32,6 +39,9 @@ for (const relative of files) {
     continue;
   }
   if (relative.startsWith(vendorPrefix)) {
+    continue;
+  }
+  if (debugStrings.has(relative)) {
     continue;
   }
   const absolute = path.join(root, relative);
