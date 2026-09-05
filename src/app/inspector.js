@@ -60,11 +60,46 @@ function timingOf(pet, id, fallbackFrames) {
   return { frames, fps, source: timing.source ?? null };
 }
 
-function loadImage(url) {
+/// Load the atlas so that its pixels can be READ, not just drawn.
+///
+/// Drawing works either way; getImageData does not. In the app the atlas arrives over the asset://
+/// protocol, a different origin from the page, so the canvas it is drawn into becomes tainted and
+/// every pixel check throws SecurityError. Under the dev bench the sheet was served from the same
+/// origin, so this never showed there — the first run inside the real app reported exactly one
+/// finding on all 31 packs and drew nothing at all.
+///
+/// crossOrigin="anonymous" makes the request a CORS one, which the asset protocol answers, and the
+/// canvas stays readable. It is set before src on purpose: after src the flag is ignored.
+async function loadImage(url) {
+  // Preferred route: pull the bytes and turn them into a blob of our own. A blob URL is
+  // same-origin by definition, so the canvas it is drawn into stays readable no matter what
+  // headers the asset protocol sends. The CORS image below is the fallback for when fetch is
+  // refused; the plain image after that is the last resort, drawable but not readable.
+  try {
+    const blob = await fetch(url).then((response) => response.blob());
+    const objectUrl = URL.createObjectURL(blob);
+    const bitmap = await new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error("blob decode failed"));
+      image.src = objectUrl;
+    });
+    return bitmap;
+  } catch (error) {
+    // fall through to the image element
+  }
   return new Promise((resolve, reject) => {
     const image = new Image();
+    image.crossOrigin = "anonymous";
     image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error(`could not load ${url}`));
+    image.onerror = () => {
+      // Retry without CORS: the picture is still drawable, and a pack that renders with no checks
+      // is far more useful than an empty page with one error on it.
+      const plain = new Image();
+      plain.onload = () => resolve(plain);
+      plain.onerror = () => reject(new Error(`could not load ${url}`));
+      plain.src = url;
+    };
     image.src = url;
   });
 }
@@ -140,16 +175,30 @@ async function analyse(pet) {
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
   ctx.drawImage(image, 0, 0);
 
+  // Can the pixels be read at all? Ask once, cheaply, instead of letting the first check throw.
+  // When they cannot, the rows are still drawn and the checks are reported as unavailable — a pack
+  // shown without checks beats a blank page.
+  let readable = true;
+  try {
+    ctx.getImageData(0, 0, 1, 1);
+  } catch (error) {
+    readable = false;
+  }
+
   const rows = [];
   for (const [id, row, fallback] of STATE_ROWS) {
     const timing = timingOf(pet, id, fallback);
     const cells = [];
     for (let col = 0; col < timing.frames; col += 1) {
-      cells.push(col * geometry.cellWidth + geometry.cellWidth <= image.width
+      cells.push(readable && col * geometry.cellWidth + geometry.cellWidth <= image.width
         ? maskOf(ctx, geometry, row, col)
         : null);
     }
     rows.push({ id, row, timing, cells });
+  }
+
+  if (!readable) {
+    return { pet, geometry, image, rows, issues: [{ level: "warn", text: RU.issue.notReadable }] };
   }
 
   const idle = rows[0].cells.filter(Boolean);
@@ -238,6 +287,11 @@ let timer = null;
 
 function renderPack(report) {
   const { pet, geometry, image, rows, issues } = report;
+  if (!image) {
+    el.body.innerHTML = `<h2>${pet.displayName || pet.id}</h2>`
+      + `<div class="issues"><span class="bad">${issues[0]?.text || RU.issue.notReadable}</span></div>`;
+    return;
+  }
   const zoom = Number(el.zoom.value);
   el.body.innerHTML = "";
 
