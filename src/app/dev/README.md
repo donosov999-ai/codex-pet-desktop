@@ -91,3 +91,18 @@ stay bare on purpose: a guessed position puts a scarf across the face.
 ⚠️ The bench re-fetches `pet.json` with `cache: "reload"` as well as the modules. Anchors were
 written into the pack and the first run still reported none, because the browser served the file
 it already had.
+
+Anchors across the deck, judged from the measurement sheets one pack at a time:
+
+- **written (22)**: biruzik, panda, typerighting, alien, asibots, bear, bug, crystal, dragon, fox,
+  fydao, ghost, hamster, hedgehog, hydro-scout, mushroom, penguin, phoenix, puppy, star, valya,
+  wolf.
+- **left bare (10)**: axolotl, biryuzik-real, grovi, hydro-droid, hydro-ovo, hydro-pump,
+  hydro-walker, owl, slime, unicorn. On these the measurement puts the eye line above the eyes —
+  round bodies with no distinct head (slime, grovi), a creature drawn lying down (axolotl),
+  machines whose "head" is a module the silhouette does not separate (the hydro units), and owl
+  and unicorn where a heavy brow or forelock outranks the eyes. They wear nothing until measured
+  properly, which is the honest state: a guessed anchor puts a scarf across the face.
+
+Confirmed on the real renderer, not just on sheets: fox at 40 acts of care wears the hat at 18.3%,
+glasses at 38.8% and scarf at 54.9% — its own numbers, not the cat's.

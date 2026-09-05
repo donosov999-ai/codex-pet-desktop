@@ -80,5 +80,25 @@
       "clickReturnState": "idle",
       "doubleClickReturnState": "idle"
     }
+  },
+  "anchors": {
+    "head_top": {
+      "x": 51.31,
+      "y": 17.07,
+      "scale": 1,
+      "rotate": 0
+    },
+    "eyes": {
+      "x": 50.41,
+      "y": 30.64,
+      "scale": 1,
+      "rotate": 0
+    },
+    "neck": {
+      "x": 50.7,
+      "y": 43.08,
+      "scale": 1,
+      "rotate": 0
+    }
   }
 }
