@@ -248,7 +248,7 @@ function renderPack(report) {
     <div class="meta">${RU.cell} <b>${geometry.cellWidth}×${geometry.cellHeight}</b> ·
       ${RU.columns} <b>${geometry.columns}</b> · ${RU.atlas} <b>${image.width}×${image.height}</b> ·
       ${RU.version} <b>${pet.version || "?"}</b> ·
-      ${RU.wander} <b>${walks ? "да" : "нет"}</b> ·
+      ${RU.wander} <b>${walks ? RU.yes : RU.no}</b> ·
       ${RU.lifeStates} <b>${(pet.behavior?.idleStates || []).map((id) => RU.stateName[id] || id).join(", ") || RU.none}</b></div>`;
   el.body.append(head);
   head.querySelector("#makeActive")?.addEventListener("click", () => {
