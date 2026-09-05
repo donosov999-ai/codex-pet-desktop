@@ -23,3 +23,6 @@ src-tauri/target/
 src-tauri/generated/
 src-tauri/gen/
 src-tauri/tauri.*.conf.json
+
+# graphify analysis output: a local artefact, not part of the app
+graphify-out/

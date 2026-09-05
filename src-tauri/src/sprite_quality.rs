@@ -64,17 +64,27 @@ mod tests {
         }
     }
 
-    fn visible_ink_bounds(image: &image::RgbaImage, row: u32, col: u32) -> Option<Bounds> {
-        let x0 = col * CELL_WIDTH;
+    /// The scan window must be the pack's cell, not the app-wide constant.
+    ///
+    /// With a 314px cell and a 192px window the scan only ever saw the left half of a frame:
+    /// nothing was found for centred poses, and the bounds arithmetic underflowed. The cell is a
+    /// property of the pack now, so every reader of the atlas has to be told which one it is.
+    fn visible_ink_bounds(
+        image: &image::RgbaImage,
+        row: u32,
+        col: u32,
+        cell_width: u32,
+    ) -> Option<Bounds> {
+        let x0 = col * cell_width;
         let y0 = row * CELL_HEIGHT;
-        let mut left = CELL_WIDTH;
+        let mut left = cell_width;
         let mut top = CELL_HEIGHT;
         let mut right = 0;
         let mut bottom = 0;
         let mut count = 0;
 
         for y in 0..CELL_HEIGHT {
-            for x in 0..CELL_WIDTH {
+            for x in 0..cell_width {
                 let [red, green, blue, alpha] = image.get_pixel(x0 + x, y0 + y).0;
                 let near_white = red > 245 && green > 245 && blue > 245;
                 if alpha <= 16 || near_white {
@@ -88,10 +98,36 @@ mod tests {
             }
         }
 
-        (count >= 120).then_some(Bounds {
+        // right/left stay untouched when nothing was found, so guard the subtraction rather than
+        // trusting the count: a frame can hold ink outside the window we were told to scan.
+        if count < 120 || right <= left || bottom <= top {
+            return None;
+        }
+        Some(Bounds {
             width: right - left,
             height: bottom - top,
         })
+    }
+
+    /// The cell a pack draws in, taken from its own manifest.
+    ///
+    /// These checks used to assert CELL_WIDTH * 8 outright. That constant is one of the reasons
+    /// the four-legged packs shipped cropped: a wolf in profile needs a 314px cell and a fox 297,
+    /// and the art was cut down to 192 so that this assertion would pass. A gate that enforces the
+    /// cause of a defect is worse than no gate. A pack that declares `atlas` is measured against
+    /// what it declares — the same field the renderer reads — and a pack that declares nothing is
+    /// still held to the old geometry.
+    fn declared_cell(manifest: &serde_json::Value) -> (u32, u32) {
+        let atlas = manifest.get("atlas");
+        let width = atlas
+            .and_then(|a| a.get("cellWidth"))
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(CELL_WIDTH as u64) as u32;
+        let columns = atlas
+            .and_then(|a| a.get("columns"))
+            .and_then(serde_json::Value::as_u64)
+            .unwrap_or(8) as u32;
+        (width, columns)
     }
 
     #[test]
@@ -101,10 +137,16 @@ mod tests {
     /// which reads as a glitch rather than a gesture.
     fn click_action_keeps_idle_body_proportions() {
         let path = repo_root().join("resources/pets/grovi/spritesheet.webp");
+        let manifest: serde_json::Value = serde_json::from_str(
+            &std::fs::read_to_string(repo_root().join("resources/pets/grovi/pet.json"))
+                .expect("read grovi pet.json"),
+        )
+        .expect("parse grovi pet.json");
+        let (cell_width, columns) = declared_cell(&manifest);
         let image = image::open(&path)
             .unwrap_or_else(|error| panic!("open {}: {error}", path.display()))
             .to_rgba8();
-        assert_eq!(image.dimensions(), (CELL_WIDTH * 8, CELL_HEIGHT * 9));
+        assert_eq!(image.dimensions(), (cell_width * columns, CELL_HEIGHT * 9));
 
         let idle = alpha_bounds(&image, 0, 0);
         for col in 0..4 {
@@ -160,9 +202,10 @@ mod tests {
             let image = image::open(&path)
                 .unwrap_or_else(|error| panic!("open {}: {error}", path.display()))
                 .to_rgba8();
+            let (cell_width, columns) = declared_cell(&manifest);
             assert_eq!(
                 image.dimensions(),
-                (CELL_WIDTH * 8, CELL_HEIGHT * expected_rows),
+                (cell_width * columns, CELL_HEIGHT * expected_rows),
                 "{pet_id} atlas dimensions"
             );
 
@@ -171,9 +214,22 @@ mod tests {
             } else {
                 &[]
             };
-            for (state, row, frames) in STATES.iter().chain(extra_states) {
-                for col in 0..*frames {
-                    let bounds = visible_ink_bounds(&image, *row, col).unwrap_or_else(|| {
+            // Take the frame count from where the app takes it: the pack's stateTimings.
+            //
+            // The gate used to walk a list of its own with the counts baked in. That agreed with
+            // reality only while every pack was identical; since the cell and the frame count
+            // became pack properties the list was wrong in both directions - it checked cells a
+            // pack does not have and skipped the ones it declared. Zero means "no art for this
+            // state": the app never enters it, so there is nothing here to check.
+            for (state, row, default_frames) in STATES.iter().chain(extra_states) {
+                let frames = manifest
+                    .get("stateTimings")
+                    .and_then(|t| t.get(state))
+                    .and_then(|t| t.get("frames"))
+                    .and_then(serde_json::Value::as_u64)
+                    .map_or(*default_frames, |value| value as u32);
+                for col in 0..frames {
+                    let bounds = visible_ink_bounds(&image, *row, col, cell_width).unwrap_or_else(|| {
                         panic!("{pet_id} {state} frame {col} is visually blank")
                     });
                     assert!(

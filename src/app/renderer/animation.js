@@ -233,7 +233,7 @@ export function createAnimation(dom) {
 /// with frames sampled out of a longer cycle, so at the built-in ten frames a second the gaps
 /// between phases read as jitter rather than motion. A pack may therefore state its own pace, and
 /// packs that say nothing keep the built-in one.
-function stateTimingOverrides(raw, columns) {
+function stateTimingOverrides(raw, columns, missing = new Set()) {
   if (!raw || typeof raw !== "object") {
     return {};
   }
@@ -259,6 +259,16 @@ function stateTimingOverrides(raw, columns) {
     if (Number.isInteger(frames) && frames >= 1 && frames <= columns) {
       next.frames = frames;
     }
+    // 🔴 ZERO IS NOT "USE THE DEFAULT", IT IS "THIS PACK HAS NO ART FOR THIS STATE".
+    // Seventeen packs have no walk drawn anywhere. Filling the walk row with copies of the idle
+    // pose made them glide across the desk without moving their legs, which reads as a broken pet
+    // rather than a missing animation - so the builder now leaves the row empty and says frames: 0.
+    // Honouring that here is what keeps the app out of a row it would draw as a blank rectangle.
+    // Idle is never removable: it is the fallback every other state returns to.
+    if (frames === 0 && id !== "idle") {
+      missing.add(id);
+      continue;
+    }
     if (next.fps !== base.fps || next.frames !== base.frames) {
       overrides[id] = next;
     }
@@ -282,7 +292,22 @@ function stateTimingOverrides(raw, columns) {
     };
     const spriteVersionNumber = positiveInteger(pet?.spriteVersionNumber, 1);
     const standardAtlasHeight = (spriteVersionNumber >= 2 ? 11 : 9) * CELL_HEIGHT;
-    states = { ...STATES, ...stateTimingOverrides(pet?.stateTimings, geometry.columns), ...careConfig.states };
+    const missingStates = new Set();
+    states = {
+      ...STATES,
+      ...stateTimingOverrides(pet?.stateTimings, geometry.columns, missingStates),
+      ...careConfig.states
+    };
+    // A state the pack has no art for is removed outright, so setState() refuses it and every
+    // caller - the wander loop, the autonomous picker, the state dropdown - stops offering it.
+    for (const id of missingStates) {
+      if (!careConfig.states[id]) {
+        delete states[id];
+      }
+    }
+    if (!states[stateName]) {
+      stateName = "idle";
+    }
     stateLabels = {
       ...STATE_LABELS,
       ...Object.fromEntries(Object.entries(careConfig.states).map(([id, state]) => [id, state.label]))
