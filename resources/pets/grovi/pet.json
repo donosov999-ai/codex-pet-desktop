@@ -46,8 +46,8 @@
       "source": "look"
     },
     "waving": {
-      "fps": 7,
-      "frames": 8,
+      "fps": 6,
+      "frames": 7,
       "source": "wave"
     },
     "jumping": {
