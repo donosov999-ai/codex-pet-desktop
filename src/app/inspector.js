@@ -44,13 +44,7 @@ const el = {
   showCell: document.getElementById("showCell"),
   onlyProblems: document.getElementById("onlyProblems"),
   status: document.getElementById("status"),
-  reportButton: document.getElementById("reportButton"),
-  reportBox: document.getElementById("reportBox"),
-  reportTitle: document.getElementById("reportTitle"),
-  reportHint: document.getElementById("reportHint"),
-  reportText: document.getElementById("reportText"),
-  reportSend: document.getElementById("reportSend"),
-  reportCancel: document.getElementById("reportCancel")
+  reportButton: document.getElementById("reportButton")
 };
 
 const state = { pets: [], reports: new Map(), current: "", playing: true, manualFrame: null };
@@ -513,6 +507,10 @@ el.stepBack.addEventListener("click", () => {
 function wireBugfix() {
   window.BugfixApp?.init({
   project: "mascot",
+  // The module takes its language from <html lang> and falls back to English. The page is Russian,
+  // so the tag says so now — and this says it outright, because a page that changes its declared
+  // language later must not silently change the report form under the owner.
+  lang: "ru",
   version: state.appVersion || "?",
   button: false,
   screen: () => `inspector:${state.current || "-"}`,
@@ -538,22 +536,14 @@ function wireBugfix() {
   });
 }
 
-el.reportTitle.textContent = RU.reportTitle;
-el.reportHint.textContent = RU.reportHint;
-el.reportSend.textContent = RU.reportSend;
-el.reportCancel.textContent = RU.reportCancel;
+/// The module's own form, not one of my own.
+///
+/// It was wired headless at first, with a plain textarea beside it — which threw away exactly the
+/// things the module was vendored for: the Bug / Idea / Unclear choice, a contact field for the
+/// reply, the attach-screenshot box and voice recording. The owner checked for those and found
+/// them missing. The button here stays because it belongs next to the evidence; what it opens is
+/// the shared form.
 el.reportButton.textContent = RU.report;
-el.reportButton.addEventListener("click", () => {
-  el.reportText.value = "";
-  el.reportBox.showModal();
-});
-el.reportSend.addEventListener("click", async () => {
-  const message = el.reportText.value.trim();
-  if (!message) { el.reportText.focus(); el.status.textContent = RU.reportEmpty; return; }
-  el.reportBox.close();
-  el.status.textContent = RU.reportSending;
-  const sent = await window.BugfixApp?.send("bug", message);
-  el.status.textContent = sent ? RU.reportDone : RU.reportQueued;
-});
+el.reportButton.addEventListener("click", () => window.BugfixApp?.open?.());
 
 boot();
