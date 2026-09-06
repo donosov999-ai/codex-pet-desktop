@@ -1,5 +1,5 @@
 import { RU } from "./inspector.strings.ru.js";
-import { appContext, sendReport, uploadShot } from "./bug-report.js";
+import "./vendor/bugfix-app.js";
 
 /// Pose inspector: shows every state row of every pack the way the app reads the atlas.
 ///
@@ -435,6 +435,7 @@ function renderPack(report) {
 
 async function select(id) {
   state.current = id;
+  window.BugfixApp?.step?.("screen", `pack:${id}`);
   state.manualFrame = null;
   renderPackList();
   const report = state.reports.get(id);
@@ -447,6 +448,7 @@ async function boot() {
     return;
   }
   state.appVersion = (await invoke("get_app_info").catch(() => null))?.version || "?";
+  wireBugfix();
   const list = await invoke("list_pets");
   state.pets = (list.pets || []).map((pet) => ({
     ...pet,
@@ -496,10 +498,46 @@ el.stepBack.addEventListener("click", () => {
 
 /// Reporting a bug from the place where the evidence already is.
 ///
-/// The report carries the pack being looked at, the cell it declares, the frame count and rate of
-/// every row, whether it walks, and the full list of findings — the numbers that turned out to
-/// matter far more than a picture. A screenshot of the sheet is attached too, because the eye
-/// catches what no check was written for.
+/// The report itself is built by the shared in-app module (APP_BUILD_RULES §3.1), vendored beside
+/// this file. It was written for exactly this case and carries what a hand-rolled reporter does
+/// not: an offline queue that flushes when the machine comes back, a dedup key so five taps make
+/// one ticket, twenty breadcrumbs, session uptime, the version the app updated from, the WebView
+/// build, and voice. This page only supplies the three contract functions — where the person was,
+/// which build of this screen they were on, and what the app knows about the pack in front of them.
+///
+/// ⚠️ I wrote my own reporter first and had to throw it away. The module was already documented in
+/// the app canon; I did not look there. What survived the move is the context below — the numbers
+/// that turned out to matter more than a screenshot.
+/// ⚠️ Wired from inside boot, not at module load: the app version arrives over a separate call, and
+/// an init on the top level would stamp every report with "?".
+function wireBugfix() {
+  window.BugfixApp?.init({
+  project: "mascot",
+  version: state.appVersion || "?",
+  button: false,
+  screen: () => `inspector:${state.current || "-"}`,
+  module: () => ({ id: "pose-inspector", ver: "VER 1 · 06.09.2026" }),
+  context: () => {
+    const report = state.reports.get(state.current);
+    if (!report) return { pack: null };
+    return {
+      pack: report.pet.id,
+      packVersion: report.pet.version,
+      cell: `${report.geometry.cellWidth}x${report.geometry.cellHeight}`,
+      columns: report.geometry.columns,
+      walks: (report.pet.behavior?.wanderDirections || []).some((value) => value !== 0),
+      lifeStates: report.pet.behavior?.idleStates || [],
+      rows: report.rows.map((entry) => ({
+        state: entry.id, frames: entry.timing.frames, fps: entry.timing.fps,
+        source: entry.timing.source, poseDistance: entry.distance ?? null,
+        heightSpread: entry.spread ?? null
+      })),
+      findings: report.issues.map((issue) => `${issue.level}: ${issue.text}`)
+    };
+  }
+  });
+}
+
 el.reportTitle.textContent = RU.reportTitle;
 el.reportHint.textContent = RU.reportHint;
 el.reportSend.textContent = RU.reportSend;
@@ -514,40 +552,8 @@ el.reportSend.addEventListener("click", async () => {
   if (!message) { el.reportText.focus(); el.status.textContent = RU.reportEmpty; return; }
   el.reportBox.close();
   el.status.textContent = RU.reportSending;
-  const report = state.reports.get(state.current);
-  try {
-    let shotPath = null;
-    if (report?.image) {
-      // The first row of the pack, at real size: enough to see the defect, small enough to send.
-      const canvas = document.createElement("canvas");
-      const g = report.geometry;
-      const columns = Math.min(report.rows[0]?.timing.frames || 1, 8);
-      canvas.width = g.cellWidth * columns;
-      canvas.height = g.cellHeight;
-      canvas.getContext("2d").drawImage(report.image, 0, 0, canvas.width, canvas.height,
-                                        0, 0, canvas.width, canvas.height);
-      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
-      if (blob) shotPath = await uploadShot(blob, report.pet.id);
-    }
-    await sendReport({
-      message,
-      shotPath,
-      context: appContext({
-        appInfo: { version: state.appVersion },
-        pet: report?.pet,
-        geometry: report?.geometry,
-        states: report?.rows?.map((entry) => ({
-          state: entry.id, frames: entry.timing.frames, fps: entry.timing.fps,
-          source: entry.timing.source, poseDistance: entry.distance ?? null,
-          heightSpread: entry.spread ?? null
-        })),
-        findings: report?.issues?.map((issue) => `${issue.level}: ${issue.text}`)
-      })
-    });
-    el.status.textContent = RU.reportDone;
-  } catch (error) {
-    el.status.textContent = RU.reportFailed(error.message);
-  }
+  const sent = await window.BugfixApp?.send("bug", message);
+  el.status.textContent = sent ? RU.reportDone : RU.reportQueued;
 });
 
 boot();
