@@ -31,19 +31,19 @@
       "source": "walk"
     },
     "running": {
-      "fps": 10,
-      "frames": 16,
-      "source": "walk"
+      "fps": 4,
+      "frames": 7,
+      "source": "eat"
     },
     "waiting": {
-      "fps": 6,
-      "frames": 16,
-      "source": "sleep"
+      "fps": 3,
+      "frames": 7,
+      "source": "think"
     },
     "review": {
-      "fps": 7,
-      "frames": 16,
-      "source": "idle"
+      "fps": 3,
+      "frames": 7,
+      "source": "look"
     },
     "waving": {
       "fps": 13,
@@ -51,14 +51,14 @@
       "source": "wave"
     },
     "jumping": {
-      "fps": 18,
-      "frames": 16,
-      "source": "idle"
+      "fps": 8,
+      "frames": 7,
+      "source": "celebrate"
     },
     "failed": {
-      "fps": 7,
-      "frames": 16,
-      "source": "sleep"
+      "fps": 3,
+      "frames": 7,
+      "source": "sad"
     }
   },
   "behavior": {
@@ -67,7 +67,9 @@
     "idleStates": [
       "idle",
       "waiting",
+      "review",
       "failed",
+      "jumping",
       "running"
     ],
     "wanderDirections": [
@@ -113,7 +115,7 @@
       "rotate": 0
     },
     "eyes": {
-      "x": 48.86,
+      "x": 48.87,
       "y": 42.8,
       "scale": 1,
       "rotate": 0

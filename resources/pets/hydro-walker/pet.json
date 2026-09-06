@@ -16,9 +16,9 @@
   "spritesheetPath": "spritesheet.webp",
   "stateTimings": {
     "idle": {
-      "fps": 6,
-      "frames": 16,
-      "source": "wave"
+      "fps": 3,
+      "frames": 7,
+      "source": "think"
     },
     "running-right": {
       "fps": 14,
@@ -31,19 +31,19 @@
       "source": "walk"
     },
     "running": {
-      "fps": 11,
-      "frames": 18,
-      "source": "walk"
+      "fps": 4,
+      "frames": 7,
+      "source": "eat"
     },
     "waiting": {
-      "fps": 6,
-      "frames": 16,
-      "source": ""
+      "fps": 3,
+      "frames": 7,
+      "source": "think"
     },
     "review": {
-      "fps": 7,
-      "frames": 16,
-      "source": ""
+      "fps": 3,
+      "frames": 7,
+      "source": "look"
     },
     "waving": {
       "fps": 13,
@@ -51,14 +51,14 @@
       "source": "wave"
     },
     "jumping": {
-      "fps": 18,
-      "frames": 16,
-      "source": ""
+      "fps": 8,
+      "frames": 7,
+      "source": "celebrate"
     },
     "failed": {
-      "fps": 7,
-      "frames": 16,
-      "source": ""
+      "fps": 3,
+      "frames": 7,
+      "source": "sad"
     }
   },
   "behavior": {
@@ -66,6 +66,9 @@
     "doubleClickState": "jumping",
     "idleStates": [
       "idle",
+      "review",
+      "failed",
+      "jumping",
       "running"
     ],
     "wanderDirections": [
@@ -102,20 +105,20 @@
   },
   "anchors": {
     "head_top": {
-      "x": 47.94,
-      "y": 9.86,
+      "x": 49.91,
+      "y": 10.1,
       "scale": 1,
       "rotate": 0
     },
     "eyes": {
-      "x": 41.48,
-      "y": 20.66,
+      "x": 48.25,
+      "y": 23.38,
       "scale": 1,
       "rotate": 0
     },
     "neck": {
-      "x": 45.84,
-      "y": 24.52,
+      "x": 48.5,
+      "y": 34.86,
       "scale": 1,
       "rotate": 0
     }

@@ -33,12 +33,12 @@
     "running": {
       "fps": 4,
       "frames": 7,
-      "source": "walk"
+      "source": "eat"
     },
     "waiting": {
       "fps": 3,
       "frames": 7,
-      "source": "sleep"
+      "source": "think"
     },
     "review": {
       "fps": 3,

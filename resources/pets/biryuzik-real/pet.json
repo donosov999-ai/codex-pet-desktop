@@ -17,8 +17,8 @@
   "stateTimings": {
     "idle": {
       "fps": 3,
-      "frames": 8,
-      "source": "walk"
+      "frames": 7,
+      "source": "think"
     },
     "running-right": {
       "fps": 6,
@@ -31,41 +31,45 @@
       "source": "walk"
     },
     "running": {
-      "fps": 5,
-      "frames": 8,
-      "source": "walk"
+      "fps": 4,
+      "frames": 7,
+      "source": "eat"
     },
     "waiting": {
       "fps": 3,
-      "frames": 8,
-      "source": ""
+      "frames": 7,
+      "source": "think"
     },
     "review": {
-      "fps": 4,
-      "frames": 8,
-      "source": ""
+      "fps": 3,
+      "frames": 7,
+      "source": "look"
     },
     "waving": {
-      "fps": 7,
-      "frames": 8,
+      "fps": 6,
+      "frames": 7,
       "source": ""
     },
     "jumping": {
-      "fps": 9,
-      "frames": 8,
-      "source": ""
+      "fps": 8,
+      "frames": 7,
+      "source": "celebrate"
     },
     "failed": {
-      "fps": 4,
-      "frames": 8,
-      "source": ""
+      "fps": 3,
+      "frames": 7,
+      "source": "sad"
     }
   },
   "behavior": {
     "clickState": "waving",
     "doubleClickState": "jumping",
     "idleStates": [
-      "idle"
+      "idle",
+      "review",
+      "failed",
+      "jumping",
+      "running"
     ],
     "wanderDirections": [
       -1,
@@ -100,26 +104,26 @@
     }
   },
   "atlas": {
-    "cellWidth": 293,
+    "cellWidth": 202,
     "cellHeight": 208,
     "columns": 8
   },
   "anchors": {
     "head_top": {
-      "x": 65.61,
-      "y": 28.37,
+      "x": 53.18,
+      "y": 14.66,
       "scale": 1,
       "rotate": 0
     },
     "eyes": {
-      "x": 53.86,
-      "y": 57.61,
+      "x": 60.66,
+      "y": 31.95,
       "scale": 1,
       "rotate": 0
     },
     "neck": {
-      "x": 54.93,
-      "y": 77.38,
+      "x": 50.85,
+      "y": 43.51,
       "scale": 1,
       "rotate": 0
     }

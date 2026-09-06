@@ -38,7 +38,7 @@
     "waiting": {
       "fps": 3,
       "frames": 7,
-      "source": "sleep"
+      "source": "think"
     },
     "review": {
       "fps": 3,
@@ -106,26 +106,26 @@
   },
   "anchors": {
     "head_top": {
-      "x": 50.33,
+      "x": 50.36,
       "y": 11.54,
       "scale": 1,
       "rotate": 0
     },
     "eyes": {
-      "x": 52.27,
-      "y": 30.05,
+      "x": 51.97,
+      "y": 29.88,
       "scale": 1,
       "rotate": 0
     },
     "neck": {
-      "x": 50.28,
-      "y": 46.91,
+      "x": 50.3,
+      "y": 46.39,
       "scale": 1,
       "rotate": 0
     }
   },
   "atlas": {
-    "cellWidth": 208,
+    "cellWidth": 192,
     "cellHeight": 208,
     "columns": 16
   }
