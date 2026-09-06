@@ -38,7 +38,7 @@
     "waiting": {
       "fps": 3,
       "frames": 7,
-      "source": "think"
+      "source": "sleep"
     },
     "review": {
       "fps": 3,
@@ -66,6 +66,7 @@
     "doubleClickState": "jumping",
     "idleStates": [
       "idle",
+      "waiting",
       "review",
       "failed",
       "jumping",
@@ -105,26 +106,26 @@
   },
   "anchors": {
     "head_top": {
-      "x": 49.91,
-      "y": 10.1,
+      "x": 48.92,
+      "y": 8.89,
       "scale": 1,
       "rotate": 0
     },
     "eyes": {
-      "x": 48.25,
-      "y": 23.38,
+      "x": 40.16,
+      "y": 21.12,
       "scale": 1,
       "rotate": 0
     },
     "neck": {
-      "x": 48.5,
-      "y": 34.86,
+      "x": 48.78,
+      "y": 24.52,
       "scale": 1,
       "rotate": 0
     }
   },
   "atlas": {
-    "cellWidth": 192,
+    "cellWidth": 207,
     "cellHeight": 208,
     "columns": 18
   }
