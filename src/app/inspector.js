@@ -43,8 +43,7 @@ const el = {
   showAnchors: document.getElementById("showAnchors"),
   showCell: document.getElementById("showCell"),
   onlyProblems: document.getElementById("onlyProblems"),
-  status: document.getElementById("status"),
-  reportButton: document.getElementById("reportButton")
+  status: document.getElementById("status")
 };
 
 const state = { pets: [], reports: new Map(), current: "", playing: true, manualFrame: null };
@@ -512,7 +511,15 @@ function wireBugfix() {
   // language later must not silently change the report form under the owner.
   lang: "ru",
   version: state.appVersion || "?",
-  button: false,
+  // 🔴 THE BUTTON IS THE MODULE'S, NOT MINE.
+  //
+  // It was first wired headless (`button: false`) behind a button of my own on the toolbar, and
+  // that broke the form. The module injects the form's styles ONLY inside mountFab; the headless
+  // path in openForm creates the shadow root and never adds them. Turning the button off turned
+  // the styling off with it: the form landed at the end of the page in normal flow, with no
+  // floating panel at all. The owner saw it before I did. The module is designed around a floating
+  // button — so it gets one.
+  position: "right",
   screen: () => `inspector:${state.current || "-"}`,
   module: () => ({ id: "pose-inspector", ver: "VER 1 · 06.09.2026" }),
   context: () => {
@@ -535,15 +542,5 @@ function wireBugfix() {
   }
   });
 }
-
-/// The module's own form, not one of my own.
-///
-/// It was wired headless at first, with a plain textarea beside it — which threw away exactly the
-/// things the module was vendored for: the Bug / Idea / Unclear choice, a contact field for the
-/// reply, the attach-screenshot box and voice recording. The owner checked for those and found
-/// them missing. The button here stays because it belongs next to the evidence; what it opens is
-/// the shared form.
-el.reportButton.textContent = RU.report;
-el.reportButton.addEventListener("click", () => window.BugfixApp?.open?.());
 
 boot();
