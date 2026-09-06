@@ -1,4 +1,5 @@
 import { RU } from "./inspector.strings.ru.js";
+import { appContext, sendReport, uploadShot } from "./bug-report.js";
 
 /// Pose inspector: shows every state row of every pack the way the app reads the atlas.
 ///
@@ -42,7 +43,14 @@ const el = {
   showAnchors: document.getElementById("showAnchors"),
   showCell: document.getElementById("showCell"),
   onlyProblems: document.getElementById("onlyProblems"),
-  status: document.getElementById("status")
+  status: document.getElementById("status"),
+  reportButton: document.getElementById("reportButton"),
+  reportBox: document.getElementById("reportBox"),
+  reportTitle: document.getElementById("reportTitle"),
+  reportHint: document.getElementById("reportHint"),
+  reportText: document.getElementById("reportText"),
+  reportSend: document.getElementById("reportSend"),
+  reportCancel: document.getElementById("reportCancel")
 };
 
 const state = { pets: [], reports: new Map(), current: "", playing: true, manualFrame: null };
@@ -438,6 +446,7 @@ async function boot() {
     el.body.innerHTML = `<p class="empty">${RU.noBridge}</p>`;
     return;
   }
+  state.appVersion = (await invoke("get_app_info").catch(() => null))?.version || "?";
   const list = await invoke("list_pets");
   state.pets = (list.pets || []).map((pet) => ({
     ...pet,
@@ -483,6 +492,62 @@ el.stepBack.addEventListener("click", () => {
   el.playPause.textContent = RU.play;
   state.manualFrame = Math.max(0, (state.manualFrame ?? 0) - 1);
   if (state.current) select(state.current);
+});
+
+/// Reporting a bug from the place where the evidence already is.
+///
+/// The report carries the pack being looked at, the cell it declares, the frame count and rate of
+/// every row, whether it walks, and the full list of findings — the numbers that turned out to
+/// matter far more than a picture. A screenshot of the sheet is attached too, because the eye
+/// catches what no check was written for.
+el.reportTitle.textContent = RU.reportTitle;
+el.reportHint.textContent = RU.reportHint;
+el.reportSend.textContent = RU.reportSend;
+el.reportCancel.textContent = RU.reportCancel;
+el.reportButton.textContent = RU.report;
+el.reportButton.addEventListener("click", () => {
+  el.reportText.value = "";
+  el.reportBox.showModal();
+});
+el.reportSend.addEventListener("click", async () => {
+  const message = el.reportText.value.trim();
+  if (!message) { el.reportText.focus(); el.status.textContent = RU.reportEmpty; return; }
+  el.reportBox.close();
+  el.status.textContent = RU.reportSending;
+  const report = state.reports.get(state.current);
+  try {
+    let shotPath = null;
+    if (report?.image) {
+      // The first row of the pack, at real size: enough to see the defect, small enough to send.
+      const canvas = document.createElement("canvas");
+      const g = report.geometry;
+      const columns = Math.min(report.rows[0]?.timing.frames || 1, 8);
+      canvas.width = g.cellWidth * columns;
+      canvas.height = g.cellHeight;
+      canvas.getContext("2d").drawImage(report.image, 0, 0, canvas.width, canvas.height,
+                                        0, 0, canvas.width, canvas.height);
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      if (blob) shotPath = await uploadShot(blob, report.pet.id);
+    }
+    await sendReport({
+      message,
+      shotPath,
+      context: appContext({
+        appInfo: { version: state.appVersion },
+        pet: report?.pet,
+        geometry: report?.geometry,
+        states: report?.rows?.map((entry) => ({
+          state: entry.id, frames: entry.timing.frames, fps: entry.timing.fps,
+          source: entry.timing.source, poseDistance: entry.distance ?? null,
+          heightSpread: entry.spread ?? null
+        })),
+        findings: report?.issues?.map((issue) => `${issue.level}: ${issue.text}`)
+      })
+    });
+    el.status.textContent = RU.reportDone;
+  } catch (error) {
+    el.status.textContent = RU.reportFailed(error.message);
+  }
 });
 
 boot();

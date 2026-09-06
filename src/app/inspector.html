@@ -79,6 +79,17 @@
       border: 1px solid var(--line); border-radius: 3px; }
   .strip canvas.clip { border-color: var(--bad); box-shadow: 0 0 0 1px var(--bad); }
   .empty { color: var(--dim); font-style: italic; padding: 18px 0; }
+
+  /* The report box is deliberately plain and wide: the text people write here is the part a
+     screenshot cannot supply, so it gets room. */
+  #reportBox { border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px;
+               max-width: 560px; background: var(--card); color: var(--ink); font: inherit; }
+  #reportBox::backdrop { background: rgba(20,18,15,.35); }
+  #reportBox h3 { margin: 0 0 6px; font-size: 15px; }
+  #reportBox p { margin: 0 0 10px; color: var(--dim); }
+  #reportBox textarea { width: 100%; font: inherit; padding: 8px 10px; border-radius: 8px;
+                        border: 1px solid var(--line); resize: vertical; }
+  .report-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
 </style>
 </head>
 <body>
@@ -102,10 +113,22 @@
       <label><input id="showAnchors" type="checkbox"> точки крепления</label>
       <label><input id="showCell" type="checkbox"> границы клетки</label>
       <label><input id="onlyProblems" type="checkbox"> только с замечаниями</label>
+      <button id="reportButton" type="button">🐞 Сообщить о баге</button>
       <span id="status" style="color: var(--dim)"></span>
     </div>
     <div id="body"></div>
   </main>
+  <dialog id="reportBox">
+    <form method="dialog">
+      <h3 id="reportTitle"></h3>
+      <p id="reportHint"></p>
+      <textarea id="reportText" rows="5" placeholder=""></textarea>
+      <div class="report-actions">
+        <button id="reportSend" type="button"></button>
+        <button id="reportCancel" value="cancel"></button>
+      </div>
+    </form>
+  </dialog>
   <script src="./inspector.js" type="module"></script>
 </body>
 </html>
