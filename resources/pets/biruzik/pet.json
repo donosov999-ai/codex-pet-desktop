@@ -302,5 +302,43 @@
       "scale": 1,
       "rotate": 0
     }
+  },
+  "stateTimings": {
+    "idle": {
+      "frames": 7,
+      "fps": 5
+    },
+    "running-right": {
+      "frames": 8,
+      "fps": 10
+    },
+    "running-left": {
+      "frames": 8,
+      "fps": 10
+    },
+    "waving": {
+      "frames": 4,
+      "fps": 6
+    },
+    "jumping": {
+      "frames": 5,
+      "fps": 8
+    },
+    "failed": {
+      "frames": 8,
+      "fps": 6
+    },
+    "waiting": {
+      "frames": 6,
+      "fps": 5
+    },
+    "running": {
+      "frames": 6,
+      "fps": 7
+    },
+    "review": {
+      "frames": 6,
+      "fps": 6
+    }
   }
 }

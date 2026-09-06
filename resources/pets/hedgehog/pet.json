@@ -31,17 +31,17 @@
       "source": "walk"
     },
     "running": {
-      "fps": 4,
+      "fps": 7,
       "frames": 7,
       "source": "eat"
     },
     "waiting": {
-      "fps": 3,
+      "fps": 5,
       "frames": 7,
       "source": "think"
     },
     "review": {
-      "fps": 3,
+      "fps": 6,
       "frames": 7,
       "source": "look"
     },
@@ -56,7 +56,7 @@
       "source": "celebrate"
     },
     "failed": {
-      "fps": 3,
+      "fps": 6,
       "frames": 7,
       "source": "sad"
     }

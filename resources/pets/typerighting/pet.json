@@ -21,27 +21,27 @@
       "source": "idle"
     },
     "running-right": {
-      "fps": 7,
+      "fps": 10,
       "frames": 9,
       "source": "walk"
     },
     "running-left": {
-      "fps": 7,
+      "fps": 10,
       "frames": 9,
       "source": "walk"
     },
     "running": {
-      "fps": 5,
+      "fps": 7,
       "frames": 8,
       "source": "eat"
     },
     "waiting": {
-      "fps": 3,
+      "fps": 5,
       "frames": 9,
       "source": "think"
     },
     "review": {
-      "fps": 4,
+      "fps": 6,
       "frames": 9,
       "source": "look"
     },
@@ -56,7 +56,7 @@
       "source": "celebrate"
     },
     "failed": {
-      "fps": 4,
+      "fps": 6,
       "frames": 9,
       "source": "sad"
     }
